@@ -36,6 +36,8 @@
         .filter-bar { display: flex; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; align-items: flex-end; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .group-label { font-size: 0.75rem; font-weight: bold; color: #64748b; margin-bottom: 5px; display: block; text-transform: uppercase; }
         canvas { max-height: 250px; width: 100%; }
+        /* Scroll para la tabla si hay muchos datos */
+        .table-container { max-height: 500px; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -46,7 +48,7 @@
             <h1 style="margin:0; font-size: 1.5rem;">Gestion Corporativa - GRIFO ACP</h1>
             <span class="sync-indicator">Sinc. aut. cada 15s | Ultima: <span id="lastUpdate">-</span></span>
         </div>
-        <button onclick="exportarExcel()" class="btn btn-excel">Exportar a EXCEL (.xlsx)</button>
+        <button onclick="exportarExcel()" class="btn btn-excel">Exportar HISTORIAL COMPLETO (.xlsx)</button>
     </div>
 
     <div class="card">
@@ -119,19 +121,21 @@
     </div>
 
     <div class="card full-width">
-        <h2>Historial Detallado de Movimientos</h2>
+        <h2>Historial de Movimientos (Sin Limites)</h2>
         <div class="filter-bar">
             <div style="flex:1"><label class="group-label">Desde:</label><input type="date" id="filtroDesde"></div>
             <div style="flex:1"><label class="group-label">Hasta:</label><input type="date" id="filtroHasta"></div>
             <button class="btn btn-blue" onclick="aplicarFiltros()">Filtrar Fechas</button>
             <button class="btn" style="background:#64748b" onclick="limpiarFiltros()">Limpiar</button>
         </div>
-        <table id="tablaHistorialWeb">
-            <thead>
-                <tr><th>Fecha</th><th>Operacion</th><th>Producto</th><th>Cantidad</th><th>Referencia</th><th>Saldo Final</th></tr>
-            </thead>
-            <tbody id="historialBody"></tbody>
-        </table>
+        <div class="table-container">
+            <table id="tablaHistorialWeb">
+                <thead>
+                    <tr><th>Fecha</th><th>Operacion</th><th>Producto</th><th>Cantidad</th><th>Referencia</th><th>Saldo Final</th></tr>
+                </thead>
+                <tbody id="historialBody"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -146,6 +150,7 @@ async function cargarDatos() {
     try {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
+        // Quitamos cualquier limite de 15 lineas que pudiera venir del servidor
         datosCache = data.historial;
         historialFiltradoActual = [...datosCache];
         actualizarUI(data);
@@ -168,7 +173,6 @@ function actualizarUI(data) {
 
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
-        // Corrección de parsing de fecha para mantenimiento
         const partesManto = e.ult.split('-');
         const fechaManto = new Date(partesManto[0], partesManto[1]-1, partesManto[2]);
         const diff = Math.floor((hoy - fechaManto) / (1000*60*60*24));
@@ -186,16 +190,14 @@ function aplicarFiltros() {
     renderHistorial(datosCache);
 }
 
-// Lógica de conversión de fecha robusta (soporta DD/MM/YYYY y otros)
 function parseFechaBase(str) {
     if(!str) return null;
     const limpia = str.split(',')[0].trim();
     const partes = limpia.split('/');
     if(partes.length === 3) {
-        // Asume DD/MM/YYYY
         return new Date(partes[2], partes[1]-1, partes[0]);
     }
-    return new Date(str); // Intento fallback
+    return new Date(str);
 }
 
 function renderHistorial(lista) {
@@ -208,13 +210,9 @@ function renderHistorial(lista) {
         filtrada = lista.filter(h => {
             const fechaH = parseFechaBase(h.fecha);
             if(!fechaH) return false;
-            
             fechaH.setHours(0,0,0,0);
             const tiempoH = fechaH.getTime();
-
-            let okDesde = true;
-            let okHasta = true;
-
+            let okDesde = true, okHasta = true;
             if(desdeRaw) {
                 const d = new Date(desdeRaw + "T00:00:00");
                 okDesde = tiempoH >= d.getTime();
@@ -228,6 +226,7 @@ function renderHistorial(lista) {
     }
 
     historialFiltradoActual = filtrada;
+    // Eliminado el .slice(0, 15) para mostrar TODO
     document.getElementById('historialBody').innerHTML = filtrada.map(h => `
         <tr><td>${h.fecha}</td><td style="color:${h.mov.toUpperCase()==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
         <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>`).join('');
@@ -248,15 +247,18 @@ function llenarSelectorMeses() {
 
 function obtenerConsumoMes(lista, mesAnio) {
     let d = 0, g = 0;
+    // Normalizamos el mes buscado para evitar fallos por tildes o mayusculas
+    const mesBuscado = mesAnio.toLowerCase().trim();
+
     lista.forEach(h => {
         const fecha = parseFechaBase(h.fecha);
         if(!fecha) return;
 
         const m = fecha.toLocaleString('es-ES', { month: 'long' });
         const a = fecha.getFullYear();
-        const comparador = (m.charAt(0).toUpperCase() + m.slice(1) + " " + a).trim();
+        const comparador = (m + " " + a).toLowerCase().trim();
         
-        if (comparador === mesAnio.trim() && h.mov.toUpperCase() === 'SALIDA') {
+        if (comparador === mesBuscado && h.mov.toUpperCase() === 'SALIDA') {
             if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
             if (h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
         }
@@ -360,6 +362,7 @@ window.onload = () => {
 
 function exportarExcel() {
     const wb = XLSX.utils.book_new();
+    // Exportamos TODA la lista que esté actualmente filtrada (sin limites)
     const dataParaExcel = historialFiltradoActual.map(h => ({
         "Fecha": h.fecha,
         "Operacion": h.mov,
@@ -369,8 +372,8 @@ function exportarExcel() {
         "Saldo Final": h.saldo
     }));
     const ws = XLSX.utils.json_to_sheet(dataParaExcel);
-    XLSX.utils.book_append_sheet(wb, ws, "Historial");
-    XLSX.writeFile(wb, "Reporte_ACP_Filtrado.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Historial Completo");
+    XLSX.writeFile(wb, "Reporte_Suministro_ACP.xlsx");
 }
 </script>
 </body>
