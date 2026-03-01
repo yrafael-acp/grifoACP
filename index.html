@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Combustible ACP - Corporativo</title>
+    <title>SISTEMA CORPORATIVO GRIFO ACP</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root { 
             --primary: #1e293b; --accent: #3b82f6; --diesel: #2563eb; 
             --gasohol: #10b981; --danger: #ef4444; --warning: #f59e0b; --success: #059669;
         }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); }
         .full-width { grid-column: span 2; }
@@ -25,23 +25,23 @@
         .bg-success { background: #dcfce7; color: var(--gasohol); }
         .bg-warning { background: #fef3c7; color: var(--warning); }
         
-        /* Animación de Parpadeo para Alerta 85 días */
+        /* PARPADEO PARA ALERTAS DE 85 DÍAS */
         .blink-row { animation: blinker 1.5s linear infinite; background-color: #fff3cd !important; }
         @keyframes blinker { 50% { opacity: 0.7; } }
 
         input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
         .stock-label { font-size: 1.8rem; font-weight: bold; display: block; margin: 5px 0; }
-        .filter-bar { display: flex; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; align-items: flex-end; margin-bottom: 15px; }
-        #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); display:flex; align-items:center; justify-content:center; z-index:2000; display:none; }
+        .sync-indicator { font-size: 0.75rem; color: #64748b; font-weight: normal; }
     </style>
 </head>
 <body>
 
-<div id="loadingOverlay"><h3>Sincronizando base de datos...</h3></div>
-
 <div class="dashboard">
     <div class="card full-width" style="background: var(--primary); color: white; border:none; display:flex; justify-content:space-between; align-items:center;">
-        <h1 style="margin:0; font-size: 1.5rem;">⛽ Gestión Integral Corporativa - GRIFO ACP</h1>
+        <div>
+            <h1 style="margin:0; font-size: 1.5rem;">⛽ Gestión Corporativa - GRIFO ACP</h1>
+            <span class="sync-indicator">🔄 Sincronización automática cada 30s | Última: <span id="lastUpdate">-</span></span>
+        </div>
         <button onclick="exportarExcel()" class="btn btn-excel">📥 Exportar a EXCEL (.xlsx)</button>
     </div>
 
@@ -52,41 +52,46 @@
             <option value="salida">Salida (Consumo Diario)</option>
             <option value="ingreso">Ingreso (Cisterna)</option>
         </select>
+        <label>Producto</label>
         <select id="prod">
             <option value="diesel">Diesel (Cap: 5000 gl)</option>
             <option value="gasohol">Gasohol (Cap: 1000 gl)</option>
         </select>
-        <input type="number" id="cant" step="0.01" placeholder="Cantidad en galones">
+        <label>Cantidad</label>
+        <input type="number" id="cant" step="0.01" placeholder="0.00 gl">
         <div id="extraData" style="display:none;">
+            <label>Referencia</label>
             <input type="text" id="referencia" placeholder="Placa / Chofer">
         </div>
-        <button class="btn btn-blue" style="width:100%" onclick="procesarMovimiento()">Guardar y Sincronizar</button>
+        <button class="btn btn-blue" style="width:100%" onclick="procesarMovimiento()">Guardar Registro</button>
         
-        <h3 style="margin-top:20px;">📦 Gestión de Repuestos</h3>
+        <h3 style="margin-top:20px;">📦 Stock de Filtros</h3>
         <div style="display:flex; gap:10px;">
-            <button class="btn btn-green" style="flex:1" onclick="reponerFiltro('cf60')">Compra CF60</button>
-            <button class="btn btn-green" style="flex:1" onclick="reponerFiltro('cf100')">Compra CF100</button>
+            <button class="btn btn-green" style="flex:1" onclick="reponerFiltro('cf60')">Comprar CF60</button>
+            <button class="btn btn-green" style="flex:1" onclick="reponerFiltro('cf100')">Comprar CF100</button>
         </div>
     </div>
 
     <div class="card">
-        <h2>🚚 Monitor de Pedidos y Filtros</h2>
+        <h2>🚚 Monitor de Pedidos (Reserva 24h)</h2>
         <div id="alertasContainer"></div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
             <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
                 <b>DIESEL</b>
                 <span id="sDiesel" class="stock-label">0.00</span>
-                <small>Pedir a los 3000 gl</small>
+                <small>Umbral pedido: 3000 gl</small>
             </div>
             <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
                 <b>GASOHOL</b>
                 <span id="sGasohol" class="stock-label">0.00</span>
-                <small>Pedir a los 450 gl</small>
+                <small>Umbral pedido: 450 gl</small>
             </div>
         </div>
         <div style="margin-top:20px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <b>Inventario de Filtros:</b><br>
-            CF60: <span id="f60" style="font-weight:bold">3</span> | CF100: <span id="f100" style="font-weight:bold">2</span>
+            <b>Inventario Filtros:</b> 
+            CF60: <span id="f60" style="font-weight:bold">3</span> | 
+            CF100: <span id="f100" style="font-weight:bold">2</span>
+            <div id="alertaFiltros" class="text-danger fw-bold mt-2" style="font-size:0.8em"></div>
         </div>
     </div>
 
@@ -102,12 +107,6 @@
 
     <div class="card full-width">
         <h2>🔍 Historial Detallado de Movimientos</h2>
-        <div class="filter-bar">
-            <div style="flex:1"><label>Desde:</label><input type="date" id="filtroDesde"></div>
-            <div style="flex:1"><label>Hasta:</label><input type="date" id="filtroHasta"></div>
-            <button class="btn btn-blue" onclick="cargarDatos()">Filtrar</button>
-            <button class="btn" style="background:#64748b" onclick="limpiarFiltros()">Limpiar</button>
-        </div>
         <table>
             <thead>
                 <tr><th>Fecha</th><th>Operación</th><th>Producto</th><th>Cantidad</th><th>Referencia</th><th>Saldo Final</th></tr>
@@ -118,64 +117,87 @@
 </div>
 
 <script>
-// REEMPLAZAR CON TU URL DE GOOGLE APPS SCRIPT
+// URL CORPORATIVA DE TU GOOGLE APPS SCRIPT
 const WEB_APP_URL = 'https://script.google.com/a/macros/acpagro.com/s/AKfycbxeYjHfj6CyIU9fR3LPhYm1raPbECSh9Qk42-jhFVDG0iU74hLnlqYTx3BIkBYuGtq6JQ/exec'; 
 
 async function cargarDatos() {
-    document.getElementById('loadingOverlay').style.display = 'flex';
     try {
-        const fDesde = document.getElementById('filtroDesde').value;
-        const fHasta = document.getElementById('filtroHasta').value;
-        const response = await fetch(`${WEB_APP_URL}?action=read&desde=${fDesde}&hasta=${fHasta}`);
+        const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
         actualizarUI(data);
-    } catch (e) { alert("Error de sincronización"); }
-    document.getElementById('loadingOverlay').style.display = 'none';
-}
-
-async function procesarMovimiento() {
-    const payload = {
-        action: 'write',
-        mov: document.getElementById('tipoMov').value.toUpperCase(),
-        prod: document.getElementById('prod').value.toUpperCase(),
-        cant: parseFloat(document.getElementById('cant').value),
-        ref: document.getElementById('referencia').value || 'CONSUMO'
-    };
-    document.getElementById('loadingOverlay').style.display = 'flex';
-    await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
-    cargarDatos();
+        document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
+    } catch (e) {
+        console.log("Error de conexión, reintentando en 30s...");
+    }
 }
 
 function actualizarUI(data) {
+    // Stocks
     document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
     document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
     document.getElementById('f60').innerText = data.filtros.cf60;
     document.getElementById('f100').innerText = data.filtros.cf100;
 
+    // Alertas Combustible
+    let alerts = "";
+    if(data.stocks.diesel <= 3000) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ <b>DIESEL BAJO:</b> Generar pedido de cisterna.</div>`;
+    if(data.stocks.gasohol <= 450) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ <b>GASOHOL BAJO:</b> Generar pedido de cisterna.</div>`;
+    document.getElementById('alertasContainer').innerHTML = alerts || "✅ Stock con margen de seguridad OK.";
+
+    // Mantenimiento con Parpadeo
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
         const diff = Math.floor((hoy - new Date(e.ult)) / (1000*60*60*24));
-        const blink = diff >= 85 && diff < 90 ? 'blink-row' : '';
+        const blink = (diff >= 85 && diff < 90) ? 'blink-row' : '';
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
-        return `<tr class="${blink}"><td>${e.id}</td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
-                <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
-                <td><button class="btn btn-blue btn-sm" onclick="hacerManto('${e.id}')">Reset</button></td></tr>`;
+        return `<tr class="${blink}">
+            <td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
+            <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
+            <td><button class="btn btn-blue btn-sm" onclick="hacerManto('${e.id}')">Reset</button></td>
+        </tr>`;
     }).join('');
 
+    // Historial
     document.getElementById('historialBody').innerHTML = data.historial.map(h => `
         <tr><td>${h.fecha}</td><td style="color:${h.mov==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
         <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>`).join('');
+}
+
+async function procesarMovimiento() {
+    const cant = parseFloat(document.getElementById('cant').value);
+    if (isNaN(cant) || cant <= 0) return alert("Cantidad inválida");
+
+    const payload = {
+        action: 'write',
+        mov: document.getElementById('tipoMov').value.toUpperCase(),
+        prod: document.getElementById('prod').value.toUpperCase(),
+        cant: cant,
+        ref: document.getElementById('referencia').value || 'DESPACHO'
+    };
+    
+    // Guardar inmediatamente y refrescar
+    await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
+    document.getElementById('cant').value = "";
+    cargarDatos();
 }
 
 function toggleCisterna() {
     document.getElementById('extraData').style.display = (document.getElementById('tipoMov').value === 'ingreso') ? 'block' : 'none';
 }
 
-function reponerFiltro(t) { /* Lógica fetch para actualizar filtros */ }
-function exportarExcel() { /* Lógica XLSX */ }
-function limpiarFiltros() { document.querySelectorAll('input[type="date"]').forEach(i => i.value = ""); cargarDatos(); }
+// INICIAR CARGA Y TEMPORIZADOR DE 30 SEGUNDOS
+window.onload = () => {
+    cargarDatos();
+    setInterval(cargarDatos, 15000); // Sincronización automática cada 30 segundos
+};
 
-window.onload = cargarDatos;
+function exportarExcel() {
+    const table = document.getElementById("historialBody");
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.table_to_sheet(document.querySelector("table:last-of-type"));
+    XLSX.utils.book_append_sheet(wb, ws, "Historial");
+    XLSX.writeFile(wb, "Reporte_Grifo_ACP.xlsx");
+}
 </script>
 </body>
 </html>
