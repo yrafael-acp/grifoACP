@@ -46,9 +46,9 @@
     <div class="card full-width" style="background: var(--primary); color: white; border:none; display:flex; justify-content:space-between; align-items:center;">
         <div>
             <h1 style="margin:0; font-size: 1.5rem;">Gestion Corporativa - GRIFO ACP</h1>
-            <span class="sync-indicator">Sinc. aut. cada 15s | Ultima: <span id="lastUpdate">-</span></span>
+            <span class="sync-indicator">Sistema online | Ultima sinc.: <span id="lastUpdate">-</span></span>
         </div>
-        <button onclick="exportarExcel()" class="btn btn-excel">Exportar HISTORIAL COMPLETO (.xlsx)</button>
+        <button onclick="exportarExcel()" class="btn btn-excel">Exportar Excel</button>
     </div>
 
     <div class="card">
@@ -87,12 +87,12 @@
             <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
                 <b>DIESEL</b>
                 <span id="sDiesel" class="stock-label">0.00</span>
-                <small>Umbral: 3000 gl</small>
+                <small>Stock critico: 3000 gl</small>
             </div>
             <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
                 <b>GASOHOL</b>
                 <span id="sGasohol" class="stock-label">0.00</span>
-                <small>Umbral: 450 gl</small>
+                <small>Stock critico: 450 gl</small>
             </div>
         </div>
         
@@ -121,7 +121,7 @@
     </div>
 
     <div class="card full-width">
-        <h2>Historial de Movimientos (Sin Limites)</h2>
+        <h2>Historial de Movimientos</h2>
         <div class="filter-bar">
             <div style="flex:1"><label class="group-label">Desde:</label><input type="date" id="filtroDesde"></div>
             <div style="flex:1"><label class="group-label">Hasta:</label><input type="date" id="filtroHasta"></div>
