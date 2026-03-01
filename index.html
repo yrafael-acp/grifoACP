@@ -38,17 +38,8 @@
         canvas { max-height: 250px; width: 100%; }
         .table-container { max-height: 500px; overflow-y: auto; }
 
-        /* Estilo para el Logotipo */
-        .app-header-logo {
-            height: 50px;
-            width: auto;
-            margin-right: 15px;
-            vertical-align: middle;
-        }
-        .header-content {
-            display: flex;
-            align-items: center;
-        }
+        .app-header-logo { height: 50px; width: auto; margin-right: 15px; vertical-align: middle; }
+        .header-content { display: flex; align-items: center; }
     </style>
 </head>
 <body>
@@ -89,8 +80,8 @@
         
         <h3 style="margin-top:20px;">Stock de Filtros</h3>
         <div style="display:flex; gap:10px;">
-            <button class="btn btn-green" style="flex:1" onclick="alert('Funcion Compra CF60')">Comprar CF60</button>
-            <button class="btn btn-green" style="flex:1" onclick="alert('Funcion Compra CF100')">Comprar CF100</button>
+            <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf60')">Comprar CF60</button>
+            <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf100')">Comprar CF100</button>
         </div>
     </div>
 
@@ -119,8 +110,9 @@
             <canvas id="consumoChart"></canvas>
         </div>
 
-        <div style="margin-top:15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <b>Inventario Filtros:</b> CF60: <span id="f60">3</span> | CF100: <span id="f100">2</span>
+        <div id="statusFiltros" style="margin-top:15px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <b>Inventario Filtros:</b> CF60: <span id="f60">0</span> | CF100: <span id="f100">0</span>
+            <div id="alertaStockFiltros" style="margin-top:5px; font-weight:bold; font-size:0.85em;"></div>
         </div>
     </div>
 
@@ -160,11 +152,28 @@ let datosCache = [];
 let miGrafico = null;
 let historialFiltradoActual = [];
 
+// Función para manejar compra y uso de filtros (Reset)
+async function gestionarFiltros(accion, tipo, equipo = '') {
+    const payload = {
+        action: 'updateFiltros',
+        subAction: accion,
+        tipo: tipo,
+        equipo: equipo
+    };
+
+    try {
+        const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
+        if(res.ok) {
+            alert(accion === 'compra' ? `Stock de ${tipo} actualizado (+1)` : `Mantenimiento de ${equipo} realizado. Stock ${tipo} (-1)`);
+            cargarDatos();
+        }
+    } catch (e) { alert("Error al actualizar filtros"); }
+}
+
 async function cargarDatos() {
     try {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
-        // Recibimos la data completa (Asegúrate de haber quitado el .slice en el Google Apps Script)
         datosCache = data.historial;
         historialFiltradoActual = [...datosCache];
         actualizarUI(data);
@@ -177,8 +186,18 @@ async function cargarDatos() {
 function actualizarUI(data) {
     document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
     document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
-    document.getElementById('f60').innerText = data.filtros.cf60;
-    document.getElementById('f100').innerText = data.filtros.cf100;
+    
+    // Actualizar Stock de Filtros
+    const cf60Count = data.filtros.cf60;
+    const cf100Count = data.filtros.cf100;
+    document.getElementById('f60').innerText = cf60Count;
+    document.getElementById('f100').innerText = cf100Count;
+
+    // Alertas de Stock Mínimo Filtros
+    let alertaFiltrosHTML = "";
+    if(cf60Count < 2) alertaFiltrosHTML += `<div style="color:var(--danger)">⚠️ Stock Crítico CF60: Reponer unidades.</div>`;
+    if(cf100Count < 1) alertaFiltrosHTML += `<div style="color:var(--danger)">⚠️ Stock Crítico CF100: Reponer unidades.</div>`;
+    document.getElementById('alertaStockFiltros').innerHTML = alertaFiltrosHTML;
 
     let alerts = "";
     if(data.stocks.diesel <= 3000) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">Diesel Bajo</div>`;
@@ -192,9 +211,13 @@ function actualizarUI(data) {
         const diff = Math.floor((hoy - fechaManto) / (1000*60*60*24));
         const blink = (diff >= 85 && diff < 90) ? 'blink-row' : '';
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
+        
+        // Identificar tipo de filtro por equipo para el Reset
+        const tipoFiltro = e.f.includes('CF60') ? 'cf60' : (e.f.includes('CF100') ? 'cf100' : 'malla');
+
         return `<tr class="${blink}"><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
         <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
-        <td><button class="btn btn-blue btn-sm" onclick="alert('Funcion Reset')">Reset</button></td></tr>`;
+        <td><button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '${tipoFiltro}', '${e.id}')">Reset</button></td></tr>`;
     }).join('');
 
     renderHistorial(datosCache);
@@ -208,18 +231,14 @@ function parseFechaBase(str) {
     if(!str) return null;
     const limpia = str.split(',')[0].trim();
     const partes = limpia.split('/');
-    if(partes.length === 3) {
-        return new Date(partes[2], partes[1]-1, partes[0]);
-    }
+    if(partes.length === 3) return new Date(partes[2], partes[1]-1, partes[0]);
     return new Date(str);
 }
 
 function renderHistorial(lista) {
     const desdeRaw = document.getElementById('filtroDesde').value;
     const hastaRaw = document.getElementById('filtroHasta').value;
-    
     let filtrada = [...lista];
-
     if(desdeRaw || hastaRaw) {
         filtrada = lista.filter(h => {
             const fechaH = parseFechaBase(h.fecha);
@@ -238,7 +257,6 @@ function renderHistorial(lista) {
             return okDesde && okHasta;
         });
     }
-
     historialFiltradoActual = filtrada;
     document.getElementById('historialBody').innerHTML = filtrada.map(h => `
         <tr><td>${h.fecha}</td><td style="color:${h.mov.toUpperCase()==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
@@ -248,7 +266,6 @@ function renderHistorial(lista) {
 function llenarSelectorMeses() {
     const selector = document.getElementById('filtroMesGrafico');
     if (selector.options.length > 0) return;
-    
     const meses = ["Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026"];
     meses.forEach(m => {
         let opt = document.createElement('option');
@@ -261,15 +278,12 @@ function llenarSelectorMeses() {
 function obtenerConsumoMes(lista, mesAnio) {
     let d = 0, g = 0;
     const mesBuscado = mesAnio.toLowerCase().trim();
-
     lista.forEach(h => {
         const fecha = parseFechaBase(h.fecha);
         if(!fecha) return;
-
         const m = fecha.toLocaleString('es-ES', { month: 'long' });
         const a = fecha.getFullYear();
         const comparador = (m + " " + a).toLowerCase().trim();
-        
         if (comparador === mesBuscado && h.mov.toUpperCase() === 'SALIDA') {
             if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
             if (h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
@@ -281,21 +295,16 @@ function obtenerConsumoMes(lista, mesAnio) {
 function procesarGrafico() {
     const selector = document.getElementById('filtroMesGrafico');
     if(!selector.value) return;
-
     const mesActual = selector.value;
     const indexActual = selector.selectedIndex;
-    
     const dataActual = obtenerConsumoMes(datosCache, mesActual);
-    
     let dataPrev = { diesel: 0, gasohol: 0 };
     if (indexActual > 0) {
         const mesPrev = selector.options[indexActual - 1].value;
         dataPrev = obtenerConsumoMes(datosCache, mesPrev);
     }
-
     const ctx = document.getElementById('consumoChart').getContext('2d');
     if (miGrafico) miGrafico.destroy();
-
     miGrafico = new Chart(ctx, {
         data: {
             labels: ['Diesel', 'Gasohol'],
@@ -327,9 +336,6 @@ function procesarGrafico() {
             plugins: {
                 legend: { position: 'bottom' },
                 tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(2)} gl` } }
-            },
-            scales: {
-                y: { beginAtZero: true, title: { display: true, text: 'Galones' } }
             }
         }
     });
@@ -339,7 +345,6 @@ async function procesarMovimiento() {
     const cant = parseFloat(document.getElementById('cant').value);
     const fechaMan = document.getElementById('fechaMov').value; 
     if (isNaN(cant) || cant <= 0) return alert("Cantidad invalida");
-
     const payload = {
         action: 'write',
         mov: document.getElementById('tipoMov').value.toUpperCase(),
@@ -348,7 +353,6 @@ async function procesarMovimiento() {
         ref: document.getElementById('referencia').value || 'DESPACHO',
         fechaManual: fechaMan ? fechaMan : null
     };
-    
     try {
         await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
         document.getElementById('cant').value = "";
