@@ -43,17 +43,17 @@
 <div class="dashboard">
     <div class="card full-width" style="background: var(--primary); color: white; border:none; display:flex; justify-content:space-between; align-items:center;">
         <div>
-            <h1 style="margin:0; font-size: 1.5rem;">⛽ Gestión Corporativa - GRIFO ACP</h1>
-            <span class="sync-indicator">🔄 Sinc. aut. cada 15s | Última: <span id="lastUpdate">-</span></span>
+            <h1 style="margin:0; font-size: 1.5rem;">Gestion Corporativa - GRIFO ACP</h1>
+            <span class="sync-indicator">Sinc. aut. cada 15s | Ultima: <span id="lastUpdate">-</span></span>
         </div>
-        <button onclick="exportarExcel()" class="btn btn-excel">📥 Exportar a EXCEL (.xlsx)</button>
+        <button onclick="exportarExcel()" class="btn btn-excel">Exportar a EXCEL (.xlsx)</button>
     </div>
 
     <div class="card">
-        <h2>📑 Registro de Movimiento</h2>
+        <h2>Registro de Movimiento</h2>
         <label class="group-label">Fecha del Movimiento (Opcional)</label>
         <input type="date" id="fechaMov">
-        <label class="group-label">Tipo de Operación</label>
+        <label class="group-label">Tipo de Operacion</label>
         <select id="tipoMov" onchange="toggleCisterna()">
             <option value="salida">Salida (Consumo Diario)</option>
             <option value="ingreso">Ingreso (Cisterna)</option>
@@ -71,15 +71,15 @@
         </div>
         <button class="btn btn-blue" style="width:100%" onclick="procesarMovimiento()">Guardar Registro</button>
         
-        <h3 style="margin-top:20px;">📦 Stock de Filtros</h3>
+        <h3 style="margin-top:20px;">Stock de Filtros</h3>
         <div style="display:flex; gap:10px;">
-            <button class="btn btn-green" style="flex:1" onclick="alert('Función Compra CF60')">Comprar CF60</button>
-            <button class="btn btn-green" style="flex:1" onclick="alert('Función Compra CF100')">Comprar CF100</button>
+            <button class="btn btn-green" style="flex:1" onclick="alert('Funcion Compra CF60')">Comprar CF60</button>
+            <button class="btn btn-green" style="flex:1" onclick="alert('Funcion Compra CF100')">Comprar CF100</button>
         </div>
     </div>
 
     <div class="card">
-        <h2>🚚 Monitor y Análisis</h2>
+        <h2>Monitor y Analisis</h2>
         <div id="alertasContainer"></div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
             <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
@@ -96,9 +96,9 @@
         
         <div style="margin-top:15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <b>Consumo Mensual</b>
+                <b>Consumo vs Mes Anterior</b>
                 <select id="filtroMesGrafico" onchange="procesarGrafico()" style="width: auto; margin:0; padding:5px;">
-                    </select>
+                </select>
             </div>
             <canvas id="consumoChart"></canvas>
         </div>
@@ -109,17 +109,17 @@
     </div>
 
     <div class="card full-width">
-        <h2>🛠 Plan Trimestral (Aviso preventivo 85 días)</h2>
+        <h2>Plan Trimestral (Aviso preventivo 85 dias)</h2>
         <table>
             <thead>
-                <tr><th>Equipo</th><th>Filtro</th><th>Última Fecha</th><th>Días Pasados</th><th>Estado</th><th>Acción</th></tr>
+                <tr><th>Equipo</th><th>Filtro</th><th>Ultima Fecha</th><th>Dias Pasados</th><th>Estado</th><th>Accion</th></tr>
             </thead>
             <tbody id="mantoBody"></tbody>
         </table>
     </div>
 
     <div class="card full-width">
-        <h2>🔍 Historial Detallado de Movimientos</h2>
+        <h2>Historial Detallado de Movimientos</h2>
         <div class="filter-bar">
             <div style="flex:1"><label class="group-label">Desde:</label><input type="date" id="filtroDesde"></div>
             <div style="flex:1"><label class="group-label">Hasta:</label><input type="date" id="filtroHasta"></div>
@@ -128,7 +128,7 @@
         </div>
         <table id="tablaHistorialWeb">
             <thead>
-                <tr><th>Fecha</th><th>Operación</th><th>Producto</th><th>Cantidad</th><th>Referencia</th><th>Saldo Final</th></tr>
+                <tr><th>Fecha</th><th>Operacion</th><th>Producto</th><th>Cantidad</th><th>Referencia</th><th>Saldo Final</th></tr>
             </thead>
             <tbody id="historialBody"></tbody>
         </table>
@@ -140,7 +140,7 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R4
 
 let datosCache = [];
 let miGrafico = null;
-let historialFiltradoActual = []; // Para exportar solo lo que se ve
+let historialFiltradoActual = [];
 
 async function cargarDatos() {
     try {
@@ -152,7 +152,7 @@ async function cargarDatos() {
         llenarSelectorMeses();
         procesarGrafico();
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
-    } catch (e) { console.log("Error de conexión..."); }
+    } catch (e) { console.log("Error de conexion..."); }
 }
 
 function actualizarUI(data) {
@@ -162,9 +162,9 @@ function actualizarUI(data) {
     document.getElementById('f100').innerText = data.filtros.cf100;
 
     let alerts = "";
-    if(data.stocks.diesel <= 3000) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ DIESEL BAJO</div>`;
-    if(data.stocks.gasohol <= 450) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ GASOHOL BAJO</div>`;
-    document.getElementById('alertasContainer').innerHTML = alerts || "✅ Stock OK.";
+    if(data.stocks.diesel <= 3000) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">Diesel Bajo</div>`;
+    if(data.stocks.gasohol <= 450) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">Gasohol Bajo</div>`;
+    document.getElementById('alertasContainer').innerHTML = alerts || "Stock OK.";
 
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
@@ -173,51 +173,46 @@ function actualizarUI(data) {
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
         return `<tr class="${blink}"><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
         <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
-        <td><button class="btn btn-blue btn-sm" onclick="alert('Función Reset')">Reset</button></td></tr>`;
+        <td><button class="btn btn-blue btn-sm" onclick="alert('Funcion Reset')">Reset</button></td></tr>`;
     }).join('');
 
     renderHistorial(datosCache);
 }
 
-// Nueva función para disparar el filtro sin romper la cache
 function aplicarFiltros() {
     renderHistorial(datosCache);
 }
 
 function renderHistorial(lista) {
-    const desde = document.getElementById('filtroDesde').value;
-    const hasta = document.getElementById('filtroHasta').value;
+    const desdeRaw = document.getElementById('filtroDesde').value;
+    const hastaRaw = document.getElementById('filtroHasta').value;
     
     let filtrada = [...lista];
 
-    if(desde || hasta) {
+    if(desdeRaw || hastaRaw) {
         filtrada = lista.filter(h => {
-            // Limpieza de fecha para asegurar compatibilidad (DD/MM/YYYY o YYYY-MM-DD)
-            const partes = h.fecha.split(',')[0].split('/');
-            const fechaH = new Date(partes[2], partes[1] - 1, partes[0]);
-            fechaH.setHours(0,0,0,0);
+            // Normalizar fecha de la base de datos (vienen como DD/MM/YYYY o similar)
+            const p = h.fecha.split(',')[0].split('/');
+            const fechaH = new Date(p[2], p[1] - 1, p[0]).getTime();
 
-            let cumpleDesde = true;
-            let cumpleHasta = true;
+            let okDesde = true;
+            let okHasta = true;
 
-            if(desde) {
-                const d = new Date(desde);
+            if(desdeRaw) {
+                const d = new Date(desdeRaw);
                 d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
-                d.setHours(0,0,0,0);
-                cumpleDesde = fechaH >= d;
+                okDesde = fechaH >= d.getTime();
             }
-            if(hasta) {
-                const hst = new Date(hasta);
+            if(hastaRaw) {
+                const hst = new Date(hastaRaw);
                 hst.setMinutes(hst.getMinutes() + hst.getTimezoneOffset());
-                hst.setHours(0,0,0,0);
-                cumpleHasta = fechaH <= hst;
+                okHasta = fechaH <= hst.getTime();
             }
-            return cumpleDesde && cumpleHasta;
+            return okDesde && okHasta;
         });
     }
 
-    historialFiltradoActual = filtrada; // Guardamos para el Excel
-    
+    historialFiltradoActual = filtrada;
     document.getElementById('historialBody').innerHTML = filtrada.map(h => `
         <tr><td>${h.fecha}</td><td style="color:${h.mov==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
         <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>`).join('');
@@ -230,55 +225,79 @@ function llenarSelectorMeses() {
     const meses = ["Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026"];
     meses.forEach(m => {
         let opt = document.createElement('option');
-        opt.value = m;
-        opt.innerHTML = m;
+        opt.value = m; opt.innerHTML = m;
         selector.appendChild(opt);
     });
     selector.value = meses[meses.length - 1];
 }
 
-function procesarGrafico() {
-    const mesSeleccionado = document.getElementById('filtroMesGrafico').value;
-    let totalDiesel = 0;
-    let totalGasohol = 0;
-
-    datosCache.forEach(h => {
-        const partes = h.fecha.split(',')[0].split('/');
-        const fecha = new Date(partes[2], partes[1] - 1, partes[0]);
+function obtenerConsumoMes(lista, mesAnio) {
+    let d = 0, g = 0;
+    lista.forEach(h => {
+        const p = h.fecha.split(',')[0].split('/');
+        const fecha = new Date(p[2], p[1] - 1, p[0]);
+        const m = fecha.toLocaleString('es-ES', { month: 'long' });
+        const a = fecha.getFullYear();
+        const comparador = `${m.charAt(0).toUpperCase() + m.slice(1)} ${a}`;
         
-        // Formatear para comparar con el selector
-        const nombreMes = fecha.toLocaleString('es-ES', { month: 'long' });
-        const anio = fecha.getFullYear();
-        const comparador = `${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)} ${anio}`;
-
-        if (comparador === mesSeleccionado && (h.mov === 'SALIDA' || h.mov === 'salida')) {
-            if (h.prod.toLowerCase() === 'diesel') totalDiesel += parseFloat(h.cant);
-            if (h.prod.toLowerCase() === 'gasohol') totalGasohol += parseFloat(h.cant);
+        if (comparador === mesAnio && h.mov.toUpperCase() === 'SALIDA') {
+            if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
+            if (h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
         }
     });
+    return { diesel: d, gasohol: g };
+}
+
+function procesarGrafico() {
+    const selector = document.getElementById('filtroMesGrafico');
+    const mesActual = selector.value;
+    const indexActual = selector.selectedIndex;
+    
+    // Consumo mes seleccionado
+    const dataActual = obtenerConsumoMes(datosCache, mesActual);
+    
+    // Consumo mes anterior para la linea de tendencia
+    let dataPrev = { diesel: 0, gasohol: 0 };
+    if (indexActual > 0) {
+        const mesPrev = selector.options[indexActual - 1].value;
+        dataPrev = obtenerConsumoMes(datosCache, mesPrev);
+    }
 
     const ctx = document.getElementById('consumoChart').getContext('2d');
     if (miGrafico) miGrafico.destroy();
 
     miGrafico = new Chart(ctx, {
-        type: 'bar',
         data: {
             labels: ['Diesel', 'Gasohol'],
-            datasets: [{
-                label: 'Galones Consumidos',
-                data: [totalDiesel, totalGasohol],
-                backgroundColor: ['#2563eb', '#10b981'],
-                borderRadius: 5
-            }]
+            datasets: [
+                {
+                    type: 'bar',
+                    label: 'Consumo ' + mesActual,
+                    data: [dataActual.diesel, dataActual.gasohol],
+                    backgroundColor: ['#2563eb', '#10b981'],
+                    borderRadius: 5,
+                    order: 2
+                },
+                {
+                    type: 'line',
+                    label: 'Tendencia (Mes Anterior)',
+                    data: [dataPrev.diesel, dataPrev.gasohol],
+                    borderColor: '#f59e0b',
+                    borderDash: [5, 5],
+                    backgroundColor: 'transparent',
+                    pointBackgroundColor: '#f59e0b',
+                    fill: false,
+                    tension: 0.1,
+                    order: 1
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { 
-                legend: { display: false },
-                tooltip: { callbacks: { label: (ctx) => `Consumo: ${ctx.raw.toFixed(2)} gl` } }
-            },
-            scales: { y: { beginAtZero: true } }
+            plugins: {
+                tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(2)} gl` } }
+            }
         }
     });
 }
@@ -286,7 +305,7 @@ function procesarGrafico() {
 async function procesarMovimiento() {
     const cant = parseFloat(document.getElementById('cant').value);
     const fechaMan = document.getElementById('fechaMov').value; 
-    if (isNaN(cant) || cant <= 0) return alert("Cantidad inválida");
+    if (isNaN(cant) || cant <= 0) return alert("Cantidad invalida");
 
     const payload = {
         action: 'write',
@@ -321,19 +340,15 @@ window.onload = () => {
 };
 
 function exportarExcel() {
-    // MODIFICADO: Ahora crea un libro nuevo con la data filtrada actual
     const wb = XLSX.utils.book_new();
-    
-    // Mapeamos los datos para que tengan encabezados bonitos en Excel
     const dataParaExcel = historialFiltradoActual.map(h => ({
         "Fecha": h.fecha,
-        "Operación": h.mov,
+        "Operacion": h.mov,
         "Producto": h.prod,
         "Cantidad (gl)": h.cant,
         "Referencia": h.ref,
         "Saldo Final": h.saldo
     }));
-
     const ws = XLSX.utils.json_to_sheet(dataParaExcel);
     XLSX.utils.book_append_sheet(wb, ws, "Historial Filtrado");
     XLSX.writeFile(wb, "Reporte_Grifo_ACP_Filtrado.xlsx");
