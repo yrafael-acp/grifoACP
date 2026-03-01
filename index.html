@@ -25,7 +25,6 @@
         .bg-success { background: #dcfce7; color: var(--gasohol); }
         .bg-warning { background: #fef3c7; color: var(--warning); }
         
-        /* PARPADEO PARA ALERTAS DE 85 DÍAS */
         .blink-row { animation: blinker 1.5s linear infinite; background-color: #fff3cd !important; }
         @keyframes blinker { 50% { opacity: 0.7; } }
 
@@ -33,7 +32,6 @@
         .stock-label { font-size: 1.8rem; font-weight: bold; display: block; margin: 5px 0; }
         .sync-indicator { font-size: 0.75rem; color: #64748b; font-weight: normal; }
         
-        /* ESTILO NUEVO PARA FILTROS */
         .filter-bar { display: flex; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; align-items: flex-end; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .group-label { font-size: 0.75rem; font-weight: bold; color: #64748b; margin-bottom: 5px; display: block; text-transform: uppercase; }
     </style>
@@ -115,14 +113,12 @@
 
     <div class="card full-width">
         <h2>🔍 Historial Detallado de Movimientos</h2>
-        
         <div class="filter-bar">
             <div style="flex:1"><label class="group-label">Desde:</label><input type="date" id="filtroDesde"></div>
             <div style="flex:1"><label class="group-label">Hasta:</label><input type="date" id="filtroHasta"></div>
-            <button class="btn btn-blue" onclick="cargarDatos()">Filtrar Fechas</button>
+            <button class="btn btn-blue" onclick="renderHistorial(datosCache)">Filtrar Fechas</button>
             <button class="btn" style="background:#64748b" onclick="limpiarFiltros()">Limpiar</button>
         </div>
-
         <table>
             <thead>
                 <tr><th>Fecha</th><th>Operación</th><th>Producto</th><th>Cantidad</th><th>Referencia</th><th>Saldo Final</th></tr>
@@ -133,10 +129,8 @@
 </div>
 
 <script>
-// URL CORPORATIVA DE TU GOOGLE APPS SCRIPT
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R40Vo84fo7PZtDg3DJMc5dwxIQua6SsHrrHFt0uvCF8jEOO0wdLA/exec'; 
 
-// Variable global para almacenar datos y filtrar localmente si es necesario
 let datosCache = [];
 
 async function cargarDatos() {
@@ -147,24 +141,21 @@ async function cargarDatos() {
         actualizarUI(data);
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
     } catch (e) {
-        console.log("Error de conexión, reintentando en 30s...");
+        console.log("Error de conexión...");
     }
 }
 
 function actualizarUI(data) {
-    // Stocks
     document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
     document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
     document.getElementById('f60').innerText = data.filtros.cf60;
     document.getElementById('f100').innerText = data.filtros.cf100;
 
-    // Alertas Combustible
     let alerts = "";
-    if(data.stocks.diesel <= 3000) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ <b>DIESEL BAJO:</b> Generar pedido de cisterna.</div>`;
-    if(data.stocks.gasohol <= 450) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ <b>GASOHOL BAJO:</b> Generar pedido de cisterna.</div>`;
-    document.getElementById('alertasContainer').innerHTML = alerts || "✅ Stock con margen de seguridad OK.";
+    if(data.stocks.diesel <= 3000) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ <b>DIESEL BAJO:</b> Generar cisterna.</div>`;
+    if(data.stocks.gasohol <= 450) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ <b>GASOHOL BAJO:</b> Generar cisterna.</div>`;
+    document.getElementById('alertasContainer').innerHTML = alerts || "✅ Stock OK.";
 
-    // Mantenimiento con Parpadeo
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
         const diff = Math.floor((hoy - new Date(e.ult)) / (1000*60*60*24));
@@ -173,24 +164,20 @@ function actualizarUI(data) {
         return `<tr class="${blink}">
             <td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
             <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
-            <td><button class="btn btn-blue btn-sm" onclick="hacerManto('${e.id}')">Reset</button></td>
+            <td><button class="btn btn-blue btn-sm" onclick="alert('Función Reset')">Reset</button></td>
         </tr>`;
     }).join('');
 
-    // Historial con lógica de filtrado integrada
     renderHistorial(data.historial);
 }
 
-// Función para renderizar historial (separada para soportar filtros)
 function renderHistorial(lista) {
     const desde = document.getElementById('filtroDesde').value;
     const hasta = document.getElementById('filtroHasta').value;
-
     let filtrada = lista;
 
     if(desde && hasta) {
         filtrada = lista.filter(h => {
-            // Convertimos la fecha del historial (DD/MM/YYYY) a objeto Date para comparar
             const partes = h.fecha.split(',')[0].split('/');
             const fechaH = new Date(partes[2], partes[1] - 1, partes[0]);
             return fechaH >= new Date(desde) && fechaH <= new Date(hasta);
@@ -214,20 +201,17 @@ async function procesarMovimiento() {
         prod: document.getElementById('prod').value.toUpperCase(),
         cant: cant,
         ref: document.getElementById('referencia').value || 'DESPACHO',
-        fechaManual: fechaMan ? fechaMan : null // Se envía el valor YYYY-MM-DD
+        fechaManual: fechaMan ? fechaMan : null
     };
     
-    await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
-    document.getElementById('cant').value = "";
-    document.getElementById('fechaMov').value = ""; 
-    cargarDatos();
-}
-    
-    // Guardar inmediatamente y refrescar
-    await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
-    document.getElementById('cant').value = "";
-    document.getElementById('fechaMov').value = ""; // Limpiar fecha manual
-    cargarDatos();
+    try {
+        await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
+        document.getElementById('cant').value = "";
+        document.getElementById('fechaMov').value = ""; 
+        cargarDatos();
+    } catch (e) {
+        alert("Error al guardar");
+    }
 }
 
 function limpiarFiltros() {
