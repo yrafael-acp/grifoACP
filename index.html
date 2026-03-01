@@ -36,17 +36,31 @@
         .filter-bar { display: flex; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; align-items: flex-end; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .group-label { font-size: 0.75rem; font-weight: bold; color: #64748b; margin-bottom: 5px; display: block; text-transform: uppercase; }
         canvas { max-height: 250px; width: 100%; }
-        /* Scroll para la tabla si hay muchos datos */
         .table-container { max-height: 500px; overflow-y: auto; }
+
+        /* Estilo para el Logotipo */
+        .app-header-logo {
+            height: 50px;
+            width: auto;
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
 
 <div class="dashboard">
     <div class="card full-width" style="background: var(--primary); color: white; border:none; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-            <h1 style="margin:0; font-size: 1.5rem;">Gestion Corporativa - GRIFO ACP</h1>
-            <span class="sync-indicator">Sistema online | Ultima sinc.: <span id="lastUpdate">-</span></span>
+        <div class="header-content">
+            <img src="logo.png" alt="Logo ACP" class="app-header-logo">
+            <div>
+                <h1 style="margin:0; font-size: 1.5rem;">Gestion Corporativa - GRIFO ACP</h1>
+                <span class="sync-indicator">Sistema online | Ultima sinc.: <span id="lastUpdate">-</span></span>
+            </div>
         </div>
         <button onclick="exportarExcel()" class="btn btn-excel">Exportar Excel</button>
     </div>
@@ -150,7 +164,7 @@ async function cargarDatos() {
     try {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
-        // Quitamos cualquier limite de 15 lineas que pudiera venir del servidor
+        // Recibimos la data completa (Asegúrate de haber quitado el .slice en el Google Apps Script)
         datosCache = data.historial;
         historialFiltradoActual = [...datosCache];
         actualizarUI(data);
@@ -226,7 +240,6 @@ function renderHistorial(lista) {
     }
 
     historialFiltradoActual = filtrada;
-    // Eliminado el .slice(0, 15) para mostrar TODO
     document.getElementById('historialBody').innerHTML = filtrada.map(h => `
         <tr><td>${h.fecha}</td><td style="color:${h.mov.toUpperCase()==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
         <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>`).join('');
@@ -247,7 +260,6 @@ function llenarSelectorMeses() {
 
 function obtenerConsumoMes(lista, mesAnio) {
     let d = 0, g = 0;
-    // Normalizamos el mes buscado para evitar fallos por tildes o mayusculas
     const mesBuscado = mesAnio.toLowerCase().trim();
 
     lista.forEach(h => {
@@ -362,7 +374,6 @@ window.onload = () => {
 
 function exportarExcel() {
     const wb = XLSX.utils.book_new();
-    // Exportamos TODA la lista que esté actualmente filtrada (sin limites)
     const dataParaExcel = historialFiltradoActual.map(h => ({
         "Fecha": h.fecha,
         "Operacion": h.mov,
@@ -372,8 +383,8 @@ function exportarExcel() {
         "Saldo Final": h.saldo
     }));
     const ws = XLSX.utils.json_to_sheet(dataParaExcel);
-    XLSX.utils.book_append_sheet(wb, ws, "Historial Completo");
-    XLSX.writeFile(wb, "Reporte_Suministro_ACP.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Historial");
+    XLSX.writeFile(wb, "Reporte_ACP_Filtrado.xlsx");
 }
 </script>
 </body>
