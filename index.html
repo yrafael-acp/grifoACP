@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONTROL TOTAL GRIFO ACP - CORPORATIVO</title>
+    <title>Control ACP - V16 PRO</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root { 
             --primary: #1e293b; --accent: #3b82f6; --diesel: #2563eb; 
             --gasohol: #10b981; --danger: #ef4444; --warning: #f59e0b; --success: #059669;
         }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; margin: 0; padding: 20px; }
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); }
         .full-width { grid-column: span 2; }
@@ -25,16 +25,18 @@
         .bg-success { background: #dcfce7; color: var(--gasohol); }
         .bg-warning { background: #fef3c7; color: var(--warning); }
         
-        /* Animación de Parpadeo para Alerta 85 días */
         .blink-row { animation: blinker 1.5s linear infinite; background-color: #fff3cd !important; }
         @keyframes blinker { 50% { opacity: 0.7; } }
 
         input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
         .stock-label { font-size: 1.8rem; font-weight: bold; display: block; margin: 5px 0; }
         .filter-bar { display: flex; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; align-items: flex-end; margin-bottom: 15px; }
+        #loadingOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); display:flex; align-items:center; justify-content:center; z-index:2000; display:none; }
     </style>
 </head>
 <body>
+
+<div id="loadingOverlay"><h3>Sincronizando con Base de Datos...</h3></div>
 
 <div class="dashboard">
     <div class="card full-width" style="background: var(--primary); color: white; border:none; display:flex; justify-content:space-between; align-items:center;">
@@ -62,7 +64,7 @@
             <input type="text" id="referencia" placeholder="Datos de cisterna">
         </div>
         
-        <button class="btn btn-blue" style="width:100%" onclick="procesarMovimiento()">Guardar Registro</button>
+        <button class="btn btn-blue" style="width:100%" onclick="procesarMovimiento()">Guardar en Base de Datos</button>
         
         <h3 style="margin-top:20px;">📦 Gestión de Repuestos</h3>
         <div style="display:flex; gap:10px;">
@@ -77,25 +79,25 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
             <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
                 <b>DIESEL</b>
-                <span id="sDiesel" class="stock-label">0</span>
+                <span id="sDiesel" class="stock-label">0.00</span>
                 <small>Pedir a los 3000 gl</small>
             </div>
             <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
                 <b>GASOHOL</b>
-                <span id="sGasohol" class="stock-label">0</span>
+                <span id="sGasohol" class="stock-label">0.00</span>
                 <small>Pedir a los 450 gl</small>
             </div>
         </div>
         <div style="margin-top:20px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <b>Stock de Filtros:</b><br>
-            CF60 (Diesel): <span id="f60" style="font-weight:bold">3</span> | CF100 (Hipo): <span id="f100" style="font-weight:bold">2</span>
+            <b>Inventario de Filtros:</b><br>
+            CF60: <span id="f60" style="font-weight:bold">3</span> | CF100: <span id="f100" style="font-weight:bold">2</span>
             <div id="alertaFiltros" class="text-danger fw-bold mt-2"></div>
         </div>
     </div>
 
     <div class="card full-width">
         <h2>🛠 Plan Trimestral (Mantenimiento y Filtros)</h2>
-        <table>
+        <table id="tablaManto">
             <thead>
                 <tr><th>Equipo</th><th>Filtro</th><th>Última Fecha</th><th>Días Pasados</th><th>Estado</th><th>Acción</th></tr>
             </thead>
@@ -108,19 +110,11 @@
         <div class="filter-bar">
             <div style="flex:1"><label>Desde:</label><input type="date" id="filtroDesde"></div>
             <div style="flex:1"><label>Hasta:</label><input type="date" id="filtroHasta"></div>
-            <button class="btn btn-blue" onclick="actualizarUI()">Filtrar Fechas</button>
-            <button class="btn" style="background:#64748b" onclick="limpiarFiltros()">Ver Todo</button>
+            <button class="btn btn-blue" onclick="cargarDatos()">Filtrar Fechas</button>
         </div>
-        <table id="tablaHistorial">
+        <table>
             <thead>
-                <tr>
-                    <th>Fecha y Hora</th>
-                    <th>Operación</th>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Referencia</th>
-                    <th>Saldo Final</th>
-                </tr>
+                <tr><th>Fecha y Hora</th><th>Operación</th><th>Producto</th><th>Cantidad</th><th>Referencia</th><th>Saldo Final</th></tr>
             </thead>
             <tbody id="historialBody"></tbody>
         </table>
@@ -128,151 +122,100 @@
 </div>
 
 <script>
+// URL DE TU GOOGLE APPS SCRIPT CORPORATIVO
+const WEB_APP_URL = 'https://script.google.com/a/macros/acpagro.com/s/AKfycbxeYjHfj6CyIU9fR3LPhYm1raPbECSh9Qk42-jhFVDG0iU74hLnlqYTx3BIkBYuGtq6JQ/exec';
+
 const CAP = { diesel: 5000, gasohol: 1000 };
 const STOCK_CRITICO = { diesel: 3000, gasohol: 450 };
-const DIAS_LIMITE = 90;
 
-let db = JSON.parse(localStorage.getItem('fuel_v16_final')) || {
-    stockFuel: { diesel: 5000, gasohol: 1000 },
-    stockFiltros: { cf60: 3, cf100: 2 }, 
-    historial: [],
-    equipos: [
-        { id: 'Surtidor 1 Diesel', f: 'CF60', ult: '2026-01-15' },
-        { id: 'Surtidor 2 Diesel', f: 'CF60', ult: '2026-01-23' },
-        { id: 'Hipotanque (Móvil)', f: 'CF100', ult: '2025-12-10' },
-        { id: 'Surtidor Gasohol', f: 'MALLA', ult: '2026-01-15' }
-    ]
-};
+async function cargarDatos() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    try {
+        const response = await fetch(WEB_APP_URL + '?action=read');
+        const data = await response.json();
+        actualizarInterfaz(data);
+    } catch (error) {
+        console.error("Error al cargar:", error);
+        alert("Error de conexión con la base de datos.");
+    } finally {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+}
+
+async function procesarMovimiento() {
+    const mov = document.getElementById('tipoMov').value;
+    const prod = document.getElementById('prod').value;
+    const cant = parseFloat(document.getElementById('cant').value);
+    const ref = document.getElementById('referencia').value || (mov === 'salida' ? 'DESPACHO DIARIO' : 'INGRESO CISTERNA');
+
+    if (isNaN(cant) || cant <= 0) return alert("Cantidad inválida");
+
+    const payload = {
+        action: 'write',
+        fecha: new Date().toLocaleString(),
+        mov: mov.toUpperCase(),
+        prod: prod.toUpperCase(),
+        cant: cant,
+        ref: ref.toUpperCase()
+    };
+
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        setTimeout(cargarDatos, 2000); // Recarga tras 2s para dar tiempo a Google
+    } catch (error) {
+        alert("Error al guardar registro.");
+    }
+}
+
+function actualizarInterfaz(data) {
+    // Sincronizar Stocks de Combustible
+    document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
+    document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
+    
+    // Sincronizar Stock Filtros
+    document.getElementById('f60').innerText = data.filtros.cf60;
+    document.getElementById('f100').innerText = data.filtros.cf100;
+
+    // Alertas Logísticas
+    let alerts = "";
+    if(data.stocks.diesel <= STOCK_CRITICO.diesel) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ <b>DIESEL BAJO:</b> Pedir hoy mismo.</div>`;
+    if(data.stocks.gasohol <= STOCK_CRITICO.gasohol) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ <b>GASOHOL BAJO:</b> Pedir hoy mismo.</div>`;
+    document.getElementById('alertasContainer').innerHTML = alerts || "✅ Stock con margen 24h OK.";
+
+    // Render Manto con Parpadeo a los 85 días
+    const hoy = new Date();
+    document.getElementById('mantoBody').innerHTML = data.equipos.map((e, i) => {
+        const diff = Math.floor((hoy - new Date(e.ult)) / (1000*60*60*24));
+        let c = "bg-success"; let blink = "";
+        if (diff >= 90) { c = "bg-danger"; }
+        else if (diff >= 85) { c = "bg-warning"; blink = "blink-row"; }
+        
+        return `<tr class="${blink}">
+            <td><b>${e.id}</b></td><td>${e.filtro}</td><td>${e.ult}</td><td>${diff} d</td>
+            <td><span class="status-badge ${c}">${diff>=90?'VENCIDO':'OK'}</span></td>
+            <td><button class="btn btn-blue btn-sm" onclick="hacerManto('${e.id}')">Reset</button></td>
+        </tr>`;
+    }).join('');
+
+    // Historial
+    document.getElementById('historialBody').innerHTML = data.historial.map(h => `
+        <tr><td>${h.fecha}</td><td style="color:${h.mov==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
+        <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>
+    `).join('');
+}
 
 function toggleCisterna() {
     document.getElementById('extraData').style.display = (document.getElementById('tipoMov').value === 'ingreso') ? 'block' : 'none';
 }
 
-function procesarMovimiento() {
-    const mov = document.getElementById('tipoMov').value;
-    const prod = document.getElementById('prod').value;
-    const cant = parseFloat(document.getElementById('cant').value);
-    const ref = document.getElementById('referencia').value || (mov === 'salida' ? 'CONSUMO DIARIO' : 'INGRESO CISTERNA');
-
-    if (isNaN(cant) || cant <= 0) return alert("Cantidad inválida");
-
-    if (mov === 'salida') {
-        if (db.stockFuel[prod] < cant) return alert("Stock insuficiente");
-        db.stockFuel[prod] = Number((db.stockFuel[prod] - cant).toFixed(2));
-    } else {
-        if ((db.stockFuel[prod] + cant) > (CAP[prod] + 0.1)) return alert("Excede capacidad del tanque");
-        db.stockFuel[prod] = Number((db.stockFuel[prod] + cant).toFixed(2));
-    }
-
-    db.historial.unshift({
-        fec_raw: new Date().toISOString().split('T')[0],
-        fecha: new Date().toLocaleString(),
-        mov: mov.toUpperCase(),
-        prod: prod.toUpperCase(),
-        cant: cant.toFixed(2),
-        ref: ref.toUpperCase(),
-        saldo: db.stockFuel[prod]
-    });
-
-    actualizarUI();
-    document.getElementById('cant').value = "";
-    document.getElementById('referencia').value = "";
-}
-
-function reponerFiltro(t) {
-    db.stockFiltros[t]++;
-    actualizarUI();
-}
-
-function actualizarUI() {
-    localStorage.setItem('fuel_v16_final', JSON.stringify(db));
-    
-    document.getElementById('sDiesel').innerText = db.stockFuel.diesel.toFixed(2);
-    document.getElementById('sGasohol').innerText = db.stockFuel.gasohol.toFixed(2);
-    document.getElementById('f60').innerText = db.stockFiltros.cf60;
-    document.getElementById('f100').innerText = db.stockFiltros.cf100;
-
-    // Alertas Logísticas
-    let alerts = "";
-    if(db.stockFuel.diesel <= STOCK_CRITICO.diesel) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ <b>DIESEL CRÍTICO:</b> Pedir hoy para mañana.</div>`;
-    if(db.stockFuel.gasohol <= STOCK_CRITICO.gasohol) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ <b>GASOHOL CRÍTICO:</b> Pedir hoy para mañana.</div>`;
-    document.getElementById('alertasContainer').innerHTML = alerts || "✅ Niveles estables (Reserva 24h OK).";
-
-    // Alertas Filtros
-    let fAlert = "";
-    if(db.stockFiltros.cf60 <= 2) fAlert += "⚠️ Stock Bajo CF60 ";
-    if(db.stockFiltros.cf100 <= 1) fAlert += "⚠️ Stock Bajo CF100";
-    document.getElementById('alertaFiltros').innerText = fAlert;
-
-    // Mantenimiento con Parpadeo
-    const hoy = new Date();
-    document.getElementById('mantoBody').innerHTML = db.equipos.map((e, i) => {
-        const diff = Math.floor((hoy - new Date(e.ult)) / (1000*60*60*24));
-        let c = "bg-success";
-        let blink = "";
-        
-        if (diff >= 90) { c = "bg-danger"; }
-        else if (diff >= 85) { c = "bg-warning"; blink = "blink-row"; }
-        else if (diff >= 75) { c = "bg-warning"; }
-
-        return `<tr class="${blink}">
-            <td><b>${e.id}</b></td>
-            <td><code>${e.f}</code></td>
-            <td>${e.ult}</td>
-            <td>${diff} días</td>
-            <td><span class="status-badge ${c}">${diff>=90?'VENCIDO':'AL DÍA'}</span></td>
-            <td><button class="btn btn-blue btn-sm" onclick="hacerManto(${i})">Reset</button></td>
-        </tr>`;
-    }).join('');
-
-    // Historial con Filtro
-    const fDesde = document.getElementById('filtroDesde').value;
-    const fHasta = document.getElementById('filtroHasta').value;
-    let filtered = db.historial;
-    if(fDesde && fHasta) {
-        filtered = db.historial.filter(h => h.fec_raw >= fDesde && h.fec_raw <= fHasta);
-    }
-    document.getElementById('historialBody').innerHTML = filtered.slice(0, 15).map(h => `
-        <tr>
-            <td>${h.fecha}</td>
-            <td style="color:${h.mov==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
-            <td>${h.prod}</td>
-            <td>${h.cant}</td>
-            <td>${h.ref}</td>
-            <td><b>${h.saldo}</b></td>
-        </tr>
-    `).join('');
-}
-
-function hacerManto(i) {
-    const e = db.equipos[i];
-    if(e.f.startsWith('CF')) {
-        const fKey = e.f.toLowerCase();
-        if(db.stockFiltros[fKey] <= 0) return alert("Sin filtros en inventario.");
-        if(confirm(`¿Descontar 1 filtro ${e.f}?`)) {
-            db.stockFiltros[fKey]--;
-            db.equipos[i].ult = new Date().toISOString().split('T')[0];
-        }
-    } else if(confirm("¿Reiniciar ciclo?")) {
-        db.equipos[i].ult = new Date().toISOString().split('T')[0];
-    }
-    actualizarUI();
-}
-
-function limpiarFiltros() {
-    document.getElementById('filtroDesde').value = "";
-    document.getElementById('filtroHasta').value = "";
-    actualizarUI();
-}
-
-function exportarExcel() {
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(db.historial);
-    XLSX.utils.book_append_sheet(wb, ws, "Historial_Grifo_ACP");
-    XLSX.writeFile(wb, "Reporte_Combustible_Corporativo.xlsx");
-}
-
-actualizarUI();
+window.onload = cargarDatos;
 </script>
 </body>
 </html>
