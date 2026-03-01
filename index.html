@@ -123,10 +123,10 @@
         <div class="filter-bar">
             <div style="flex:1"><label class="group-label">Desde:</label><input type="date" id="filtroDesde"></div>
             <div style="flex:1"><label class="group-label">Hasta:</label><input type="date" id="filtroHasta"></div>
-            <button class="btn btn-blue" onclick="renderHistorial(datosCache)">Filtrar Fechas</button>
+            <button class="btn btn-blue" onclick="aplicarFiltros()">Filtrar Fechas</button>
             <button class="btn" style="background:#64748b" onclick="limpiarFiltros()">Limpiar</button>
         </div>
-        <table>
+        <table id="tablaHistorialWeb">
             <thead>
                 <tr><th>Fecha</th><th>Operación</th><th>Producto</th><th>Cantidad</th><th>Referencia</th><th>Saldo Final</th></tr>
             </thead>
@@ -140,12 +140,14 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R4
 
 let datosCache = [];
 let miGrafico = null;
+let historialFiltradoActual = []; // Para exportar solo lo que se ve
 
 async function cargarDatos() {
     try {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
         datosCache = data.historial;
+        historialFiltradoActual = [...datosCache];
         actualizarUI(data);
         llenarSelectorMeses();
         procesarGrafico();
@@ -174,21 +176,48 @@ function actualizarUI(data) {
         <td><button class="btn btn-blue btn-sm" onclick="alert('Función Reset')">Reset</button></td></tr>`;
     }).join('');
 
-    renderHistorial(data.historial);
+    renderHistorial(datosCache);
+}
+
+// Nueva función para disparar el filtro sin romper la cache
+function aplicarFiltros() {
+    renderHistorial(datosCache);
 }
 
 function renderHistorial(lista) {
     const desde = document.getElementById('filtroDesde').value;
     const hasta = document.getElementById('filtroHasta').value;
-    let filtrada = lista;
+    
+    let filtrada = [...lista];
 
-    if(desde && hasta) {
+    if(desde || hasta) {
         filtrada = lista.filter(h => {
+            // Limpieza de fecha para asegurar compatibilidad (DD/MM/YYYY o YYYY-MM-DD)
             const partes = h.fecha.split(',')[0].split('/');
             const fechaH = new Date(partes[2], partes[1] - 1, partes[0]);
-            return fechaH >= new Date(desde) && fechaH <= new Date(hasta);
+            fechaH.setHours(0,0,0,0);
+
+            let cumpleDesde = true;
+            let cumpleHasta = true;
+
+            if(desde) {
+                const d = new Date(desde);
+                d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
+                d.setHours(0,0,0,0);
+                cumpleDesde = fechaH >= d;
+            }
+            if(hasta) {
+                const hst = new Date(hasta);
+                hst.setMinutes(hst.getMinutes() + hst.getTimezoneOffset());
+                hst.setHours(0,0,0,0);
+                cumpleHasta = fechaH <= hst;
+            }
+            return cumpleDesde && cumpleHasta;
         });
     }
+
+    historialFiltradoActual = filtrada; // Guardamos para el Excel
+    
     document.getElementById('historialBody').innerHTML = filtrada.map(h => `
         <tr><td>${h.fecha}</td><td style="color:${h.mov==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
         <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>`).join('');
@@ -205,7 +234,7 @@ function llenarSelectorMeses() {
         opt.innerHTML = m;
         selector.appendChild(opt);
     });
-    selector.value = meses[meses.length - 1]; // Seleccionar mes actual por defecto
+    selector.value = meses[meses.length - 1];
 }
 
 function procesarGrafico() {
@@ -216,11 +245,13 @@ function procesarGrafico() {
     datosCache.forEach(h => {
         const partes = h.fecha.split(',')[0].split('/');
         const fecha = new Date(partes[2], partes[1] - 1, partes[0]);
+        
+        // Formatear para comparar con el selector
         const nombreMes = fecha.toLocaleString('es-ES', { month: 'long' });
         const anio = fecha.getFullYear();
         const comparador = `${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)} ${anio}`;
 
-        if (comparador === mesSeleccionado && h.mov === 'SALIDA') {
+        if (comparador === mesSeleccionado && (h.mov === 'SALIDA' || h.mov === 'salida')) {
             if (h.prod.toLowerCase() === 'diesel') totalDiesel += parseFloat(h.cant);
             if (h.prod.toLowerCase() === 'gasohol') totalGasohol += parseFloat(h.cant);
         }
@@ -236,13 +267,18 @@ function procesarGrafico() {
             datasets: [{
                 label: 'Galones Consumidos',
                 data: [totalDiesel, totalGasohol],
-                backgroundColor: ['#2563eb', '#10b981']
+                backgroundColor: ['#2563eb', '#10b981'],
+                borderRadius: 5
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } }
+            plugins: { 
+                legend: { display: false },
+                tooltip: { callbacks: { label: (ctx) => `Consumo: ${ctx.raw.toFixed(2)} gl` } }
+            },
+            scales: { y: { beginAtZero: true } }
         }
     });
 }
@@ -285,10 +321,22 @@ window.onload = () => {
 };
 
 function exportarExcel() {
+    // MODIFICADO: Ahora crea un libro nuevo con la data filtrada actual
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.table_to_sheet(document.querySelector("table:last-of-type"));
-    XLSX.utils.book_append_sheet(wb, ws, "Historial");
-    XLSX.writeFile(wb, "Reporte_Grifo_ACP.xlsx");
+    
+    // Mapeamos los datos para que tengan encabezados bonitos en Excel
+    const dataParaExcel = historialFiltradoActual.map(h => ({
+        "Fecha": h.fecha,
+        "Operación": h.mov,
+        "Producto": h.prod,
+        "Cantidad (gl)": h.cant,
+        "Referencia": h.ref,
+        "Saldo Final": h.saldo
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataParaExcel);
+    XLSX.utils.book_append_sheet(wb, ws, "Historial Filtrado");
+    XLSX.writeFile(wb, "Reporte_Grifo_ACP_Filtrado.xlsx");
 }
 </script>
 </body>
