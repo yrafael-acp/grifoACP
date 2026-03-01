@@ -185,10 +185,10 @@ function toggleCisterna() {
     document.getElementById('extraData').style.display = (document.getElementById('tipoMov').value === 'ingreso') ? 'block' : 'none';
 }
 
-// INICIAR CARGA Y TEMPORIZADOR DE 30 SEGUNDOS
+// INICIAR CARGA Y TEMPORIZADOR DE 15 SEGUNDOS
 window.onload = () => {
     cargarDatos();
-    setInterval(cargarDatos, 15000); // Sincronización automática cada 30 segundos
+    setInterval(cargarDatos, 15000); // Sinc. aut. cada 15 segundos
 };
 
 function exportarExcel() {
