@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SISTEMA CORPORATIVO GRIFO ACP</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { 
             --primary: #1e293b; --accent: #3b82f6; --diesel: #2563eb; 
@@ -34,6 +35,7 @@
         
         .filter-bar { display: flex; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; align-items: flex-end; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .group-label { font-size: 0.75rem; font-weight: bold; color: #64748b; margin-bottom: 5px; display: block; text-transform: uppercase; }
+        canvas { max-height: 250px; width: 100%; }
     </style>
 </head>
 <body>
@@ -49,10 +51,8 @@
 
     <div class="card">
         <h2>📑 Registro de Movimiento</h2>
-        
         <label class="group-label">Fecha del Movimiento (Opcional)</label>
         <input type="date" id="fechaMov">
-
         <label class="group-label">Tipo de Operación</label>
         <select id="tipoMov" onchange="toggleCisterna()">
             <option value="salida">Salida (Consumo Diario)</option>
@@ -73,31 +73,38 @@
         
         <h3 style="margin-top:20px;">📦 Stock de Filtros</h3>
         <div style="display:flex; gap:10px;">
-            <button class="btn btn-green" style="flex:1" onclick="reponerFiltro('cf60')">Comprar CF60</button>
-            <button class="btn btn-green" style="flex:1" onclick="reponerFiltro('cf100')">Comprar CF100</button>
+            <button class="btn btn-green" style="flex:1" onclick="alert('Función Compra CF60')">Comprar CF60</button>
+            <button class="btn btn-green" style="flex:1" onclick="alert('Función Compra CF100')">Comprar CF100</button>
         </div>
     </div>
 
     <div class="card">
-        <h2>🚚 Monitor de Pedidos (Reserva 24h)</h2>
+        <h2>🚚 Monitor y Análisis</h2>
         <div id="alertasContainer"></div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
             <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
                 <b>DIESEL</b>
                 <span id="sDiesel" class="stock-label">0.00</span>
-                <small>Umbral pedido: 3000 gl</small>
+                <small>Umbral: 3000 gl</small>
             </div>
             <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
                 <b>GASOHOL</b>
                 <span id="sGasohol" class="stock-label">0.00</span>
-                <small>Umbral pedido: 450 gl</small>
+                <small>Umbral: 450 gl</small>
             </div>
         </div>
-        <div style="margin-top:20px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <b>Inventario Filtros:</b> 
-            CF60: <span id="f60" style="font-weight:bold">3</span> | 
-            CF100: <span id="f100" style="font-weight:bold">2</span>
-            <div id="alertaFiltros" class="text-danger fw-bold mt-2" style="font-size:0.8em"></div>
+        
+        <div style="margin-top:15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <b>Consumo Mensual</b>
+                <select id="filtroMesGrafico" onchange="procesarGrafico()" style="width: auto; margin:0; padding:5px;">
+                    </select>
+            </div>
+            <canvas id="consumoChart"></canvas>
+        </div>
+
+        <div style="margin-top:15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <b>Inventario Filtros:</b> CF60: <span id="f60">3</span> | CF100: <span id="f100">2</span>
         </div>
     </div>
 
@@ -132,6 +139,7 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R40Vo84fo7PZtDg3DJMc5dwxIQua6SsHrrHFt0uvCF8jEOO0wdLA/exec'; 
 
 let datosCache = [];
+let miGrafico = null;
 
 async function cargarDatos() {
     try {
@@ -139,10 +147,10 @@ async function cargarDatos() {
         const data = await response.json();
         datosCache = data.historial;
         actualizarUI(data);
+        llenarSelectorMeses();
+        procesarGrafico();
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
-    } catch (e) {
-        console.log("Error de conexión...");
-    }
+    } catch (e) { console.log("Error de conexión..."); }
 }
 
 function actualizarUI(data) {
@@ -152,8 +160,8 @@ function actualizarUI(data) {
     document.getElementById('f100').innerText = data.filtros.cf100;
 
     let alerts = "";
-    if(data.stocks.diesel <= 3000) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ <b>DIESEL BAJO:</b> Generar cisterna.</div>`;
-    if(data.stocks.gasohol <= 450) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ <b>GASOHOL BAJO:</b> Generar cisterna.</div>`;
+    if(data.stocks.diesel <= 3000) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ DIESEL BAJO</div>`;
+    if(data.stocks.gasohol <= 450) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">⚠️ GASOHOL BAJO</div>`;
     document.getElementById('alertasContainer').innerHTML = alerts || "✅ Stock OK.";
 
     const hoy = new Date();
@@ -161,11 +169,9 @@ function actualizarUI(data) {
         const diff = Math.floor((hoy - new Date(e.ult)) / (1000*60*60*24));
         const blink = (diff >= 85 && diff < 90) ? 'blink-row' : '';
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
-        return `<tr class="${blink}">
-            <td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
-            <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
-            <td><button class="btn btn-blue btn-sm" onclick="alert('Función Reset')">Reset</button></td>
-        </tr>`;
+        return `<tr class="${blink}"><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
+        <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
+        <td><button class="btn btn-blue btn-sm" onclick="alert('Función Reset')">Reset</button></td></tr>`;
     }).join('');
 
     renderHistorial(data.historial);
@@ -183,16 +189,67 @@ function renderHistorial(lista) {
             return fechaH >= new Date(desde) && fechaH <= new Date(hasta);
         });
     }
-
     document.getElementById('historialBody').innerHTML = filtrada.map(h => `
         <tr><td>${h.fecha}</td><td style="color:${h.mov==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
         <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>`).join('');
 }
 
+function llenarSelectorMeses() {
+    const selector = document.getElementById('filtroMesGrafico');
+    if (selector.options.length > 0) return;
+    
+    const meses = ["Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026"];
+    meses.forEach(m => {
+        let opt = document.createElement('option');
+        opt.value = m;
+        opt.innerHTML = m;
+        selector.appendChild(opt);
+    });
+    selector.value = meses[meses.length - 1]; // Seleccionar mes actual por defecto
+}
+
+function procesarGrafico() {
+    const mesSeleccionado = document.getElementById('filtroMesGrafico').value;
+    let totalDiesel = 0;
+    let totalGasohol = 0;
+
+    datosCache.forEach(h => {
+        const partes = h.fecha.split(',')[0].split('/');
+        const fecha = new Date(partes[2], partes[1] - 1, partes[0]);
+        const nombreMes = fecha.toLocaleString('es-ES', { month: 'long' });
+        const anio = fecha.getFullYear();
+        const comparador = `${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)} ${anio}`;
+
+        if (comparador === mesSeleccionado && h.mov === 'SALIDA') {
+            if (h.prod.toLowerCase() === 'diesel') totalDiesel += parseFloat(h.cant);
+            if (h.prod.toLowerCase() === 'gasohol') totalGasohol += parseFloat(h.cant);
+        }
+    });
+
+    const ctx = document.getElementById('consumoChart').getContext('2d');
+    if (miGrafico) miGrafico.destroy();
+
+    miGrafico = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Diesel', 'Gasohol'],
+            datasets: [{
+                label: 'Galones Consumidos',
+                data: [totalDiesel, totalGasohol],
+                backgroundColor: ['#2563eb', '#10b981']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
 async function procesarMovimiento() {
     const cant = parseFloat(document.getElementById('cant').value);
     const fechaMan = document.getElementById('fechaMov').value; 
-    
     if (isNaN(cant) || cant <= 0) return alert("Cantidad inválida");
 
     const payload = {
@@ -209,9 +266,7 @@ async function procesarMovimiento() {
         document.getElementById('cant').value = "";
         document.getElementById('fechaMov').value = ""; 
         cargarDatos();
-    } catch (e) {
-        alert("Error al guardar");
-    }
+    } catch (e) { alert("Error al guardar"); }
 }
 
 function limpiarFiltros() {
