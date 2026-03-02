@@ -111,7 +111,7 @@
         </div>
 
         <div id="statusFiltros" style="margin-top:15px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <b>Inventario Filtros:</b> CF60: <span id="f60">0</span> | CF100: <span id="f100">0</span>
+            <b>Inventario Filtros:</b> CF60: <span id="f60">3</span> | CF100: <span id="f100">2</span>
             <div id="alertaStockFiltros" style="margin-top:5px; font-weight:bold; font-size:0.85em;"></div>
         </div>
     </div>
@@ -152,7 +152,6 @@ let datosCache = [];
 let miGrafico = null;
 let historialFiltradoActual = [];
 
-// Función para manejar compra y uso de filtros (Reset)
 async function gestionarFiltros(accion, tipo, equipo = '') {
     const payload = {
         action: 'updateFiltros',
@@ -187,13 +186,11 @@ function actualizarUI(data) {
     document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
     document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
     
-    // Actualizar Stock de Filtros
     const cf60Count = data.filtros.cf60;
     const cf100Count = data.filtros.cf100;
     document.getElementById('f60').innerText = cf60Count;
     document.getElementById('f100').innerText = cf100Count;
 
-    // Alertas de Stock Mínimo Filtros
     let alertaFiltrosHTML = "";
     if(cf60Count < 2) alertaFiltrosHTML += `<div style="color:var(--danger)">⚠️ Stock Crítico CF60: Reponer unidades.</div>`;
     if(cf100Count < 1) alertaFiltrosHTML += `<div style="color:var(--danger)">⚠️ Stock Crítico CF100: Reponer unidades.</div>`;
@@ -212,7 +209,6 @@ function actualizarUI(data) {
         const blink = (diff >= 85 && diff < 90) ? 'blink-row' : '';
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
         
-        // Identificar tipo de filtro por equipo para el Reset
         const tipoFiltro = e.f.includes('CF60') ? 'cf60' : (e.f.includes('CF100') ? 'cf100' : 'malla');
 
         return `<tr class="${blink}"><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
