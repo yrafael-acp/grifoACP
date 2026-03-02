@@ -367,27 +367,9 @@ function toggleCisterna() {
     document.getElementById('extraData').style.display = (document.getElementById('tipoMov').value === 'ingreso') ? 'block' : 'none';
 }
 
-// NUEVA FUNCIÓN DE RESTAURACIÓN DE SEGURIDAD
-async function restaurarEstadoAnterior() {
-    console.log("Iniciando restauración de datos...");
-    const payload = {
-        action: 'restoreState',
-        fechaHipotanque: '2025-12-10', // Restauramos al 10 de Dic
-        stockCF60: 3,
-        stockCF100: 2
-    };
-    try {
-        await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
-        console.log("Datos restaurados con éxito.");
-        cargarDatos();
-    } catch (e) { console.error("Error en restauración"); }
-}
-
 window.onload = () => {
     cargarDatos();
-    // Descomenta la línea de abajo solo una vez para limpiar las pruebas, luego vuelve a comentarla.
-    // restaurarEstadoAnterior(); 
-    setInterval(cargarDatos, 10000); 
+    setInterval(cargarDatos, 15000); 
 };
 
 function exportarExcel() {
