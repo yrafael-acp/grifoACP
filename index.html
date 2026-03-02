@@ -173,6 +173,15 @@ async function cargarDatos() {
     try {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
+        
+        // Forzamos la fecha original del Hipotanque si detecta que es ese equipo
+        if(data.equipos) {
+            data.equipos = data.equipos.map(e => {
+                if(e.id === 'Hipotanque (Móvil)') e.ult = '2025-12-10';
+                return e;
+            });
+        }
+
         datosCache = data.historial;
         historialFiltradoActual = [...datosCache];
         actualizarUI(data);
