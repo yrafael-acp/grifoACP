@@ -205,41 +205,47 @@ async function cargarDatos() {
 
 // FUNCIÓN DE CÁLCULO ANUAL CONDICIONADA ESTRICTAMENTE A LAS COLUMNAS DE LA HOJA
 function calcularConsumoAnual() {
-    const yearActual = new Date().getFullYear();
+    // Usamos el año 2026 o el actual según necesites
+    const yearActual = new Date().getFullYear(); 
     document.getElementById('currentYear').innerText = yearActual;
     
     let totalDiesel = 0;
     let totalGasohol = 0;
 
     datosCache.forEach(h => {
-        // 1. Limpieza de datos y normalización de texto
+        // 1. Validar que existan los campos básicos
         if (!h.fecha || !h.mov || !h.prod || !h.cant) return;
 
+        // 2. Normalización total
         const operacion = String(h.mov).trim().toUpperCase();
         const producto = String(h.prod).trim().toUpperCase();
-        const cantidad = parseFloat(h.cant) || 0;
+        
+        // Convertir coma a punto por si el Excel viene con formato regional español
+        let cantLimpia = String(h.cant).replace(',', '.');
+        const cantidad = parseFloat(cantLimpia) || 0;
+        
         const fecha = parseFechaBase(h.fecha);
 
-        // 2. Validación estricta de fecha (Solo año actual)
-        if (!fecha || fecha.getFullYear() !== yearActual) return;
-
-        // 3. FILTRO ESTRICTO SEGÚN TU PEDIDO:
-        // Solo sumamos de la Columna D (cantidad) si:
-        // - Columna B (operacion) es exactamente SALIDA
-        // - Columna C (producto) es exactamente DIESEL o GASOHOL
-        if (operacion === 'SALIDA') {
-            if (producto === 'DIESEL') {
-                totalDiesel += cantidad;
-            } else if (producto === 'GASOHOL') {
-                totalGasohol += cantidad;
+        // 3. Verificación de seguridad: 
+        // Solo sumamos si la fecha es válida Y el año coincide
+        if (fecha instanceof Date && !isNaN(fecha)) {
+            if (fecha.getFullYear() === yearActual) {
+                if (operacion === 'SALIDA') {
+                    if (producto === 'DIESEL') {
+                        totalDiesel += cantidad;
+                    } else if (producto === 'GASOHOL') {
+                        totalGasohol += cantidad;
+                    }
+                }
             }
         }
     });
 
-    // Formateo final para asegurar que la visualización coincida con tus consumos
+    // 4. Actualización de la interfaz con redondeo a 2 decimales exactos
     document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
     document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
 }
+    
 function actualizarUI(data) {
     document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
     document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
