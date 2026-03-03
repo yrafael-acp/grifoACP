@@ -209,14 +209,17 @@ async function cargarDatos() {
     } catch (e) { console.log("Error de conexion..."); }
 }
 
-// FUNCIÓN DE CÁLCULO ANUAL CON BASE MANUAL
+// FUNCIÓN DE CÁLCULO ANUAL CON BASE MANUAL FIJA
 function calcularConsumoAnual() {
     const anioSeleccionado = parseInt(document.getElementById('selectAnioFiscal').value);
     document.getElementById('currentYear').innerText = anioSeleccionado;
     
-    // Aplicamos los valores manuales solo si estamos consultando el año 2026
+    // Si consultamos el año 2026, empezamos desde tu base manual. 
+    // Si consultamos otros años (como 2025), empezamos desde 0 para que sume lo que diga la hoja.
     let totalDiesel = (anioSeleccionado === 2026) ? CORTE_MANUAL_DIESEL : 0;
     let totalGasohol = (anioSeleccionado === 2026) ? CORTE_MANUAL_GASOHOL : 0;
+
+    console.log("--- INICIO DE SUMATORIA CON BASE MANUAL ---");
 
     datosCache.forEach((h) => {
         if (!h.fecha || !h.mov || !h.prod || !h.cant) return;
