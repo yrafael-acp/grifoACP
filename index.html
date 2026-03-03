@@ -106,7 +106,7 @@
         </div>
 
         <div style="margin-top:15px; padding: 12px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
-            <b style="font-size: 0.85rem; color: #475569; text-transform: uppercase;">Consumo Acumulado Año <span id="currentYear"></span></b>
+            <b style="font-size: 0.85rem; color: #475569; text-transform: uppercase;">Consumo Acumulado <span id="currentYear"></span></b>
             <div class="annual-summary">
                 <div class="summary-item" style="border-left: 4px solid var(--diesel);">
                     <small style="color: #64748b; font-weight: bold;">DIESEL TOTAL</small>
@@ -186,13 +186,6 @@ async function cargarDatos() {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
         
-        if(data.equipos) {
-            data.equipos = data.equipos.map(e => {
-                if(e.id === 'Hipotanque (Móvil)') e.ult = '2025-12-10';
-                return e;
-            });
-        }
-
         datosCache = data.historial;
         historialFiltradoActual = [...datosCache];
         actualizarUI(data);
@@ -203,52 +196,56 @@ async function cargarDatos() {
     } catch (e) { console.log("Error de conexion..."); }
 }
 
-// FUNCIÓN DE CÁLCULO ANUAL CONDICIONADA ESTRICTAMENTE A LAS COLUMNAS DE LA HOJA
+// FUNCIÓN DE CÁLCULO MEJORADA CON AUDITORÍA Y SUMA MULTIANUAL (2025-2026)
 function calcularConsumoAnual() {
-    // Usamos el año 2026 o el actual según necesites
-    const yearActual = new Date().getFullYear(); 
-    document.getElementById('currentYear').innerText = yearActual;
+    const añosPermitidos = [2025, 2026]; 
+    document.getElementById('currentYear').innerText = "2025-2026";
     
     let totalDiesel = 0;
     let totalGasohol = 0;
 
-    datosCache.forEach(h => {
-        // 1. Validar que existan los campos básicos
+    console.log("--- INICIO DE AUDITORÍA DE SUMA ---");
+
+    datosCache.forEach((h, index) => {
         if (!h.fecha || !h.mov || !h.prod || !h.cant) return;
 
-        // 2. Normalización total
         const operacion = String(h.mov).trim().toUpperCase();
         const producto = String(h.prod).trim().toUpperCase();
         
-        // Convertir coma a punto por si el Excel viene con formato regional español
-        let cantLimpia = String(h.cant).replace(',', '.');
+        // Limpiar número: quitar comas y dejar puntos
+        let cantLimpia = String(h.cant).replace(/[^\d.-]/g, '');
         const cantidad = parseFloat(cantLimpia) || 0;
         
         const fecha = parseFechaBase(h.fecha);
 
-        // 3. Verificación de seguridad: 
-        // Solo sumamos si la fecha es válida Y el año coincide
-        if (fecha instanceof Date && !isNaN(fecha)) {
-            if (fecha.getFullYear() === yearActual) {
-                if (operacion === 'SALIDA') {
-                    if (producto === 'DIESEL') {
-                        totalDiesel += cantidad;
-                    } else if (producto === 'GASOHOL') {
-                        totalGasohol += cantidad;
-                    }
+        if (fecha instanceof Date && !isNaN(fecha.getTime())) {
+            const anioFila = fecha.getFullYear();
+            
+            // Filtro estricto: SALIDA y años de tu data histórica
+            if (operacion === 'SALIDA' && añosPermitidos.includes(anioFila)) {
+                if (producto === 'DIESEL') {
+                    totalDiesel += cantidad;
+                } else if (producto === 'GASOHOL') {
+                    totalGasohol += cantidad;
+                }
+                // Debug log para Diesel (comenta esto si hay demasiadas filas)
+                if (producto === 'DIESEL' && index < 50) {
+                    console.log(`Fila ${index}: ${h.fecha} | +${cantidad} | Subtotal: ${totalDiesel.toFixed(2)}`);
                 }
             }
         }
     });
 
-    // 4. Actualización de la interfaz con redondeo a 2 decimales exactos
+    console.log("TOTAL DIESEL FINAL CALCULADO: " + totalDiesel);
+    console.log("--- FIN DE AUDITORÍA ---");
+
     document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
     document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
 }
     
 function actualizarUI(data) {
-    document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
-    document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
+    document.getElementById('sDiesel').innerText = parseFloat(data.stocks.diesel).toFixed(2);
+    document.getElementById('sGasohol').innerText = parseFloat(data.stocks.gasohol).toFixed(2);
     document.getElementById('f60').innerText = data.filtros.cf60;
     document.getElementById('f100').innerText = data.filtros.cf100;
 
@@ -273,12 +270,21 @@ function actualizarUI(data) {
     renderHistorial(datosCache);
 }
 
+// PARSE DE FECHA REFORZADO PARA FORMATO DD/MM/YYYY
 function parseFechaBase(str) {
-    if(!str) return null;
-    const limpia = str.split(',')[0].trim();
+    if (!str) return null;
+    if (str instanceof Date) return str;
+    
+    const limpia = String(str).split(' ')[0].trim();
     const partes = limpia.split('/');
-    if(partes.length === 3) return new Date(partes[2], partes[1]-1, partes[0]);
-    return new Date(str);
+    
+    if (partes.length === 3) {
+        // Asegura que interprete DD/MM/YYYY
+        return new Date(partes[2], partes[1] - 1, partes[0]);
+    }
+    
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
 }
 
 function renderHistorial(lista) {
@@ -305,8 +311,12 @@ function renderHistorial(lista) {
     }
     historialFiltradoActual = filtrada;
     document.getElementById('historialBody').innerHTML = filtrada.map(h => `
-        <tr><td>${h.fecha}</td><td style="color:${h.mov.toUpperCase()==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
+        <tr><td>${h.fecha}</td><td style="color:${String(h.mov).toUpperCase()==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
         <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>`).join('');
+}
+
+function aplicarFiltros() {
+    renderHistorial(datosCache);
 }
 
 function llenarSelectorMeses() {
@@ -330,9 +340,9 @@ function obtenerConsumoMes(lista, mesAnio) {
         const m = fecha.toLocaleString('es-ES', { month: 'long' });
         const a = fecha.getFullYear();
         const comparador = (m + " " + a).toLowerCase().trim();
-        if (comparador === mesBuscado && h.mov.toUpperCase() === 'SALIDA') {
-            if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
-            if (h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
+        if (comparador === mesBuscado && String(h.mov).toUpperCase() === 'SALIDA') {
+            if (String(h.prod).toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
+            if (String(h.prod).toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
         }
     });
     return { diesel: d, gasohol: g };
@@ -395,7 +405,7 @@ function toggleCisterna() {
 
 window.onload = () => {
     cargarDatos();
-    setInterval(cargarDatos, 15000); 
+    setInterval(cargarDatos, 30000); // Aumentado a 30s para mayor estabilidad
 };
 
 function exportarExcel() {
