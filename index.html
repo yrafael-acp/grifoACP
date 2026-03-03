@@ -45,7 +45,6 @@
         .summary-item { flex: 1; padding: 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; }
         .summary-value { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; }
         
-        /* Estilo para el selector de año */
         .year-select { padding: 4px 8px; font-size: 0.85rem; border-radius: 4px; border: 1px solid #cbd5e1; cursor: pointer; }
     </style>
 </head>
@@ -180,6 +179,10 @@ let datosCache = [];
 let miGrafico = null;
 let historialFiltradoActual = [];
 
+// VALORES BASE MANUALES (Punto de partida solicitado)
+const CORTE_MANUAL_DIESEL = 85155.00;
+const CORTE_MANUAL_GASOHOL = 7020.00;
+
 async function gestionarFiltros(accion, tipo, equipo = '') {
     const payload = { action: 'updateFiltros', subAction: accion, tipo: tipo, equipo: equipo };
     try {
@@ -206,33 +209,27 @@ async function cargarDatos() {
     } catch (e) { console.log("Error de conexion..."); }
 }
 
-// FUNCIÓN DE CÁLCULO ANUAL CORREGIDA CON SELECTOR DINÁMICO
+// FUNCIÓN DE CÁLCULO ANUAL CON BASE MANUAL
 function calcularConsumoAnual() {
-    // Obtenemos el año seleccionado del menú desplegable
     const anioSeleccionado = parseInt(document.getElementById('selectAnioFiscal').value);
     document.getElementById('currentYear').innerText = anioSeleccionado;
     
-    let totalDiesel = 0;
-    let totalGasohol = 0;
-
-    console.log("--- INICIO DE SUMATORIA ANUAL " + anioSeleccionado + " ---");
+    // Aplicamos los valores manuales solo si estamos consultando el año 2026
+    let totalDiesel = (anioSeleccionado === 2026) ? CORTE_MANUAL_DIESEL : 0;
+    let totalGasohol = (anioSeleccionado === 2026) ? CORTE_MANUAL_GASOHOL : 0;
 
     datosCache.forEach((h) => {
         if (!h.fecha || !h.mov || !h.prod || !h.cant) return;
 
         const operacion = String(h.mov).trim().toUpperCase();
         const producto = String(h.prod).trim().toUpperCase();
-        
-        // Limpieza de formato numérico
-        let cantLimpia = String(h.cant).replace(/[^\d.-]/g, '');
-        const cantidad = parseFloat(cantLimpia) || 0;
-        
+        const cantidad = parseFloat(String(h.cant).replace(/[^\d.-]/g, '')) || 0;
         const fecha = parseFechaBase(h.fecha);
 
         if (fecha instanceof Date && !isNaN(fecha.getTime())) {
             const anioFila = fecha.getFullYear();
             
-            // FILTRO ESTRICTO: Solo sumamos si la operación es SALIDA y el año coincide exactamente
+            // Sumamos solo las SALIDAS del año seleccionado
             if (operacion === 'SALIDA' && anioFila === anioSeleccionado) {
                 if (producto === 'DIESEL') {
                     totalDiesel += cantidad;
@@ -243,7 +240,6 @@ function calcularConsumoAnual() {
         }
     });
 
-    // Formateo de visualización
     document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
     document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
 }
@@ -278,14 +274,9 @@ function actualizarUI(data) {
 function parseFechaBase(str) {
     if (!str) return null;
     if (str instanceof Date) return str;
-    
     const limpia = String(str).split(' ')[0].trim();
     const partes = limpia.split('/');
-    
-    if (partes.length === 3) {
-        return new Date(partes[2], partes[1] - 1, partes[0]);
-    }
-    
+    if (partes.length === 3) return new Date(partes[2], partes[1] - 1, partes[0]);
     const d = new Date(str);
     return isNaN(d.getTime()) ? null : d;
 }
