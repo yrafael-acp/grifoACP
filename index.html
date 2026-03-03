@@ -40,6 +40,11 @@
 
         .app-header-logo { height: 50px; width: auto; margin-right: 15px; vertical-align: middle; }
         .header-content { display: flex; align-items: center; }
+
+        /* Estilos nuevos para el resumen anual */
+        .annual-summary { display: flex; gap: 15px; margin-top: 10px; }
+        .summary-item { flex: 1; padding: 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; text-align: center; }
+        .summary-value { font-size: 1.2rem; font-weight: bold; display: block; color: var(--primary); }
     </style>
 </head>
 <body>
@@ -98,6 +103,20 @@
                 <b>GASOHOL</b>
                 <span id="sGasohol" class="stock-label">0.00</span>
                 <small>Stock critico: 450 gl</small>
+            </div>
+        </div>
+
+        <div style="margin-top:15px; padding: 10px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <b style="font-size: 0.85rem; color: #64748b; text-transform: uppercase;">Consumo Total Año <span id="currentYear"></span></b>
+            <div class="annual-summary">
+                <div class="summary-item">
+                    <small>Diesel</small>
+                    <span id="annualDiesel" class="summary-value">0.00 gl</span>
+                </div>
+                <div class="summary-item">
+                    <small>Gasohol</small>
+                    <span id="annualGasohol" class="summary-value">0.00 gl</span>
+                </div>
             </div>
         </div>
         
@@ -174,7 +193,6 @@ async function cargarDatos() {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
         
-        // Forzamos la fecha original del Hipotanque si detecta que es ese equipo
         if(data.equipos) {
             data.equipos = data.equipos.map(e => {
                 if(e.id === 'Hipotanque (Móvil)') e.ult = '2025-12-10';
@@ -187,6 +205,7 @@ async function cargarDatos() {
         actualizarUI(data);
         llenarSelectorMeses();
         procesarGrafico();
+        calcularConsumoAnual(); // Llamada a la nueva función
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
     } catch (e) { console.log("Error de conexion..."); }
 }
@@ -226,6 +245,28 @@ function actualizarUI(data) {
     }).join('');
 
     renderHistorial(datosCache);
+}
+
+// NUEVA FUNCIÓN PARA CÁLCULO ANUAL
+function calcularConsumoAnual() {
+    const yearActual = new Date().getFullYear();
+    document.getElementById('currentYear').innerText = yearActual;
+    
+    let totalDiesel = 0;
+    let totalGasohol = 0;
+
+    datosCache.forEach(h => {
+        const fecha = parseFechaBase(h.fecha);
+        if(!fecha) return;
+
+        if(fecha.getFullYear() === yearActual && h.mov.toUpperCase() === 'SALIDA') {
+            if(h.prod.toUpperCase() === 'DIESEL') totalDiesel += parseFloat(h.cant);
+            if(h.prod.toUpperCase() === 'GASOHOL') totalGasohol += parseFloat(h.cant);
+        }
+    });
+
+    document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString(undefined, {minimumFractionDigits: 2}) + " gl";
+    document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString(undefined, {minimumFractionDigits: 2}) + " gl";
 }
 
 function aplicarFiltros() {
