@@ -41,10 +41,10 @@
         .app-header-logo { height: 50px; width: auto; margin-right: 15px; vertical-align: middle; }
         .header-content { display: flex; align-items: center; }
 
-        /* Estilos nuevos para el resumen anual */
+        /* Estilos para el resumen anual */
         .annual-summary { display: flex; gap: 15px; margin-top: 10px; }
-        .summary-item { flex: 1; padding: 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; text-align: center; }
-        .summary-value { font-size: 1.2rem; font-weight: bold; display: block; color: var(--primary); }
+        .summary-item { flex: 1; padding: 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; }
+        .summary-value { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -54,7 +54,7 @@
         <div class="header-content">
             <img src="logo.png" alt="Logo ACP" class="app-header-logo">
             <div>
-                <h1 style="margin:0; font-size: 1.5rem;">Gestion Corporativa - GRIFO ACP</h1>
+                <h1 style="margin:0; font-size: 1.5rem;">Gestión Corporativa - GRIFO ACP</h1>
                 <span class="sync-indicator">Sistema online | Ultima sinc.: <span id="lastUpdate">-</span></span>
             </div>
         </div>
@@ -106,16 +106,16 @@
             </div>
         </div>
 
-        <div style="margin-top:15px; padding: 10px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <b style="font-size: 0.85rem; color: #64748b; text-transform: uppercase;">Consumo Total Año <span id="currentYear"></span></b>
+        <div style="margin-top:15px; padding: 12px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+            <b style="font-size: 0.85rem; color: #475569; text-transform: uppercase;">Consumo Acumulado Año <span id="currentYear"></span></b>
             <div class="annual-summary">
-                <div class="summary-item">
-                    <small>Diesel</small>
-                    <span id="annualDiesel" class="summary-value">0.00 gl</span>
+                <div class="summary-item" style="border-left: 4px solid var(--diesel);">
+                    <small style="color: #64748b; font-weight: bold;">DIESEL</small>
+                    <span id="annualDiesel" class="summary-value" style="color: var(--diesel);">0.00 gl</span>
                 </div>
-                <div class="summary-item">
-                    <small>Gasohol</small>
-                    <span id="annualGasohol" class="summary-value">0.00 gl</span>
+                <div class="summary-item" style="border-left: 4px solid var(--gasohol);">
+                    <small style="color: #64748b; font-weight: bold;">GASOHOL</small>
+                    <span id="annualGasohol" class="summary-value" style="color: var(--gasohol);">0.00 gl</span>
                 </div>
             </div>
         </div>
@@ -172,17 +172,11 @@ let miGrafico = null;
 let historialFiltradoActual = [];
 
 async function gestionarFiltros(accion, tipo, equipo = '') {
-    const payload = {
-        action: 'updateFiltros',
-        subAction: accion,
-        tipo: tipo,
-        equipo: equipo
-    };
-
+    const payload = { action: 'updateFiltros', subAction: accion, tipo: tipo, equipo: equipo };
     try {
         const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
         if(res.ok) {
-            alert(accion === 'compra' ? `Stock de ${tipo} actualizado (+1)` : `Mantenimiento de ${equipo} realizado. Stock ${tipo} (-1)`);
+            alert(accion === 'compra' ? `Stock de ${tipo} actualizado (+1)` : `Mantenimiento de ${equipo} realizado.`);
             cargarDatos();
         }
     } catch (e) { alert("Error al actualizar filtros"); }
@@ -205,49 +199,11 @@ async function cargarDatos() {
         actualizarUI(data);
         llenarSelectorMeses();
         procesarGrafico();
-        calcularConsumoAnual(); // Llamada a la nueva función
+        calcularConsumoAnual(); 
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
     } catch (e) { console.log("Error de conexion..."); }
 }
 
-function actualizarUI(data) {
-    document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
-    document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
-    
-    const cf60Count = data.filtros.cf60;
-    const cf100Count = data.filtros.cf100;
-    document.getElementById('f60').innerText = cf60Count;
-    document.getElementById('f100').innerText = cf100Count;
-
-    let alertaFiltrosHTML = "";
-    if(cf60Count < 2) alertaFiltrosHTML += `<div style="color:var(--danger)">⚠️ Stock Crítico CF60: Reponer unidades.</div>`;
-    if(cf100Count < 1) alertaFiltrosHTML += `<div style="color:var(--danger)">⚠️ Stock Crítico CF100: Reponer unidades.</div>`;
-    document.getElementById('alertaStockFiltros').innerHTML = alertaFiltrosHTML;
-
-    let alerts = "";
-    if(data.stocks.diesel <= 3000) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">Diesel Bajo</div>`;
-    if(data.stocks.gasohol <= 450) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">Gasohol Bajo</div>`;
-    document.getElementById('alertasContainer').innerHTML = alerts || "Stock OK.";
-
-    const hoy = new Date();
-    document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
-        const partesManto = e.ult.split('-');
-        const fechaManto = new Date(partesManto[0], partesManto[1]-1, partesManto[2]);
-        const diff = Math.floor((hoy - fechaManto) / (1000*60*60*24));
-        const blink = (diff >= 85 && diff < 90) ? 'blink-row' : '';
-        const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
-        
-        const tipoFiltro = e.f.includes('CF60') ? 'cf60' : (e.f.includes('CF100') ? 'cf100' : 'malla');
-
-        return `<tr class="${blink}"><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
-        <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
-        <td><button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '${tipoFiltro}', '${e.id}')">Reset</button></td></tr>`;
-    }).join('');
-
-    renderHistorial(datosCache);
-}
-
-// NUEVA FUNCIÓN PARA CÁLCULO ANUAL
 function calcularConsumoAnual() {
     const yearActual = new Date().getFullYear();
     document.getElementById('currentYear').innerText = yearActual;
@@ -255,21 +211,50 @@ function calcularConsumoAnual() {
     let totalDiesel = 0;
     let totalGasohol = 0;
 
+    // Recorre toda la base de datos sin filtros visuales
     datosCache.forEach(h => {
         const fecha = parseFechaBase(h.fecha);
         if(!fecha) return;
 
-        if(fecha.getFullYear() === yearActual && h.mov.toUpperCase() === 'SALIDA') {
-            if(h.prod.toUpperCase() === 'DIESEL') totalDiesel += parseFloat(h.cant);
-            if(h.prod.toUpperCase() === 'GASOHOL') totalGasohol += parseFloat(h.cant);
+        // Sumar solo si el año coincide y el movimiento es SALIDA
+        if(fecha.getFullYear() === yearActual && h.mov.trim().toUpperCase() === 'SALIDA') {
+            const cant = parseFloat(h.cant) || 0;
+            const producto = h.prod.trim().toUpperCase();
+
+            if(producto === 'DIESEL') totalDiesel += cant;
+            if(producto === 'GASOHOL') totalGasohol += cant;
         }
     });
 
-    document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString(undefined, {minimumFractionDigits: 2}) + " gl";
-    document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString(undefined, {minimumFractionDigits: 2}) + " gl";
+    // Formatear con separadores de miles para lectura clara de cifras altas
+    document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
+    document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
 }
 
-function aplicarFiltros() {
+function actualizarUI(data) {
+    document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
+    document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
+    document.getElementById('f60').innerText = data.filtros.cf60;
+    document.getElementById('f100').innerText = data.filtros.cf100;
+
+    let alertaFiltrosHTML = "";
+    if(data.filtros.cf60 < 2) alertaFiltrosHTML += `<div style="color:var(--danger)">⚠️ Stock Crítico CF60</div>`;
+    if(data.filtros.cf100 < 1) alertaFiltrosHTML += `<div style="color:var(--danger)">⚠️ Stock Crítico CF100</div>`;
+    document.getElementById('alertaStockFiltros').innerHTML = alertaFiltrosHTML;
+
+    const hoy = new Date();
+    document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
+        const partesManto = e.ult.split('-');
+        const fechaManto = new Date(partesManto[0], partesManto[1]-1, partesManto[2]);
+        const diff = Math.floor((hoy - fechaManto) / (1000*60*60*24));
+        const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
+        const tipoFiltro = e.f.includes('CF60') ? 'cf60' : (e.f.includes('CF100') ? 'cf100' : 'malla');
+
+        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
+        <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
+        <td><button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '${tipoFiltro}', '${e.id}')">Reset</button></td></tr>`;
+    }).join('');
+
     renderHistorial(datosCache);
 }
 
@@ -355,35 +340,11 @@ function procesarGrafico() {
         data: {
             labels: ['Diesel', 'Gasohol'],
             datasets: [
-                {
-                    type: 'bar',
-                    label: 'Consumo ' + mesActual,
-                    data: [dataActual.diesel, dataActual.gasohol],
-                    backgroundColor: ['#2563eb', '#10b981'],
-                    borderRadius: 5,
-                    order: 2
-                },
-                {
-                    type: 'line',
-                    label: 'Mes Anterior',
-                    data: [dataPrev.diesel, dataPrev.gasohol],
-                    borderColor: '#f59e0b',
-                    borderWidth: 3,
-                    pointBackgroundColor: '#f59e0b',
-                    fill: false,
-                    tension: 0.1,
-                    order: 1
-                }
+                { type: 'bar', label: 'Consumo ' + mesActual, data: [dataActual.diesel, dataActual.gasohol], backgroundColor: ['#2563eb', '#10b981'], borderRadius: 5, order: 2 },
+                { type: 'line', label: 'Mes Anterior', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', borderWidth: 3, pointBackgroundColor: '#f59e0b', fill: false, tension: 0.1, order: 1 }
             ]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' },
-                tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(2)} gl` } }
-            }
-        }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 }
 
