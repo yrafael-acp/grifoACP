@@ -203,7 +203,7 @@ async function cargarDatos() {
     } catch (e) { console.log("Error de conexion..."); }
 }
 
-// FUNCIÓN DE CÁLCULO ANUAL REFORZADA (FILTRO ESTRICTO 2026)
+// FUNCIÓN DE CÁLCULO ANUAL CONDICIONADA ESTRICTAMENTE A LAS COLUMNAS DE LA HOJA
 function calcularConsumoAnual() {
     const yearActual = new Date().getFullYear();
     document.getElementById('currentYear').innerText = yearActual;
@@ -211,34 +211,36 @@ function calcularConsumoAnual() {
     let totalDiesel = 0;
     let totalGasohol = 0;
 
+    // Procesamos cada fila del historial (que viene directamente de la hoja de cálculo)
     datosCache.forEach(h => {
-        // 1. Validar que existan datos en la fila
+        // Validación de existencia de datos básicos
         if (!h.fecha || !h.mov || !h.prod || !h.cant) return;
 
-        // 2. Parsear fecha y validar que sea del año 2026
+        // 1. CONDICIÓN DE FECHA: Validar estrictamente el año (Columna A)
         const fecha = parseFechaBase(h.fecha);
         if (!fecha || fecha.getFullYear() !== yearActual) return;
 
-        // 3. Normalizar textos (quitar espacios y pasar a mayúsculas)
+        // 2. CONDICIÓN DE OPERACIÓN: Solo sumar si es 'SALIDA' (Columna B)
         const operacion = String(h.mov).trim().toUpperCase();
-        const producto = String(h.prod).trim().toUpperCase();
-        const cantidad = parseFloat(h.cant);
+        if (operacion !== 'SALIDA') return;
 
-        // 4. Lógica de suma: SOLO Salidas reales del año actual
-        if (operacion === 'SALIDA' && !isNaN(cantidad)) {
-            if (producto === 'DIESEL') {
-                totalDiesel += cantidad;
-            } else if (producto === 'GASOHOL') {
-                totalGasohol += cantidad;
-            }
+        // 3. CONDICIÓN DE PRODUCTO: Comparar tipo de combustible (Columna C)
+        const producto = String(h.prod).trim().toUpperCase();
+
+        // 4. CONDICIÓN DE CANTIDAD: Sumar estrictamente el valor de la Columna D
+        const cantidad = parseFloat(h.cant) || 0;
+
+        if (producto === 'DIESEL') {
+            totalDiesel += cantidad;
+        } else if (producto === 'GASOHOL') {
+            totalGasohol += cantidad;
         }
     });
 
-    // 5. Renderizado final con formato
+    // Renderizado con formato de miles y 2 decimales
     document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
     document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
 }
-
 function actualizarUI(data) {
     document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
     document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
