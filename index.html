@@ -203,7 +203,7 @@ async function cargarDatos() {
     } catch (e) { console.log("Error de conexion..."); }
 }
 
-// FUNCIÓN CORREGIDA PARA ELIMINAR DIFERENCIA DE 2446 GLNS
+// FUNCIÓN DE CÁLCULO ANUAL REFORZADA (FILTRO ESTRICTO 2026)
 function calcularConsumoAnual() {
     const yearActual = new Date().getFullYear();
     document.getElementById('currentYear').innerText = yearActual;
@@ -211,28 +211,30 @@ function calcularConsumoAnual() {
     let totalDiesel = 0;
     let totalGasohol = 0;
 
-    // Ajuste de precisión: Recorrido exacto y limpieza de strings
     datosCache.forEach(h => {
-        if (!h.fecha || !h.mov || !h.prod) return;
+        // 1. Validar que existan datos en la fila
+        if (!h.fecha || !h.mov || !h.prod || !h.cant) return;
 
+        // 2. Parsear fecha y validar que sea del año 2026
         const fecha = parseFechaBase(h.fecha);
-        if(!fecha) return;
+        if (!fecha || fecha.getFullYear() !== yearActual) return;
 
-        const operacion = h.mov.trim().toUpperCase();
-        const producto = h.prod.trim().toUpperCase();
-        const cantidad = parseFloat(h.cant) || 0;
+        // 3. Normalizar textos (quitar espacios y pasar a mayúsculas)
+        const operacion = String(h.mov).trim().toUpperCase();
+        const producto = String(h.prod).trim().toUpperCase();
+        const cantidad = parseFloat(h.cant);
 
-        // Filtro estricto: Solo año actual y solo tipo SALIDA
-        if(fecha.getFullYear() === yearActual && operacion === 'SALIDA') {
-            if(producto === 'DIESEL') {
+        // 4. Lógica de suma: SOLO Salidas reales del año actual
+        if (operacion === 'SALIDA' && !isNaN(cantidad)) {
+            if (producto === 'DIESEL') {
                 totalDiesel += cantidad;
-            } else if(producto === 'GASOHOL') {
+            } else if (producto === 'GASOHOL') {
                 totalGasohol += cantidad;
             }
         }
     });
 
-    // Renderizado con separadores de miles y 2 decimales
+    // 5. Renderizado final con formato
     document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
     document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
 }
