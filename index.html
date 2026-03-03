@@ -211,33 +211,32 @@ function calcularConsumoAnual() {
     let totalDiesel = 0;
     let totalGasohol = 0;
 
-    // Procesamos cada fila del historial (que viene directamente de la hoja de cálculo)
     datosCache.forEach(h => {
-        // Validación de existencia de datos básicos
+        // 1. Limpieza de datos y normalización de texto
         if (!h.fecha || !h.mov || !h.prod || !h.cant) return;
 
-        // 1. CONDICIÓN DE FECHA: Validar estrictamente el año (Columna A)
+        const operacion = String(h.mov).trim().toUpperCase();
+        const producto = String(h.prod).trim().toUpperCase();
+        const cantidad = parseFloat(h.cant) || 0;
         const fecha = parseFechaBase(h.fecha);
+
+        // 2. Validación estricta de fecha (Solo año actual)
         if (!fecha || fecha.getFullYear() !== yearActual) return;
 
-        // 2. CONDICIÓN DE OPERACIÓN: Solo sumar si es 'SALIDA' (Columna B)
-        const operacion = String(h.mov).trim().toUpperCase();
-        if (operacion !== 'SALIDA') return;
-
-        // 3. CONDICIÓN DE PRODUCTO: Comparar tipo de combustible (Columna C)
-        const producto = String(h.prod).trim().toUpperCase();
-
-        // 4. CONDICIÓN DE CANTIDAD: Sumar estrictamente el valor de la Columna D
-        const cantidad = parseFloat(h.cant) || 0;
-
-        if (producto === 'DIESEL') {
-            totalDiesel += cantidad;
-        } else if (producto === 'GASOHOL') {
-            totalGasohol += cantidad;
+        // 3. FILTRO ESTRICTO SEGÚN TU PEDIDO:
+        // Solo sumamos de la Columna D (cantidad) si:
+        // - Columna B (operacion) es exactamente SALIDA
+        // - Columna C (producto) es exactamente DIESEL o GASOHOL
+        if (operacion === 'SALIDA') {
+            if (producto === 'DIESEL') {
+                totalDiesel += cantidad;
+            } else if (producto === 'GASOHOL') {
+                totalGasohol += cantidad;
+            }
         }
     });
 
-    // Renderizado con formato de miles y 2 decimales
+    // Formateo final para asegurar que la visualización coincida con tus consumos
     document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
     document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
 }
