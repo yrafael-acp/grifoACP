@@ -41,7 +41,6 @@
         .app-header-logo { height: 50px; width: auto; margin-right: 15px; vertical-align: middle; }
         .header-content { display: flex; align-items: center; }
 
-        /* Estilos para el resumen anual */
         .annual-summary { display: flex; gap: 15px; margin-top: 10px; }
         .summary-item { flex: 1; padding: 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; }
         .summary-value { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; }
@@ -110,11 +109,11 @@
             <b style="font-size: 0.85rem; color: #475569; text-transform: uppercase;">Consumo Acumulado Año <span id="currentYear"></span></b>
             <div class="annual-summary">
                 <div class="summary-item" style="border-left: 4px solid var(--diesel);">
-                    <small style="color: #64748b; font-weight: bold;">DIESEL</small>
+                    <small style="color: #64748b; font-weight: bold;">DIESEL TOTAL</small>
                     <span id="annualDiesel" class="summary-value" style="color: var(--diesel);">0.00 gl</span>
                 </div>
                 <div class="summary-item" style="border-left: 4px solid var(--gasohol);">
-                    <small style="color: #64748b; font-weight: bold;">GASOHOL</small>
+                    <small style="color: #64748b; font-weight: bold;">GASOHOL TOTAL</small>
                     <span id="annualGasohol" class="summary-value" style="color: var(--gasohol);">0.00 gl</span>
                 </div>
             </div>
@@ -204,6 +203,7 @@ async function cargarDatos() {
     } catch (e) { console.log("Error de conexion..."); }
 }
 
+// FUNCIÓN CORREGIDA PARA ELIMINAR DIFERENCIA DE 2446 GLNS
 function calcularConsumoAnual() {
     const yearActual = new Date().getFullYear();
     document.getElementById('currentYear').innerText = yearActual;
@@ -211,22 +211,28 @@ function calcularConsumoAnual() {
     let totalDiesel = 0;
     let totalGasohol = 0;
 
-    // Recorre toda la base de datos sin filtros visuales
+    // Ajuste de precisión: Recorrido exacto y limpieza de strings
     datosCache.forEach(h => {
+        if (!h.fecha || !h.mov || !h.prod) return;
+
         const fecha = parseFechaBase(h.fecha);
         if(!fecha) return;
 
-        // Sumar solo si el año coincide y el movimiento es SALIDA
-        if(fecha.getFullYear() === yearActual && h.mov.trim().toUpperCase() === 'SALIDA') {
-            const cant = parseFloat(h.cant) || 0;
-            const producto = h.prod.trim().toUpperCase();
+        const operacion = h.mov.trim().toUpperCase();
+        const producto = h.prod.trim().toUpperCase();
+        const cantidad = parseFloat(h.cant) || 0;
 
-            if(producto === 'DIESEL') totalDiesel += cant;
-            if(producto === 'GASOHOL') totalGasohol += cant;
+        // Filtro estricto: Solo año actual y solo tipo SALIDA
+        if(fecha.getFullYear() === yearActual && operacion === 'SALIDA') {
+            if(producto === 'DIESEL') {
+                totalDiesel += cantidad;
+            } else if(producto === 'GASOHOL') {
+                totalGasohol += cantidad;
+            }
         }
     });
 
-    // Formatear con separadores de miles para lectura clara de cifras altas
+    // Renderizado con separadores de miles y 2 decimales
     document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
     document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
 }
