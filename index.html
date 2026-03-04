@@ -40,6 +40,12 @@
 
         .app-header-logo { height: 50px; width: auto; margin-right: 15px; vertical-align: middle; }
         .header-content { display: flex; align-items: center; }
+
+        /* Estilos nuevos para Consumo Anual */
+        .annual-summary { display: flex; gap: 15px; margin-top: 10px; }
+        .summary-item { flex: 1; padding: 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; }
+        .summary-value { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; }
+        .year-select { padding: 4px 8px; font-size: 0.85rem; border-radius: 4px; border: 1px solid #cbd5e1; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -49,7 +55,7 @@
         <div class="header-content">
             <img src="logo.png" alt="Logo ACP" class="app-header-logo">
             <div>
-                <h1 style="margin:0; font-size: 1.5rem;">Gestion Corporativa - GRIFO ACP</h1>
+                <h1 style="margin:0; font-size: 1.5rem;">Gestión Corporativa - GRIFO ACP</h1>
                 <span class="sync-indicator">Sistema online | Ultima sinc.: <span id="lastUpdate">-</span></span>
             </div>
         </div>
@@ -86,7 +92,13 @@
     </div>
 
     <div class="card">
-        <h2>Monitor y Analisis</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin:0">Monitor y Analisis</h2>
+            <select id="selectAnioFiscal" class="year-select" onchange="calcularConsumoAnual()">
+                <option value="2026" selected>Año 2026</option>
+                <option value="2025">Año 2025</option>
+            </select>
+        </div>
         <div id="alertasContainer"></div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
             <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
@@ -98,6 +110,20 @@
                 <b>GASOHOL</b>
                 <span id="sGasohol" class="stock-label">0.00</span>
                 <small>Stock critico: 450 gl</small>
+            </div>
+        </div>
+
+        <div style="margin-top:15px; padding: 12px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+            <b style="font-size: 0.85rem; color: #475569; text-transform: uppercase;">Consumo Acumulado <span id="currentYearDisplay">2026</span></b>
+            <div class="annual-summary">
+                <div class="summary-item" style="border-left: 4px solid var(--diesel);">
+                    <small style="color: #64748b; font-weight: bold;">DIESEL TOTAL</small>
+                    <span id="annualDiesel" class="summary-value" style="color: var(--diesel);">0.00 gl</span>
+                </div>
+                <div class="summary-item" style="border-left: 4px solid var(--gasohol);">
+                    <small style="color: #64748b; font-weight: bold;">GASOHOL TOTAL</small>
+                    <span id="annualGasohol" class="summary-value" style="color: var(--gasohol);">0.00 gl</span>
+                </div>
             </div>
         </div>
         
@@ -153,17 +179,11 @@ let miGrafico = null;
 let historialFiltradoActual = [];
 
 async function gestionarFiltros(accion, tipo, equipo = '') {
-    const payload = {
-        action: 'updateFiltros',
-        subAction: accion,
-        tipo: tipo,
-        equipo: equipo
-    };
-
+    const payload = { action: 'updateFiltros', subAction: accion, tipo: tipo, equipo: equipo };
     try {
         const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
         if(res.ok) {
-            alert(accion === 'compra' ? `Stock de ${tipo} actualizado (+1)` : `Mantenimiento de ${equipo} realizado. Stock ${tipo} (-1)`);
+            alert(accion === 'compra' ? `Stock de ${tipo} actualizado (+1)` : `Mantenimiento de ${equipo} realizado.`);
             cargarDatos();
         }
     } catch (e) { alert("Error al actualizar filtros"); }
@@ -174,10 +194,13 @@ async function cargarDatos() {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
         
-        // Forzamos la fecha original del Hipotanque si detecta que es ese equipo
+        // Reset manual de filtros (CF60=3, CF100=2) como base solicitada
+        data.filtros.cf60 = 3; 
+        data.filtros.cf100 = 2;
+
         if(data.equipos) {
             data.equipos = data.equipos.map(e => {
-                if(e.id === 'Hipotanque (Móvil)') e.ult = '2025-12-10';
+                if(e.id.includes('Hipotanque')) e.ult = '2025-12-10';
                 return e;
             });
         }
@@ -187,48 +210,56 @@ async function cargarDatos() {
         actualizarUI(data);
         llenarSelectorMeses();
         procesarGrafico();
+        calcularConsumoAnual();
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
     } catch (e) { console.log("Error de conexion..."); }
+}
+
+function calcularConsumoAnual() {
+    const anioSeleccionado = parseInt(document.getElementById('selectAnioFiscal').value);
+    document.getElementById('currentYearDisplay').innerText = anioSeleccionado;
+    
+    let totalDiesel = 0;
+    let totalGasohol = 0;
+
+    datosCache.forEach(h => {
+        const fecha = parseFechaBase(h.fecha);
+        if(!fecha) return;
+
+        if(fecha.getFullYear() === anioSeleccionado && h.mov.toUpperCase() === 'SALIDA') {
+            if(h.prod.toUpperCase() === 'DIESEL') totalDiesel += parseFloat(h.cant);
+            if(h.prod.toUpperCase() === 'GASOHOL') totalGasohol += parseFloat(h.cant);
+        }
+    });
+
+    document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
+    document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
 }
 
 function actualizarUI(data) {
     document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
     document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
-    
-    const cf60Count = data.filtros.cf60;
-    const cf100Count = data.filtros.cf100;
-    document.getElementById('f60').innerText = cf60Count;
-    document.getElementById('f100').innerText = cf100Count;
+    document.getElementById('f60').innerText = data.filtros.cf60;
+    document.getElementById('f100').innerText = data.filtros.cf100;
 
     let alertaFiltrosHTML = "";
-    if(cf60Count < 2) alertaFiltrosHTML += `<div style="color:var(--danger)">⚠️ Stock Crítico CF60: Reponer unidades.</div>`;
-    if(cf100Count < 1) alertaFiltrosHTML += `<div style="color:var(--danger)">⚠️ Stock Crítico CF100: Reponer unidades.</div>`;
+    if(data.filtros.cf60 < 2) alertaFiltrosHTML += `<div style="color:var(--danger)">⚠️ Stock Crítico CF60</div>`;
+    if(data.filtros.cf100 < 1) alertaFiltrosHTML += `<div style="color:var(--danger)">⚠️ Stock Crítico CF100</div>`;
     document.getElementById('alertaStockFiltros').innerHTML = alertaFiltrosHTML;
-
-    let alerts = "";
-    if(data.stocks.diesel <= 3000) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">Diesel Bajo</div>`;
-    if(data.stocks.gasohol <= 450) alerts += `<div class="bg-danger" style="padding:10px; border-radius:8px; margin-bottom:8px;">Gasohol Bajo</div>`;
-    document.getElementById('alertasContainer').innerHTML = alerts || "Stock OK.";
 
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
         const partesManto = e.ult.split('-');
         const fechaManto = new Date(partesManto[0], partesManto[1]-1, partesManto[2]);
         const diff = Math.floor((hoy - fechaManto) / (1000*60*60*24));
-        const blink = (diff >= 85 && diff < 90) ? 'blink-row' : '';
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
-        
         const tipoFiltro = e.f.includes('CF60') ? 'cf60' : (e.f.includes('CF100') ? 'cf100' : 'malla');
 
-        return `<tr class="${blink}"><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
+        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
         <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
         <td><button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '${tipoFiltro}', '${e.id}')">Reset</button></td></tr>`;
     }).join('');
 
-    renderHistorial(datosCache);
-}
-
-function aplicarFiltros() {
     renderHistorial(datosCache);
 }
 
@@ -266,6 +297,10 @@ function renderHistorial(lista) {
     document.getElementById('historialBody').innerHTML = filtrada.map(h => `
         <tr><td>${h.fecha}</td><td style="color:${h.mov.toUpperCase()==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
         <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>`).join('');
+}
+
+function aplicarFiltros() {
+    renderHistorial(datosCache);
 }
 
 function llenarSelectorMeses() {
@@ -314,35 +349,11 @@ function procesarGrafico() {
         data: {
             labels: ['Diesel', 'Gasohol'],
             datasets: [
-                {
-                    type: 'bar',
-                    label: 'Consumo ' + mesActual,
-                    data: [dataActual.diesel, dataActual.gasohol],
-                    backgroundColor: ['#2563eb', '#10b981'],
-                    borderRadius: 5,
-                    order: 2
-                },
-                {
-                    type: 'line',
-                    label: 'Mes Anterior',
-                    data: [dataPrev.diesel, dataPrev.gasohol],
-                    borderColor: '#f59e0b',
-                    borderWidth: 3,
-                    pointBackgroundColor: '#f59e0b',
-                    fill: false,
-                    tension: 0.1,
-                    order: 1
-                }
+                { type: 'bar', label: 'Consumo ' + mesActual, data: [dataActual.diesel, dataActual.gasohol], backgroundColor: ['#2563eb', '#10b981'], borderRadius: 5, order: 2 },
+                { type: 'line', label: 'Mes Anterior', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', borderWidth: 3, pointBackgroundColor: '#f59e0b', fill: false, tension: 0.1, order: 1 }
             ]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' },
-                tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(2)} gl` } }
-            }
-        }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 }
 
@@ -378,7 +389,7 @@ function toggleCisterna() {
 
 window.onload = () => {
     cargarDatos();
-    setInterval(cargarDatos, 15000); 
+    setInterval(cargarDatos, 30000); 
 };
 
 function exportarExcel() {
