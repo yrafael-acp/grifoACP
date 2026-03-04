@@ -179,21 +179,52 @@ let datosCache = [];
 let miGrafico = null;
 let historialFiltradoActual = [];
 
-// VALORES BASE MANUALES (Punto de partida solicitado)
+// 1. DEFINICIÓN DE CORTE MANUAL (Cifras exactas solicitadas)
 const CORTE_MANUAL_DIESEL = 85155.00;
 const CORTE_MANUAL_GASOHOL = 7020.00;
 
-async function gestionarFiltros(accion, tipo, equipo = '') {
-    const payload = { action: 'updateFiltros', subAction: accion, tipo: tipo, equipo: equipo };
-    try {
-        const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
-        if(res.ok) {
-            alert(accion === 'compra' ? `Stock de ${tipo} actualizado (+1)` : `Mantenimiento de ${equipo} realizado.`);
-            cargarDatos();
-        }
-    } catch (e) { alert("Error al actualizar filtros"); }
-}
+// 2. FECHA DE CORTE (Solo suma registros creados después de este momento)
+// Formato: Año, Mes (0-11), Día. 
+const FECHA_INICIO_SUMA = new Date(2026, 2, 4, 0, 0, 0); // 4 de Marzo 2026
 
+function calcularConsumoAnual() {
+    const anioSeleccionado = parseInt(document.getElementById('selectAnioFiscal').value);
+    document.getElementById('currentYear').innerText = anioSeleccionado;
+    
+    // Si es 2026, empezamos con tu base. Si es otro año, empezamos en 0.
+    let totalDiesel = (anioSeleccionado === 2026) ? CORTE_MANUAL_DIESEL : 0;
+    let totalGasohol = (anioSeleccionado === 2026) ? CORTE_MANUAL_GASOHOL : 0;
+
+    datosCache.forEach((h) => {
+        if (!h.fecha || !h.mov || !h.prod || !h.cant) return;
+
+        const operacion = String(h.mov).trim().toUpperCase();
+        const producto = String(h.prod).trim().toUpperCase();
+        const cantidad = parseFloat(String(h.cant).replace(/[^\d.-]/g, '')) || 0;
+        const fechaRegistro = parseFechaBase(h.fecha);
+
+        if (fechaRegistro instanceof Date && !isNaN(fechaRegistro.getTime())) {
+            // LÓGICA DE SEGURIDAD:
+            // Solo sumamos si: 
+            // 1. Es una SALIDA.
+            // 2. Es del año seleccionado.
+            // 3. Es POSTERIOR a la fecha de hoy (para no duplicar lo que ya incluiste en los 85k).
+            if (operacion === 'SALIDA' && fechaRegistro.getFullYear() === anioSeleccionado) {
+                if (fechaRegistro > FECHA_INICIO_SUMA) {
+                    if (producto === 'DIESEL') {
+                        totalDiesel += cantidad;
+                    } else if (producto === 'GASOHOL') {
+                        totalGasohol += cantidad;
+                    }
+                }
+            }
+        }
+    });
+
+    // Actualizar etiquetas en la web
+    document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
+    document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " gl";
+}
 async function cargarDatos() {
     try {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
