@@ -13,7 +13,7 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); position: relative; }
         .full-width { grid-column: span 2; }
         .btn { cursor: pointer; padding: 12px; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; text-align: center; }
         .btn-blue { background: var(--accent); }
@@ -41,7 +41,7 @@
         .app-header-logo { height: 50px; width: auto; margin-right: 15px; vertical-align: middle; }
         .header-content { display: flex; align-items: center; }
 
-        /* Estilos nuevos para Consumo Anual */
+        /* Estilos Consumo Anual */
         .annual-summary { display: flex; gap: 15px; margin-top: 10px; }
         .summary-item { flex: 1; padding: 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; }
         .summary-value { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; }
@@ -194,7 +194,7 @@ async function cargarDatos() {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
         
-        // Reset manual de filtros (CF60=3, CF100=2) como base solicitada
+        // Reset manual de filtros solicitado
         data.filtros.cf60 = 3; 
         data.filtros.cf100 = 2;
 
@@ -226,6 +226,7 @@ function calcularConsumoAnual() {
         const fecha = parseFechaBase(h.fecha);
         if(!fecha) return;
 
+        // FILTRO ESTRICTO POR AÑO
         if(fecha.getFullYear() === anioSeleccionado && h.mov.toUpperCase() === 'SALIDA') {
             if(h.prod.toUpperCase() === 'DIESEL') totalDiesel += parseFloat(h.cant);
             if(h.prod.toUpperCase() === 'GASOHOL') totalGasohol += parseFloat(h.cant);
@@ -265,10 +266,16 @@ function actualizarUI(data) {
 
 function parseFechaBase(str) {
     if(!str) return null;
-    const limpia = str.split(',')[0].trim();
-    const partes = limpia.split('/');
-    if(partes.length === 3) return new Date(partes[2], partes[1]-1, partes[0]);
-    return new Date(str);
+    // Manejo robusto de fechas del archivo descargado
+    const limpia = str.split('T')[0].split(',')[0].trim();
+    const partes = limpia.split(/[/-]/);
+    if(partes.length === 3) {
+        // Verifica si es formato ISO (YYYY-MM-DD) o Local (DD/MM/YYYY)
+        if(partes[0].length === 4) return new Date(partes[0], partes[1]-1, partes[2]);
+        return new Date(partes[2], partes[1]-1, partes[0]);
+    }
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
 }
 
 function renderHistorial(lista) {
