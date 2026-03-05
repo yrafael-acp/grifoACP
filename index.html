@@ -194,7 +194,7 @@ async function cargarDatos() {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
         
-        // Reset manual de filtros solicitado
+        // Reset manual de filtros
         data.filtros.cf60 = 3; 
         data.filtros.cf100 = 2;
 
@@ -226,7 +226,7 @@ function calcularConsumoAnual() {
         const fecha = parseFechaBase(h.fecha);
         if(!fecha) return;
 
-        // FILTRO ESTRICTO POR AÑO
+        // FILTRO POR AÑO
         if(fecha.getFullYear() === anioSeleccionado && h.mov.toUpperCase() === 'SALIDA') {
             if(h.prod.toUpperCase() === 'DIESEL') totalDiesel += parseFloat(h.cant);
             if(h.prod.toUpperCase() === 'GASOHOL') totalGasohol += parseFloat(h.cant);
@@ -266,7 +266,7 @@ function actualizarUI(data) {
 
 function parseFechaBase(str) {
     if(!str) return null;
-    // Manejo robusto de fechas del archivo descargado
+    // Manejo de fechas del archivo descargado
     const limpia = str.split('T')[0].split(',')[0].trim();
     const partes = limpia.split(/[/-]/);
     if(partes.length === 3) {
