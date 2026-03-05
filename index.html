@@ -14,11 +14,9 @@
         }
         body { font-family: 'Inter', 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #1e293b; }
         
-        /* LOGIN MODERNO */
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-card { background: white; padding: 40px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); text-align: center; }
 
-        /* DASHBOARD */
         #mainContent { display: none; max-width: 1400px; margin: auto; }
         .dashboard { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
         .card { background: var(--card-bg); padding: 24px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; }
@@ -60,7 +58,7 @@
             <button class="btn btn-blue" onclick="handleLogin()">Entrar</button>
         </div>
         <div id="changePassForm" style="display:none;">
-            <p style="color: var(--danger); font-size: 0.85em;">Cambio Obligatorio: Mínimo 1 Mayúscula y 1 Número.</p>
+            <p style="color: var(--danger); font-size: 0.85em;">Mínimo 1 Mayúscula y 1 Número.</p>
             <input type="password" id="newPassInput" placeholder="Nueva Contraseña">
             <input type="password" id="confirmPassInput" placeholder="Confirmar Contraseña">
             <button class="btn btn-green" style="width:100%" onclick="saveNewPassword()">Actualizar y Entrar</button>
@@ -74,7 +72,7 @@
             <img src="logo.png" alt="Logo ACP" class="app-header-logo">
             <div>
                 <h1 style="margin:0; font-size: 1.2rem;">GRIFO ACP | <span id="displayUser"></span></h1>
-                <small>Sinc: <span id="lastUpdate">-</span></small>
+                <small id="lastUpdate">Sincronizando...</small>
             </div>
         </div>
         <button onclick="logout()" class="btn btn-logout">Cerrar Sesión</button>
@@ -99,7 +97,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center">
                 <h2>Monitoreo</h2>
                 <select id="selectAnioFiscal" style="width:auto" onchange="calcularConsumoAnual()">
-                    <option value="2026">Año 2026</option><option value="2025">Año 2025</option>
+                    <option value="2026" selected>Año 2026</option><option value="2025">Año 2025</option>
                 </select>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:15px 0;">
@@ -118,19 +116,21 @@
                 <b>Consumo Mensual</b>
                 <select id="filtroMesGrafico" onchange="procesarGrafico()" style="width:auto; margin:0; padding:5px;"></select>
             </div>
-            <canvas id="consumoChart" style="max-height: 200px;"></canvas>
+            <div style="height: 200px;"><canvas id="consumoChart"></canvas></div>
         </div>
 
         <div class="card full-width">
-            <h2>Mantenimiento Trimestral</h2>
-            <table>
-                <thead><tr><th>Equipo</th><th>Filtro</th><th>Último</th><th>Días</th><th>Estado</th><th class="admin-only">Acción</th></tr></thead>
-                <tbody id="mantoBody"></tbody>
-            </table>
+            <h2>Mantenimiento Preventivo</h2>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Equipo</th><th>Filtro</th><th>Último</th><th>Días</th><th>Estado</th><th class="admin-only">Acción</th></tr></thead>
+                    <tbody id="mantoBody"></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="card full-width">
-            <h2>Historial</h2>
+            <h2>Historial de Movimientos</h2>
             <div class="table-container" style="max-height:300px;"><table id="tablaHistorialWeb"><thead><tr><th>Fecha</th><th>Mov</th><th>Prod</th><th>Cant</th><th>Ref</th><th>Saldo</th></tr></thead><tbody id="historialBody"></tbody></table></div>
         </div>
     </div>
@@ -148,7 +148,7 @@ function handleLogin() {
     const pass = document.getElementById('passInput').value;
     if (!USERS[user]) return alert("Usuario no válido.");
     const auth = JSON.parse(localStorage.getItem('userAuth_' + user)) || { pass: GENERIC_PASS };
-    if (pass !== auth.pass) return alert("Incorrecta.");
+    if (pass !== auth.pass) return alert("Contraseña incorrecta.");
     if (pass === GENERIC_PASS) { currentUser = user; document.getElementById('loginForm').style.display = 'none'; document.getElementById('changePassForm').style.display = 'block'; }
     else { startSession(user); }
 }
@@ -166,7 +166,7 @@ function startSession(user) {
     document.getElementById('mainContent').style.display = 'block';
     document.getElementById('displayUser').innerText = user;
     if (USERS[user] === "ADMIN") document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-    else { document.getElementById('registroCard').style.display = 'none'; document.getElementById('monitorCard').className = "card col-12"; }
+    else { document.getElementById('registroCard').style.display = 'none'; document.getElementById('monitorCard').style.gridColumn = "span 12"; }
     cargarDatos();
 }
 
@@ -179,10 +179,10 @@ async function cargarDatos() {
         datosCache = data.historial;
         actualizarUI(data);
         llenarSelectorMeses();
-        procesarGrafico();
         calcularConsumoAnual();
-        document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
-    } catch (e) { console.error("Error"); }
+        procesarGrafico();
+        document.getElementById('lastUpdate').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
+    } catch (e) { console.error("Error cargando datos"); }
 }
 
 function actualizarUI(data) {
@@ -196,23 +196,9 @@ function actualizarUI(data) {
         const diff = Math.floor((hoy - fManto) / (1000*60*60*24));
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
         const btn = USERS[currentUser] === "ADMIN" ? `<button class="btn btn-blue" style="padding:5px 10px; width:auto" onclick="gestionarFiltros('reset', '', '${e.id}')">Reset</button>` : "-";
-        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td><td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td><td class="admin-only">${btn}</td></tr>`;
+        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td><td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td><td class="admin-only" style="display:${USERS[currentUser]==='ADMIN'?'table-cell':'none'}">${btn}</td></tr>`;
     }).join('');
     document.getElementById('historialBody').innerHTML = datosCache.map(x => `<tr><td>${x.fecha.replace('T',' ').substring(0,16)}</td><td><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>`).join('');
-}
-
-function calcularConsumoAnual() {
-    const anio = parseInt(document.getElementById('selectAnioFiscal').value);
-    let d = 0, g = 0;
-    datosCache.forEach(h => {
-        const f = parseFechaBase(h.fecha);
-        if(f && f.getFullYear() === anio && h.mov.toUpperCase() === 'SALIDA') {
-            if(h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
-            else if(h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
-        }
-    });
-    document.getElementById('annualDiesel').innerText = d.toLocaleString('en-US');
-    document.getElementById('annualGasohol').innerText = g.toLocaleString('en-US');
 }
 
 function parseFechaBase(str) {
@@ -226,13 +212,43 @@ function parseFechaBase(str) {
     return new Date(str);
 }
 
+function calcularConsumoAnual() {
+    const anio = parseInt(document.getElementById('selectAnioFiscal').value);
+    let d = 0, g = 0;
+    datosCache.forEach(h => {
+        const f = parseFechaBase(h.fecha);
+        if(f && f.getFullYear() === anio && h.mov.toUpperCase() === 'SALIDA') {
+            if(h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
+            else if(h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
+        }
+    });
+    document.getElementById('annualDiesel').innerText = d.toLocaleString('en-US') + " gl";
+    document.getElementById('annualGasohol').innerText = g.toLocaleString('en-US') + " gl";
+}
+
 function llenarSelectorMeses() {
     const sel = document.getElementById('filtroMesGrafico');
     if (sel.options.length > 0) return;
-    ["Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026"].forEach(m => {
+    const meses = ["Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026"];
+    meses.forEach(m => {
         let o = document.createElement('option'); o.value = m; o.innerText = m; sel.appendChild(o);
     });
     sel.value = "Marzo 2026";
+}
+
+function obtenerConsumoMes(lista, mesAnio) {
+    let d = 0, g = 0;
+    const mesBuscado = mesAnio.toLowerCase();
+    lista.forEach(h => {
+        const fecha = parseFechaBase(h.fecha);
+        if(!fecha) return;
+        const comp = fecha.toLocaleString('es-ES', { month: 'long', year: 'numeric' }).toLowerCase();
+        if (comp === mesBuscado && h.mov.toUpperCase() === 'SALIDA') {
+            if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
+            if (h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
+        }
+    });
+    return { diesel: d, gasohol: g };
 }
 
 function procesarGrafico() {
@@ -250,26 +266,11 @@ function procesarGrafico() {
             labels: ['DIESEL', 'GASOHOL'],
             datasets: [
                 { type: 'bar', label: mesActual, data: [dataActual.diesel, dataActual.gasohol], backgroundColor: ['#3b82f6', '#10b981'], borderRadius: 8 },
-                { type: 'line', label: 'Mes Ant.', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', tension: 0.1 }
+                { type: 'line', label: 'Mes Anterior', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', tension: 0.1, fill: false }
             ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
-}
-
-function obtenerConsumoMes(lista, mesAnio) {
-    let d = 0, g = 0;
-    const mesBuscado = mesAnio.toLowerCase();
-    lista.forEach(h => {
-        const fecha = parseFechaBase(h.fecha);
-        if(!fecha) return;
-        const comp = fecha.toLocaleString('es-ES', { month: 'long', year: 'numeric' }).toLowerCase();
-        if (comp === mesBuscado && h.mov.toUpperCase() === 'SALIDA') {
-            if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
-            if (h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
-        }
-    });
-    return { diesel: d, gasohol: g };
 }
 
 async function procesarMovimiento() {
