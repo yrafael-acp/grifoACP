@@ -58,7 +58,7 @@
             <button class="btn btn-blue" onclick="handleLogin()">Entrar</button>
         </div>
         <div id="changePassForm" style="display:none;">
-            <p style="color: var(--danger); font-size: 0.85em;">Mínimo 1 Mayúscula y 1 Número.</p>
+            <p style="color: var(--danger); font-size: 0.85em;">Cambio Obligatorio: 1 Mayúscula y 1 Número.</p>
             <input type="password" id="newPassInput" placeholder="Nueva Contraseña">
             <input type="password" id="confirmPassInput" placeholder="Confirmar Contraseña">
             <button class="btn btn-green" style="width:100%" onclick="saveNewPassword()">Actualizar y Entrar</button>
@@ -72,7 +72,7 @@
             <img src="logo.png" alt="Logo ACP" class="app-header-logo">
             <div>
                 <h1 style="margin:0; font-size: 1.2rem;">GRIFO ACP | <span id="displayUser"></span></h1>
-                <small id="lastUpdate">Sincronizando...</small>
+                <small id="lastUpdate">Iniciando...</small>
             </div>
         </div>
         <button onclick="logout()" class="btn btn-logout">Cerrar Sesión</button>
@@ -86,7 +86,7 @@
             <select id="prod"><option value="diesel">Diesel</option><option value="gasohol">Gasohol</option></select>
             <input type="number" id="cant" step="0.01" placeholder="Cantidad (gl)">
             <div id="extraData" style="display:none;"><input type="text" id="referencia" placeholder="Placa / Chofer"></div>
-            <button class="btn btn-blue" onclick="procesarMovimiento()">Guardar</button>
+            <button class="btn btn-blue" onclick="procesarMovimiento()">Guardar Registro</button>
             <div style="margin-top:20px; display:flex; gap:10px;">
                 <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf60')">+ CF60</button>
                 <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf100')">+ CF100</button>
@@ -95,25 +95,25 @@
 
         <div class="card col-8" id="monitorCard">
             <div style="display:flex; justify-content:space-between; align-items:center">
-                <h2>Monitoreo</h2>
+                <h2>Monitoreo de Consumo</h2>
                 <select id="selectAnioFiscal" style="width:auto" onchange="calcularConsumoAnual()">
                     <option value="2026" selected>Año 2026</option><option value="2025">Año 2025</option>
                 </select>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:15px 0;">
-                <div class="stock-item diesel"><small>DIESEL</small><span id="sDiesel" class="stock-label">0.00</span></div>
-                <div class="stock-item gasohol"><small>GASOHOL</small><span id="sGasohol" class="stock-label">0.00</span></div>
+                <div class="stock-item diesel"><small>STOCK DIESEL</small><span id="sDiesel" class="stock-label">0.00</span></div>
+                <div class="stock-item gasohol"><small>STOCK GASOHOL</small><span id="sGasohol" class="stock-label">0.00</span></div>
             </div>
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <div style="flex:1; text-align:center; padding:10px; background:#f1f5f9; border-radius:10px;">
-                    <small>TOTAL DIESEL</small><br><b id="annualDiesel" style="color:var(--diesel)">0.00</b>
+                    <small>TOTAL ACUMULADO DIESEL</small><br><b id="annualDiesel" style="color:var(--diesel)">0.00</b>
                 </div>
                 <div style="flex:1; text-align:center; padding:10px; background:#f1f5f9; border-radius:10px;">
-                    <small>TOTAL GASOHOL</small><br><b id="annualGasohol" style="color:var(--gasohol)">0.00</b>
+                    <small>TOTAL ACUMULADO GASOHOL</small><br><b id="annualGasohol" style="color:var(--gasohol)">0.00</b>
                 </div>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <b>Consumo Mensual</b>
+                <b>Gráfico Mensual</b>
                 <select id="filtroMesGrafico" onchange="procesarGrafico()" style="width:auto; margin:0; padding:5px;"></select>
             </div>
             <div style="height: 200px;"><canvas id="consumoChart"></canvas></div>
@@ -123,7 +123,7 @@
             <h2>Mantenimiento Preventivo</h2>
             <div class="table-container">
                 <table>
-                    <thead><tr><th>Equipo</th><th>Filtro</th><th>Último</th><th>Días</th><th>Estado</th><th class="admin-only">Acción</th></tr></thead>
+                    <thead><tr><th>Equipo</th><th>Filtro</th><th>Último Cambio</th><th>Días</th><th>Estado</th><th class="admin-only">Acción</th></tr></thead>
                     <tbody id="mantoBody"></tbody>
                 </table>
             </div>
@@ -131,7 +131,7 @@
 
         <div class="card full-width">
             <h2>Historial de Movimientos</h2>
-            <div class="table-container" style="max-height:300px;"><table id="tablaHistorialWeb"><thead><tr><th>Fecha</th><th>Mov</th><th>Prod</th><th>Cant</th><th>Ref</th><th>Saldo</th></tr></thead><tbody id="historialBody"></tbody></table></div>
+            <div class="table-container" style="max-height:350px;"><table id="tablaHistorialWeb"><thead><tr><th>Fecha</th><th>Mov</th><th>Prod</th><th>Cant</th><th>Ref</th><th>Saldo</th></tr></thead><tbody id="historialBody"></tbody></table></div>
         </div>
     </div>
 </div>
@@ -155,7 +155,9 @@ function handleLogin() {
 
 function saveNewPassword() {
     const n1 = document.getElementById('newPassInput').value;
-    if (!/^(?=.*[A-Z])(?=.*\d).+$/.test(n1)) return alert("Debe incluir Mayúscula y Número.");
+    const n2 = document.getElementById('confirmPassInput').value;
+    if (n1 !== n2) return alert("Las contraseñas no coinciden");
+    if (!/^(?=.*[A-Z])(?=.*\d).+$/.test(n1)) return alert("Debe incluir 1 Mayúscula y 1 Número.");
     localStorage.setItem('userAuth_' + currentUser, JSON.stringify({ pass: n1, lastChange: new Date().toISOString() }));
     startSession(currentUser);
 }
@@ -174,15 +176,28 @@ async function cargarDatos() {
     try {
         const res = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await res.json();
-        data.filtros.cf60 = 3; data.filtros.cf100 = 2;
-        if(data.equipos) data.equipos = data.equipos.map(e => { if(e.id.includes('Hipotanque')) e.ult = '2025-12-10'; return e; });
+        
+        // Reset manual solicitado
+        data.filtros.cf60 = 3; 
+        data.filtros.cf100 = 2;
+        
+        if(data.equipos) {
+            data.equipos = data.equipos.map(e => {
+                if(e.id.includes('Hipotanque')) e.ult = '2025-12-10';
+                return e;
+            });
+        }
+        
         datosCache = data.historial;
         actualizarUI(data);
         llenarSelectorMeses();
         calcularConsumoAnual();
         procesarGrafico();
-        document.getElementById('lastUpdate').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
-    } catch (e) { console.error("Error cargando datos"); }
+        document.getElementById('lastUpdate').innerText = "Última Sinc: " + new Date().toLocaleTimeString();
+    } catch (e) { 
+        console.error("Error cargando datos:", e);
+        alert("Error de conexión con el servidor.");
+    }
 }
 
 function actualizarUI(data) {
@@ -190,15 +205,25 @@ function actualizarUI(data) {
     document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
     document.getElementById('f60').innerText = data.filtros.cf60;
     document.getElementById('f100').innerText = data.filtros.cf100;
+    
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
         const fManto = parseFechaBase(e.ult);
         const diff = Math.floor((hoy - fManto) / (1000*60*60*24));
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
-        const btn = USERS[currentUser] === "ADMIN" ? `<button class="btn btn-blue" style="padding:5px 10px; width:auto" onclick="gestionarFiltros('reset', '', '${e.id}')">Reset</button>` : "-";
-        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td><td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td><td class="admin-only" style="display:${USERS[currentUser]==='ADMIN'?'table-cell':'none'}">${btn}</td></tr>`;
+        const btnReset = USERS[currentUser] === "ADMIN" ? 
+            `<button class="btn btn-blue" style="padding:5px 10px; width:auto" onclick="gestionarFiltros('reset', '', '${e.id}')">Reset</button>` : "-";
+        
+        return `<tr>
+            <td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
+            <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
+            <td class="admin-only" style="display:${USERS[currentUser]==='ADMIN'?'table-cell':'none'}">${btnReset}</td>
+        </tr>`;
     }).join('');
-    document.getElementById('historialBody').innerHTML = datosCache.map(x => `<tr><td>${x.fecha.replace('T',' ').substring(0,16)}</td><td><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>`).join('');
+    
+    document.getElementById('historialBody').innerHTML = datosCache.map(x => `
+        <tr><td>${x.fecha.replace('T',' ').substring(0,16)}</td><td><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>
+    `).join('');
 }
 
 function parseFechaBase(str) {
@@ -274,9 +299,14 @@ function procesarGrafico() {
 }
 
 async function procesarMovimiento() {
-    const p = { action: 'write', mov: document.getElementById('tipoMov').value.toUpperCase(), prod: document.getElementById('prod').value.toUpperCase(), cant: parseFloat(document.getElementById('cant').value), ref: document.getElementById('referencia').value || 'DESPACHO', fechaManual: document.getElementById('fechaMov').value || null };
-    await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(p) });
-    document.getElementById('cant').value = ""; cargarDatos();
+    const cant = parseFloat(document.getElementById('cant').value);
+    if(isNaN(cant) || cant <= 0) return alert("Ingrese una cantidad válida.");
+    const p = { action: 'write', mov: document.getElementById('tipoMov').value.toUpperCase(), prod: document.getElementById('prod').value.toUpperCase(), cant: cant, ref: document.getElementById('referencia').value || 'DESPACHO', fechaManual: document.getElementById('fechaMov').value || null };
+    try {
+        await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(p) });
+        document.getElementById('cant').value = "";
+        cargarDatos();
+    } catch(e) { alert("Error al guardar."); }
 }
 
 function toggleCisterna() { document.getElementById('extraData').style.display = (document.getElementById('tipoMov').value === 'ingreso') ? 'block' : 'none'; }
