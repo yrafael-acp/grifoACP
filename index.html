@@ -15,18 +15,18 @@
         
         /* Estilos de Login */
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .login-card { background: white; padding: 40px; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); text-align: center; }
+        .login-card { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
         
-        /* Dashboard Layout */
+        /* Layout Dashboard */
         #mainContent { display: none; }
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); position: relative; }
         .full-width { grid-column: span 2; }
-        .btn { cursor: pointer; padding: 12px; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; text-align: center; margin-top: 5px; }
+        .btn { cursor: pointer; padding: 12px; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; text-align: center; }
         .btn-blue { background: var(--accent); }
         .btn-green { background: var(--success); }
         .btn-excel { background: #107c41; }
-        .btn-logout { background: var(--danger); font-size: 0.8em; padding: 5px 10px; }
+        .btn-logout { background: var(--danger); font-size: 0.8em; padding: 8px 15px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
@@ -41,7 +41,8 @@
         .annual-summary { display: flex; gap: 15px; margin-top: 10px; }
         .summary-item { flex: 1; padding: 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; }
         .summary-value { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; }
-        .admin-only { display: none; } /* Oculto por defecto */
+        
+        .admin-only { display: none; }
     </style>
 </head>
 <body>
@@ -49,14 +50,14 @@
 <div id="loginOverlay">
     <div class="login-card">
         <img src="logo.png" alt="Logo" style="height: 60px; margin-bottom: 20px;">
-        <h2 id="loginTitle">Acceso al Sistema</h2>
+        <h2 id="loginTitle">Acceso GRIFO ACP</h2>
         <div id="loginForm">
-            <input type="text" id="userInput" placeholder="Usuario (Ej: CVILLANUEVA)">
+            <input type="text" id="userInput" placeholder="Usuario">
             <input type="password" id="passInput" placeholder="Contraseña">
             <button class="btn btn-blue" style="width:100%" onclick="handleLogin()">Entrar</button>
         </div>
         <div id="changePassForm" style="display:none;">
-            <p style="color: var(--warning); font-size: 0.9em;">Debe cambiar su contraseña genérica. Mínimo 1 Mayúscula y 1 Número.</p>
+            <p style="color: var(--danger); font-size: 0.85em; margin-bottom: 15px;">Cambio obligatorio: Mínimo 1 mayúscula y 1 número.</p>
             <input type="password" id="newPassInput" placeholder="Nueva Contraseña">
             <input type="password" id="confirmPassInput" placeholder="Confirmar Contraseña">
             <button class="btn btn-green" style="width:100%" onclick="saveNewPassword()">Actualizar y Entrar</button>
@@ -68,19 +69,19 @@
     <div class="dashboard">
         <div class="card full-width" style="background: var(--primary); color: white; border:none; display:flex; justify-content:space-between; align-items:center;">
             <div class="header-content">
-                <img src="logo.png" alt="Logo ACP" style="height:50px; margin-right: 15px;">
+                <img src="logo.png" alt="Logo ACP" class="app-header-logo">
                 <div>
-                    <h1 style="margin:0; font-size: 1.2rem;">GRIFO ACP - <span id="displayUser"></span></h1>
-                    <span class="sync-indicator">Sistema online | Sinc: <span id="lastUpdate">-</span></span>
+                    <h1 style="margin:0; font-size: 1.3rem;">Gestión Corporativa - <span id="displayUser"></span></h1>
+                    <span class="sync-indicator">Estado: En línea | <span id="lastUpdate">-</span></span>
                 </div>
             </div>
-            <div>
-                <button onclick="exportarExcel()" class="btn btn-excel">Exportar Excel</button>
-                <button onclick="logout()" class="btn btn-logout">Cerrar Sesión</button>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="exportarExcel()" class="btn btn-excel">Excel</button>
+                <button onclick="logout()" class="btn btn-logout">Cerrar</button>
             </div>
         </div>
 
-        <div class="card admin-only">
+        <div class="card admin-only" id="registroCard">
             <h2>Registro de Movimiento</h2>
             <input type="date" id="fechaMov">
             <select id="tipoMov" onchange="toggleCisterna()">
@@ -102,9 +103,9 @@
             </div>
         </div>
 
-        <div class="card" id="analysisCard">
+        <div class="card" id="monitorCard">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin:0">Monitor y Analisis</h2>
+                <h2 style="margin:0">Monitor de Stocks</h2>
                 <select id="selectAnioFiscal" style="width: auto; margin:0;" onchange="calcularConsumoAnual()">
                     <option value="2026" selected>Año 2026</option>
                     <option value="2025">Año 2025</option>
@@ -134,8 +135,10 @@
                     </div>
                 </div>
             </div>
-            
             <canvas id="consumoChart" style="margin-top:20px;"></canvas>
+            <div id="statusFiltros" style="margin-top:15px; padding: 10px; background: #f8fafc; border-radius: 8px;">
+                <b>Inventario Filtros:</b> CF60: <span id="f60">3</span> | CF100: <span id="f100">2</span>
+            </div>
         </div>
 
         <div class="card full-width">
@@ -147,108 +150,109 @@
         </div>
 
         <div class="card full-width">
-            <h2>Historial de Movimientos</h2>
-            <div class="table-container"><table id="tablaHistorialWeb"><thead><tr><th>Fecha</th><th>Mov</th><th>Prod</th><th>Cant</th><th>Ref</th><th>Saldo</th></tr></thead><tbody id="historialBody"></tbody></table></div>
+            <h2>Historial Reciente</h2>
+            <div class="filter-bar">
+                <div style="flex:1"><input type="date" id="filtroDesde"></div>
+                <div style="flex:1"><input type="date" id="filtroHasta"></div>
+                <button class="btn btn-blue" onclick="aplicarFiltros()">Filtrar</button>
+            </div>
+            <div class="table-container">
+                <table id="tablaHistorialWeb">
+                    <thead><tr><th>Fecha</th><th>Mov</th><th>Prod</th><th>Cant</th><th>Ref</th><th>Saldo</th></tr></thead>
+                    <tbody id="historialBody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R40Vo84fo7PZtDg3DJMc5dwxIQua6SsHrrHFt0uvCF8jEOO0wdLA/exec'; 
-const DEFAULT_PASS = "GrifoACP2026";
+const GENERIC_PASS = "GrifoACP2026";
 
-// Configuración de Usuarios
 const USERS = {
-    "ADMIN": { role: "ADMIN" },
-    "CVILLANUEVA": { role: "ADMIN" },
-    "LJUAREZ": { role: "READ" },
-    "CGONZALES": { role: "READ" },
-    "CORRILLO": { role: "READ" },
-    "FFERNANDEZ": { role: "READ" },
-    "WNEYRA": { role: "READ" },
-    "ASALAZAR": { role: "READ" }
+    "ADMIN": "ADMIN", "CVILLANUEVA": "ADMIN",
+    "LJUAREZ": "READ", "CGONZALES": "READ", "CORRILLO": "READ", 
+    "FFERNANDEZ": "READ", "WNEYRA": "READ", "ASALAZAR": "READ"
 };
 
 let currentUser = null;
 let datosCache = [];
+let miGrafico = null;
 
-// --- SISTEMA DE LOGIN ---
+// --- SEGURIDAD ---
 
 function handleLogin() {
     const user = document.getElementById('userInput').value.toUpperCase();
     const pass = document.getElementById('passInput').value;
     
-    if (!USERS[user]) return alert("Usuario no reconocido");
+    if (!USERS[user]) return alert("Usuario no válido.");
 
-    // Cargar datos de localStorage para este usuario
-    const storedData = JSON.parse(localStorage.getItem('auth_' + user)) || { pass: DEFAULT_PASS, lastChange: null };
+    const authData = JSON.parse(localStorage.getItem('userAuth_' + user)) || { pass: GENERIC_PASS, lastChange: null };
 
-    if (pass !== storedData.pass) return alert("Contraseña incorrecta");
+    if (pass !== authData.pass) return alert("Contraseña incorrecta.");
 
-    // Verificar caducidad (30 días)
-    if (storedData.lastChange) {
-        const daysSince = (new Date() - new Date(storedData.lastChange)) / (1000 * 60 * 60 * 24);
-        if (daysSince > 30) return promptChangePassword(user, "Su contraseña ha caducado (30 días).");
+    // Verificar caducidad 30 días
+    if (authData.lastChange) {
+        const dias = (new Date() - new Date(authData.lastChange)) / (1000 * 60 * 60 * 24);
+        if (dias > 30) return alert("Su contraseña ha caducado. Por favor, solicite un reset.");
     }
 
-    // Si usa la genérica, forzar cambio
-    if (pass === DEFAULT_PASS) {
+    if (pass === GENERIC_PASS) {
         currentUser = user;
         document.getElementById('loginForm').style.display = 'none';
         document.getElementById('changePassForm').style.display = 'block';
-        document.getElementById('loginTitle').innerText = "Cambio Obligatorio";
     } else {
-        initSession(user);
+        startSession(user);
     }
 }
 
 function saveNewPassword() {
-    const newP = document.getElementById('newPassInput').value;
-    const confP = document.getElementById('confirmPassInput').value;
+    const n1 = document.getElementById('newPassInput').value;
+    const n2 = document.getElementById('confirmPassInput').value;
 
-    if (newP !== confP) return alert("Las contraseñas no coinciden");
-    if (newP === DEFAULT_PASS) return alert("No puede usar la contraseña genérica");
+    if (n1 !== n2) return alert("Contraseñas no coinciden.");
+    if (n1 === GENERIC_PASS) return alert("No puede usar la contraseña genérica.");
     
-    // Regla: 1 Mayúscula y 1 Número
-    const regex = /^(?=.*[A-Z])(?=.*\d).+$/;
-    if (!regex.test(newP)) return alert("La contraseña debe tener al menos una mayúscula y un número.");
+    // Validar Mayúscula y Número
+    if (!/^(?=.*[A-Z])(?=.*\d).+$/.test(n1)) return alert("Debe incluir al menos una mayúscula y un número.");
 
-    localStorage.setItem('auth_' + currentUser, JSON.stringify({
-        pass: newP,
+    localStorage.setItem('userAuth_' + currentUser, JSON.stringify({
+        pass: n1,
         lastChange: new Date().toISOString()
     }));
-
-    alert("Contraseña actualizada con éxito.");
-    initSession(currentUser);
+    startSession(currentUser);
 }
 
-function initSession(user) {
+function startSession(user) {
     currentUser = user;
+    sessionStorage.setItem('sessionGrifo', user);
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('mainContent').style.display = 'block';
     document.getElementById('displayUser').innerText = user;
 
-    // Control de UI basado en Rol
-    if (USERS[user].role === "ADMIN") {
+    if (USERS[user] === "ADMIN") {
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-        // Ajustar columnas de tablas si es necesario
+        document.getElementById('monitorCard').className = "card";
+    } else {
+        document.getElementById('registroCard').style.display = 'none';
+        document.getElementById('monitorCard').className = "card full-width";
     }
-    
     cargarDatos();
 }
 
 function logout() {
+    sessionStorage.clear();
     location.reload();
 }
 
-// --- LÓGICA DEL SISTEMA ---
+// --- LÓGICA DE NEGOCIO ---
 
 async function cargarDatos() {
     try {
-        const response = await fetch(`${WEB_APP_URL}?action=read`);
-        const data = await response.json();
+        const res = await fetch(`${WEB_APP_URL}?action=read`);
+        const data = await res.json();
         
-        // Reset manual solicitado
         data.filtros.cf60 = 3; 
         data.filtros.cf100 = 2;
 
@@ -261,26 +265,11 @@ async function cargarDatos() {
 
         datosCache = data.historial;
         actualizarUI(data);
+        llenarSelectorMeses();
+        procesarGrafico();
         calcularConsumoAnual();
-        document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
-    } catch (e) { console.log("Error de conexion..."); }
-}
-
-function calcularConsumoAnual() {
-    const anio = parseInt(document.getElementById('selectAnioFiscal').value);
-    document.getElementById('currentYearDisplay').innerText = anio;
-    let d = 0, g = 0;
-
-    datosCache.forEach(h => {
-        const f = parseFechaBase(h.fecha);
-        if(f && f.getFullYear() === anio && h.mov.toUpperCase() === 'SALIDA') {
-            if(h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
-            if(h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
-        }
-    });
-
-    document.getElementById('annualDiesel').innerText = d.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
-    document.getElementById('annualGasohol').innerText = g.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
+        document.getElementById('lastUpdate').innerText = "Sinc: " + new Date().toLocaleTimeString();
+    } catch (e) { console.error("Falla de red"); }
 }
 
 function actualizarUI(data) {
@@ -295,21 +284,29 @@ function actualizarUI(data) {
         const fManto = new Date(partes[0], partes[1]-1, partes[2]);
         const diff = Math.floor((hoy - fManto) / (1000*60*60*24));
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
-        const btnReset = USERS[currentUser].role === "ADMIN" ? `<button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '', '${e.id}')">Reset</button>` : "-";
+        const btn = USERS[currentUser] === "ADMIN" ? `<button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '', '${e.id}')">Reset</button>` : "-";
 
         return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
         <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
-        <td class="admin-only">${btnReset}</td></tr>`;
+        <td class="admin-only">${btn}</td></tr>`;
     }).join('');
 
-    document.getElementById('historialBody').innerHTML = datosCache.map(h => `
-        <tr><td>${h.fecha}</td><td>${h.mov}</td><td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>
-    `).join('');
+    renderHistorial(datosCache);
+}
 
-    // Re-aplicar visibilidad si no es admin
-    if(USERS[currentUser].role !== "ADMIN") {
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
-    }
+function calcularConsumoAnual() {
+    const anio = parseInt(document.getElementById('selectAnioFiscal').value);
+    document.getElementById('currentYearDisplay').innerText = anio;
+    let d = 0, g = 0;
+    datosCache.forEach(h => {
+        const f = parseFechaBase(h.fecha);
+        if(f && f.getFullYear() === anio && h.mov.toUpperCase() === 'SALIDA') {
+            if(h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
+            if(h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
+        }
+    });
+    document.getElementById('annualDiesel').innerText = d.toLocaleString('en-US') + " gl";
+    document.getElementById('annualGasohol').innerText = g.toLocaleString('en-US') + " gl";
 }
 
 function parseFechaBase(str) {
@@ -323,10 +320,28 @@ function parseFechaBase(str) {
     return new Date(str);
 }
 
-// Omitido funciones repetitivas (procesarMovimiento, toggleCisterna, gestionarFiltros) para brevedad, mantener las del código original.
+function renderHistorial(lista) {
+    const d = document.getElementById('filtroDesde').value;
+    const h = document.getElementById('filtroHasta').value;
+    let fil = lista;
+    if(d || h) {
+        fil = lista.filter(x => {
+            const fx = parseFechaBase(x.fecha);
+            if(!fx) return false;
+            let ok = true;
+            if(d) ok = ok && fx >= new Date(d + "T00:00:00");
+            if(h) ok = ok && fx <= new Date(h + "T23:59:59");
+            return ok;
+        });
+    }
+    document.getElementById('historialBody').innerHTML = fil.map(x => `
+        <tr><td>${x.fecha}</td><td>${x.mov}</td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>
+    `).join('');
+}
+
 async function procesarMovimiento() {
-    if(USERS[currentUser].role !== "ADMIN") return;
     const cant = parseFloat(document.getElementById('cant').value);
+    if(isNaN(cant) || cant <= 0) return alert("Monto no válido");
     const payload = {
         action: 'write',
         mov: document.getElementById('tipoMov').value.toUpperCase(),
@@ -343,12 +358,47 @@ function toggleCisterna() {
     document.getElementById('extraData').style.display = (document.getElementById('tipoMov').value === 'ingreso') ? 'block' : 'none';
 }
 
+function aplicarFiltros() { renderHistorial(datosCache); }
+
+function llenarSelectorMeses() {
+    const s = document.getElementById('filtroMesGrafico');
+    if (s.options.length > 0) return;
+    ["Enero 2026", "Febrero 2026", "Marzo 2026"].forEach(m => {
+        let o = document.createElement('option'); o.value = m; o.innerText = m; s.appendChild(o);
+    });
+}
+
+function procesarGrafico() {
+    const ctx = document.getElementById('consumoChart').getContext('2d');
+    if (miGrafico) miGrafico.destroy();
+    miGrafico = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Diesel', 'Gasohol'],
+            datasets: [{ label: 'Consumo Mes', data: [500, 200], backgroundColor: ['#2563eb', '#10b981'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
 function exportarExcel() {
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(datosCache);
-    XLSX.utils.book_append_sheet(wb, ws, "Historial");
-    XLSX.writeFile(wb, `Reporte_ACP_${currentUser}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, "Data");
+    XLSX.writeFile(wb, "Reporte_Grifo_ACP.xlsx");
 }
+
+async function gestionarFiltros(a, t, e) {
+    const p = { action: 'updateFiltros', subAction: a, tipo: t, equipo: e };
+    await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(p) });
+    cargarDatos();
+}
+
+// Auto-Login si hay sesión activa
+window.onload = () => {
+    const session = sessionStorage.getItem('sessionGrifo');
+    if(session) startSession(session);
+};
 
 </script>
 </body>
