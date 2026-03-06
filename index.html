@@ -57,9 +57,9 @@
         .sim-box { background: #fdfcfe; border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin-top: 20px; }
         .sim-res { font-weight: bold; color: var(--diesel); font-size: 1.1rem; }
 
-        /* Estilo Boton Flota */
-        .btn-flota { background: var(--acp-green); display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,125,50,0.2); }
-        .btn-flota:hover { filter: brightness(1.1); }
+        /* Estilo Boton Flota Pequeño */
+        .btn-flota-sm { background: var(--acp-green); font-size: 0.8rem; padding: 8px 15px; }
+        .btn-flota-sm:hover { filter: brightness(1.1); }
     </style>
 </head>
 <body>
@@ -93,6 +93,7 @@
                 </div>
             </div>
             <div>
+                <a href="consumo-flota.html" class="btn btn-flota-sm">🚛 Flota</a>
                 <button onclick="exportarExcel()" class="btn btn-excel">Exportar Excel</button>
                 <button onclick="logout()" class="btn btn-logout">Salir</button>
             </div>
@@ -144,17 +145,6 @@
             </div>
         </div>
 
-        <div class="card" id="flotaCard">
-            <h2>Control de Flota</h2>
-            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">Acceso al reporte detallado de galones asignados vs consumidos (Base de datos: <span style="font-family: monospace; font-weight: bold;">dat_comb</span>).</p>
-            <a href="consumo-flota.html" class="btn btn-flota" style="width:100%">
-                <span style="font-size: 1.2rem;">🚛</span> 
-                <span>CONSUMO FLOTA</span>
-            </a>
-            <div style="margin-top: 15px; font-size: 0.75rem; text-align: center; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 10px;">
-                Reporte Semanal: Lunes a Domingo
-            </div>
-        </div>
         <div class="card" id="monitorCard">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin:0">Monitor y Analisis</h2>
@@ -272,7 +262,7 @@ function startSession(user) {
         document.getElementById('thAccion').style.display = 'table-cell';
     } else {
         document.getElementById('registroCard').style.display = 'none';
-        document.getElementById('monitorCard').style.gridColumn = "span 1"; // Ajustado para que quepa el nuevo modulo
+        document.getElementById('monitorCard').style.gridColumn = "span 2";
         document.getElementById('thAccion').style.display = 'none';
     }
     cargarDatos();
