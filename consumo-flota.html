@@ -9,7 +9,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .bg-acp { background-color: #007d32; }
-        .table-container { max-height: 60vh; overflow-y: auto; }
+        .table-container { max-height: 65vh; overflow-y: auto; }
+        .group-row { background-color: #f0fdf4; }
+        .font-mono-data { font-family: 'Courier New', Courier, monospace; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
@@ -18,58 +20,71 @@
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <i class="fas fa-truck-moving text-2xl"></i>
-                <h1 class="text-xl font-bold">CONSUMO FLOTA - ACP</h1>
+                <h1 class="text-xl font-bold italic">CONTROL DIARIO Y SEMANAL - FLOTA</h1>
             </div>
             <div class="flex items-center gap-4">
                 <input type="file" id="uploadExcel" accept=".xlsx, .xls" class="hidden" onchange="leerExcel(this)">
-                <button onclick="document.getElementById('uploadExcel').click()" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg font-bold text-sm transition">
-                    <i class="fas fa-file-import mr-2"></i> Cargar dat_comb
+                <button onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-50 transition shadow-lg">
+                    <i class="fas fa-upload mr-2"></i> CARGAR DAT_COMB
                 </button>
-                <div class="bg-white/10 px-3 py-1 rounded-lg border border-white/20">
-                    <span id="labelSemana" class="font-bold text-sm">Semana 10 (02/03 - 08/03)</span>
+                <div class="bg-green-900/50 px-3 py-1 rounded-lg border border-white/20">
+                    <span id="labelSemana" class="font-bold text-xs uppercase tracking-widest">Semana 10 (Marzo 2026)</span>
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto p-6">
+    <main class="max-w-[1500px] mx-auto p-4">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
-                <span class="text-xs font-bold text-gray-400 uppercase">Total Asignado</span>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-600">
+                <span class="text-xs font-bold text-gray-400">TOTAL ASIGNADO</span>
                 <p id="resumenAsignado" class="text-2xl font-black">0.00 GLN</p>
             </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-orange-500">
-                <span class="text-xs font-bold text-gray-400 uppercase">Total Consumido</span>
+            <div id="cardConsumo" class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-orange-500 transition-all">
+                <span class="text-xs font-bold text-gray-400">TOTAL CONSUMIDO</span>
                 <p id="resumenConsumido" class="text-2xl font-black">0.00 GLN</p>
             </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500">
-                <span class="text-xs font-bold text-gray-400 uppercase">Saldo Disponible</span>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-600">
+                <span class="text-xs font-bold text-gray-400">SALDO DISPONIBLE</span>
                 <p id="resumenSaldo" class="text-2xl font-black">0.00 GLN</p>
             </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500">
-                <span class="text-xs font-bold text-gray-400 uppercase">Eficiencia</span>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-600">
+                <span class="text-xs font-bold text-gray-400">EFICIENCIA GLOBAL</span>
                 <p id="resumenEficiencia" class="text-2xl font-black">0%</p>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
-            <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
-                <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa o responsable..." class="px-4 py-2 border rounded-lg text-sm w-80 outline-none focus:ring-2 focus:ring-green-500">
-                <button onclick="exportarTabla()" class="text-green-700 font-bold text-sm hover:underline"><i class="fas fa-file-excel mr-1"></i> Exportar Vista</button>
+        <div class="bg-white rounded-xl shadow-lg border overflow-hidden">
+            <div class="p-4 border-b bg-gray-50 flex flex-wrap justify-between items-center gap-4">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa, responsable o área..." class="pl-10 pr-4 py-2 border rounded-lg text-sm w-96 outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-gray-500">
+                    <span class="flex items-center gap-1"><div class="w-3 h-3 bg-green-500 rounded"></div> OK</span>
+                    <span class="flex items-center gap-1"><div class="w-3 h-3 bg-red-500 rounded"></div> CRÍTICO</span>
+                </div>
             </div>
+            
             <div class="table-container">
-                <table class="w-full text-left text-sm" id="tablaFlota">
-                    <thead class="bg-gray-100 sticky top-0 font-bold text-gray-600 border-b">
+                <table class="w-full text-left text-xs border-collapse" id="tablaFlota">
+                    <thead class="bg-gray-800 text-white sticky top-0 z-10">
                         <tr>
-                            <th class="p-4">PLACA</th>
-                            <th class="p-4">RESPONSABLE</th>
-                            <th class="p-4 text-center">ASIGNADO</th>
-                            <th class="p-4 text-center">CONSUMIDO</th>
-                            <th class="p-4 text-center">SALDO</th>
-                            <th class="p-4 text-center">ESTADO</th>
+                            <th class="p-3 border-r border-gray-700">PLACA</th>
+                            <th class="p-3 border-r border-gray-700">RESPONSABLE / ÁREA</th>
+                            <th class="p-3 text-center bg-blue-900">LUN</th>
+                            <th class="p-3 text-center bg-blue-900">MAR</th>
+                            <th class="p-3 text-center bg-blue-900">MIÉ</th>
+                            <th class="p-3 text-center bg-blue-900">JUE</th>
+                            <th class="p-3 text-center bg-blue-900">VIE</th>
+                            <th class="p-3 text-center bg-blue-900 text-orange-300">SÁB</th>
+                            <th class="p-3 text-center bg-blue-900 text-orange-300">DOM</th>
+                            <th class="p-3 text-center border-l border-gray-700 font-bold bg-gray-700">ASIG.</th>
+                            <th class="p-3 text-center font-bold bg-orange-700">CONS.</th>
+                            <th class="p-3 text-center font-bold bg-green-700">SALDO</th>
                         </tr>
                     </thead>
-                    <tbody id="cuerpoTabla" class="divide-y">
+                    <tbody id="cuerpoTabla" class="divide-y divide-gray-200">
                         </tbody>
                 </table>
             </div>
@@ -77,77 +92,74 @@
     </main>
 
     <script>
-        // LISTA COMPLETA DE 73 PLACAS SEGÚN CAPTURA
-        const CONFIG_FLOTA = [
-            {p: "BRI090", r: "WENDY CHILCON", a: 15.00}, {p: "BRI612", r: "LUIS MACHER", a: 15.00},
-            {p: "BRI635", r: "JAVIER CALLIRGOS", a: 15.00}, {p: "AZO588", r: "KARINA VASQUEZ", a: 15.00},
-            {p: "AZO431", r: "GISEL TIXE", a: 15.00}, {p: "M6K436", r: "PLANILLAS", a: 12.00},
-            {p: "CCM367", r: "T.I GASOHOL", a: 35.00}, {p: "BYN781", r: "LILIANA CHAFLOC", a: 25.00},
-            {p: "BYN705", r: "OSCAR HERNANDEZ", a: 35.00}, {p: "BYN755", r: "MARITA CCOLLCA", a: 50.00},
-            {p: "BYM949", r: "LUIS REAÑO", a: 48.00}, {p: "BXM905", r: "MANUEL MARENGO", a: 48.00},
-            {p: "BYM944", r: "LUIS REAÑO", a: 53.00}, {p: "BZT777", r: "LUIS REAÑO", a: 38.00},
-            {p: "BYN730", r: "VICTOR YEMHENG", a: 25.00}, {p: "BYN729", r: "LUIS QUIROZ", a: 25.00},
-            {p: "BYN731", r: "EDUARDO DIAZ", a: 25.00}, {p: "CDR941", r: "ABRAHAM ZAPATA", a: 30.00},
-            {p: "W4V068", r: "PROYECTO SAP", a: 16.00}, {p: "VCG910", r: "LUIS REAÑO", a: 30.00},
-            {p: "BUP776", r: "LUIS MACHER", a: 30.00}, {p: "BUL903", r: "CRISTIAN TESEN", a: 30.00},
-            {p: "BUN930", r: "LUIS DIEZ", a: 40.00}, {p: "CDS806", r: "WENDY CHILCON", a: 30.00},
-            {p: "BUN746", r: "JENIFER AGURTO", a: 30.00}, {p: "BUO942", r: "ARTURO CERRUTTI", a: 30.00},
-            {p: "BXN705", r: "ROLI PALMA", a: 30.00}, {p: "BUO749", r: "ROLI PALMA", a: 30.00},
-            {p: "BUO792", r: "JAVIER PASAPERA", a: 30.00}, {p: "BUO808", r: "RONALD RUIZ", a: 30.00},
-            {p: "BRG897", r: "MANUEL MARENGO", a: 50.00}, {p: "CDR887", r: "JULIO YIANCCE", a: 30.00},
-            {p: "BRI725", r: "JULIO YIANCCE", a: 50.00}, {p: "CKW496", r: "MANUEL MARENGO", a: 30.00},
-            {p: "BWV868", r: "ALBERTO CIEZA", a: 25.00}, {p: "BUD924", r: "YENNI ROJAS", a: 30.00},
-            {p: "BUF786", r: "MANUEL MARENGO", a: 35.00}, {p: "BSH717", r: "MANUEL MARENGO", a: 35.00},
-            {p: "BUF836", r: "MANUEL MARENGO", a: 35.00}, {p: "CTH457", r: "MANUEL MARENGO", a: 40.00},
-            {p: "BUE757", r: "HARRY BERNAOLA", a: 30.00}, {p: "BUE802", r: "JOSE MANRIQUE", a: 25.00},
-            {p: "BRS810", r: "LUIS MACHER", a: 30.00}, {p: "CHJ914", r: "LUIS MACHER", a: 30.00},
-            {p: "CEU722", r: "KARINA VASQUEZ", a: 47.00}, {p: "CEU820", r: "LUIS MACHER", a: 30.00},
-            {p: "CDS745", r: "KARINA VASQUEZ", a: 30.00}, {p: "EUG932", r: "ISABEL SOTOMAYOR", a: 50.00},
-            {p: "EUJ542", r: "ISABEL SOTOMAYOR", a: 50.00}, {p: "EUJ551", r: "ISABEL SOTOMAYOR", a: 50.00},
-            {p: "EUI752", r: "ISABEL SOTOMAYOR", a: 50.00}, {p: "EUC888", r: "CRISTIAN TESEN", a: 20.00},
-            {p: "H3K913", r: "EDGARH SANTIESTEBAN", a: 20.00}, {p: "CLF333", r: "ALFREDO CHAN WAY", a: 42.00},
-            {p: "CLF287", r: "PERCY MUENTE", a: 20.00}, {p: "BVD408", r: "PERCY MUENTE", a: 20.00},
-            {p: "CLD318", r: "CASE VIP (GASOHOL)", a: 36.00}, {p: "CPH672", r: "CASE VIP (GASOHOL)", a: 36.00},
-            {p: "CDL730", r: "CASE VIP", a: 76.00}, {p: "CBA760", r: "CASE VIP", a: 76.00},
-            {p: "CDM720", r: "CASE VIP", a: 50.00}, {p: "C7Y818", r: "RAFAEL PITA", a: 40.00},
-            {p: "ACI748", r: "OSCAR HERNANDEZ", a: 20.00}, {p: "AUA855", r: "CRISTIAN TESEN", a: 25.00},
-            {p: "CFX846", r: "PAMELA GOMEZ", a: 30.00}
+        // CONFIGURACIÓN DE PLACAS Y GRUPOS SEGÚN TUS ÓRDENES
+        const ESTRUCTURA_FLOTA = [
+            { p: ["BRI090"], r: "WENDY CHILCON", area: "CERRO LA PATA", a: 15.00 },
+            { p: ["BRI612"], r: "LUIS MACHER", area: "MANTENIMIENTO FUNDO", a: 15.00 },
+            { p: ["BRI635"], r: "JAVIER CALLIRGOS", area: "ARANDANO", a: 15.00 },
+            { p: ["AZO588"], r: "KARINA VASQUEZ", area: "SEGURIDAD INDUSTRIAL", a: 15.00 },
+            { p: ["AZO431"], r: "GISEL TIXE", area: "ARANDANO", a: 15.00 },
+            // GRUPOS COMPARTIDOS
+            { p: ["BUF786", "BSH717"], r: "MANUEL MARENGO", area: "TRANSPORTE", a: 35.00, shared: true },
+            { p: ["BRS810", "CHJ914"], r: "LUIS MACHER", area: "MANTENIMIENTO FUNDO", a: 30.00, shared: true },
+            { p: ["CLF287", "BVD408"], r: "PERCY MUENTE", area: "GERENCIA GENERAL", a: 20.00, shared: true },
+            { p: ["CLD318", "CPH672"], r: "CASE VIP (GASOHOL)", area: "CASE VIP", a: 36.00, shared: true },
+            { p: ["CDL730", "CBA760"], r: "CASE VIP", area: "CASE VIP", a: 76.00, shared: true },
+            // MÁS PLACAS DEL REPORTE
+            { p: ["BYM949"], r: "LUIS REAÑO", area: "RECLUTAMIENTO", a: 48.00 },
+            { p: ["BXM905"], r: "MANUEL MARENGO", area: "TRANSPORTE", a: 48.00 },
+            { p: ["BYN730"], r: "VICTOR YEMHENG", area: "ARANDANO", a: 25.00 },
+            { p: ["H3K913"], r: "EDGARH SANTIESTEBAN", area: "AUDITORIA", a: 20.00 }
         ];
-
-        let consumosGlobal = {};
 
         function renderTabla(datosConsumo = {}) {
             const cuerpo = document.getElementById('cuerpoTabla');
             cuerpo.innerHTML = "";
-            let tAsig = 0, tCons = 0;
+            let tA = 0, tC = 0;
 
-            CONFIG_FLOTA.forEach(item => {
-                const consumido = datosConsumo[item.p] || 0;
-                const saldo = item.a - consumido;
-                const porc = (consumido / item.a) * 100;
+            ESTRUCTURA_FLOTA.forEach(grupo => {
+                const numPlacas = grupo.p.length;
                 
-                tAsig += item.a; tCons += consumido;
+                grupo.p.forEach((placa, index) => {
+                    const diario = datosConsumo[placa] || {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
+                    
+                    // Solo el primer elemento del grupo muestra el saldo y asignación combinada
+                    const mostrarAsig = index === 0; 
+                    const totalGrupoConsumo = grupo.p.reduce((acc, pl) => acc + (datosConsumo[pl]?.total || 0), 0);
+                    const saldoGrupo = grupo.a - totalGrupoConsumo;
 
-                cuerpo.innerHTML += `
-                    <tr>
-                        <td class="p-4 font-bold text-blue-900">${item.p}</td>
-                        <td class="p-4 text-xs font-medium text-gray-500">${item.r}</td>
-                        <td class="p-4 text-center font-bold text-gray-400">${item.a.toFixed(2)}</td>
-                        <td class="p-4 text-center font-bold text-orange-600">${consumido.toFixed(2)}</td>
-                        <td class="p-4 text-center font-bold ${saldo < 0 ? 'text-red-600' : 'text-green-600'}">${saldo.toFixed(2)}</td>
-                        <td class="p-4">
-                            <div class="w-full bg-gray-200 rounded-full h-1.5 mb-1">
-                                <div class="${porc > 90 ? 'bg-red-500' : 'bg-green-500'} h-1.5 rounded-full" style="width: ${Math.min(porc, 100)}%"></div>
-                            </div>
-                            <span class="text-[10px] font-bold uppercase ${porc > 90 ? 'text-red-500' : 'text-gray-400'}">${porc > 90 ? 'Límite Crítico' : 'Normal'}</span>
-                        </td>
-                    </tr>`;
+                    if(mostrarAsig) { tA += grupo.a; tC += totalGrupoConsumo; }
+
+                    cuerpo.innerHTML += `
+                        <tr class="${grupo.shared ? 'group-row' : ''} hover:bg-yellow-50 transition-colors">
+                            <td class="p-3 font-bold border-r border-gray-200 text-blue-800">${placa}</td>
+                            <td class="p-3 border-r border-gray-200">
+                                <span class="font-semibold block">${grupo.r}</span>
+                                <span class="text-[10px] text-gray-400 uppercase italic">${grupo.area}</span>
+                            </td>
+                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.L || '-'}</td>
+                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.M || '-'}</td>
+                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.Mi || '-'}</td>
+                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.J || '-'}</td>
+                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.V || '-'}</td>
+                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.S || '-'}</td>
+                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.D || '-'}</td>
+                            
+                            ${mostrarAsig ? `
+                                <td class="p-3 text-center font-black bg-gray-50 border-l border-gray-300" rowspan="${numPlacas}">${grupo.a.toFixed(2)}</td>
+                                <td class="p-3 text-center font-black bg-orange-50 text-orange-700" rowspan="${numPlacas}">${totalGrupoConsumo.toFixed(2)}</td>
+                                <td class="p-3 text-center font-black ${saldoGrupo < 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}" rowspan="${numPlacas}">${saldoGrupo.toFixed(2)}</td>
+                            ` : ''}
+                        </tr>
+                    `;
+                });
             });
 
-            document.getElementById('resumenAsignado').innerText = tAsig.toFixed(2) + " GLN";
-            document.getElementById('resumenConsumido').innerText = tCons.toFixed(2) + " GLN";
-            document.getElementById('resumenSaldo').innerText = (tAsig - tCons).toFixed(2) + " GLN";
-            document.getElementById('resumenEficiencia').innerText = tAsig > 0 ? ((tCons / tAsig) * 100).toFixed(1) + "%" : "0%";
+            // Actualizar Dashboard
+            document.getElementById('resumenAsignado').innerText = tA.toFixed(2) + " GLN";
+            document.getElementById('resumenConsumido').innerText = tC.toFixed(2) + " GLN";
+            document.getElementById('resumenSaldo').innerText = (tA - tC).toFixed(2) + " GLN";
+            document.getElementById('resumenEficiencia').innerText = tA > 0 ? ((tC/tA)*100).toFixed(1) + "%" : "0%";
         }
 
         function leerExcel(input) {
@@ -155,19 +167,31 @@
             reader.onload = (e) => {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
-                const sheet = workbook.Sheets['dat_comb']; // BUSCA EXACTAMENTE ESTA PESTAÑA
-                if(!sheet) return alert("No se encontró la pestaña 'dat_comb'");
+                const sheet = workbook.Sheets['dat_comb']; //
+                
+                if(!sheet) return alert("Pestaña 'dat_comb' no encontrada.");
                 
                 const rows = XLSX.utils.sheet_to_json(sheet);
-                const resumen = {};
-                
+                const procesado = {};
+
                 rows.forEach(row => {
-                    const placa = row['Placa']; // Nombre exacto de tu columna en la captura
+                    const placa = row['Placa']; //
                     const cant = parseFloat(row['Ctd.en UM entrada']) || 0;
-                    if(placa) resumen[placa] = (resumen[placa] || 0) + cant;
+                    const fecha = new Date(row['Fecha contabiliz.']); //
+                    const diaSemana = fecha.getDay(); // 0=Dom, 1=Lun...
+
+                    if(!procesado[placa]) procesado[placa] = {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
+                    
+                    const mapaDias = {1:'L', 2:'M', 3:'Mi', 4:'J', 5:'V', 6:'S', 0:'D'};
+                    const letraDia = mapaDias[diaSemana];
+                    
+                    procesado[placa][letraDia] += cant;
+                    procesado[placa].total += cant;
                 });
 
-                renderTabla(resumen);
+                renderTabla(procesado);
+                document.getElementById('cardConsumo').classList.add('scale-105', 'shadow-lg');
+                setTimeout(() => document.getElementById('cardConsumo').classList.remove('scale-105'), 500);
             };
             reader.readAsArrayBuffer(input.files[0]);
         }
@@ -175,9 +199,7 @@
         function filtrarTabla() {
             const query = document.getElementById('buscador').value.toUpperCase();
             const filas = document.getElementById('cuerpoTabla').getElementsByTagName('tr');
-            for (let f of filas) {
-                f.style.display = f.innerText.toUpperCase().includes(query) ? "" : "none";
-            }
+            for (let f of filas) { f.style.display = f.innerText.toUpperCase().includes(query) ? "" : "none"; }
         }
 
         window.onload = () => renderTabla();
