@@ -35,9 +35,6 @@
         .bg-success { background: #dcfce7; color: var(--gasohol); }
         .bg-warning { background: #fef3c7; color: var(--warning); }
         
-        .blink-row { animation: blinker 1.5s linear infinite; background-color: #fff3cd !important; }
-        @keyframes blinker { 50% { opacity: 0.7; } }
-
         input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
         .stock-label { font-size: 1.8rem; font-weight: bold; display: block; margin: 5px 0; }
         .sync-indicator { font-size: 0.75rem; color: #64748b; font-weight: normal; }
@@ -131,7 +128,6 @@
                     <option value="2025">Año 2025</option>
                 </select>
             </div>
-            <div id="alertasContainer"></div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
                 <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
                     <b>DIESEL</b>
@@ -207,134 +203,50 @@
 <script>
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R40Vo84fo7PZtDg3DJMc5dwxIQua6SsHrrHFt0uvCF8jEOO0wdLA/exec'; 
 const GENERIC_PASS = "GrifoACP2026";
+const USERS = { "ADMIN": "ADMIN", "CVILLANUEVA": "ADMIN", "LJUAREZ": "READ", "CGONZALES": "READ", "CORRILLO": "READ", "FFERNANDEZ": "READ", "WNEYRA": "READ", "ASALAZAR": "READ" };
 
-const USERS = {
-    "ADMIN": "ADMIN", "CVILLANUEVA": "ADMIN",
-    "LJUAREZ": "READ", "CGONZALES": "READ", "CORRILLO": "READ", 
-    "FFERNANDEZ": "READ", "WNEYRA": "READ", "ASALAZAR": "READ"
-};
-
-let currentUser = null;
-let datosCache = [];
-let miGrafico = null;
-
-// --- SEGURIDAD ---
+let currentUser = null; let datosCache = []; let miGrafico = null;
 
 function handleLogin() {
     const user = document.getElementById('userInput').value.toUpperCase();
     const pass = document.getElementById('passInput').value;
-    
-    if (!USERS[user]) return alert("Usuario no válido.");
-
-    const authData = JSON.parse(localStorage.getItem('userAuth_' + user)) || { pass: GENERIC_PASS, lastChange: null };
-
-    if (pass !== authData.pass) return alert("Contraseña incorrecta.");
-
-    // Verificar caducidad 30 días
-    if (authData.lastChange) {
-        const dias = (new Date() - new Date(authData.lastChange)) / (1000 * 60 * 60 * 24);
-        if (dias > 30) return alert("Su contraseña ha caducado. Debe actualizarla.");
-    }
-
-    if (pass === GENERIC_PASS) {
-        currentUser = user;
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('changePassForm').style.display = 'block';
-    } else {
-        startSession(user);
-    }
+    if (!USERS[user]) return alert("Usuario no reconocido.");
+    const auth = JSON.parse(localStorage.getItem('userAuth_' + user)) || { pass: GENERIC_PASS };
+    if (pass !== auth.pass) return alert("Contraseña incorrecta.");
+    if (pass === GENERIC_PASS) { currentUser = user; document.getElementById('loginForm').style.display = 'none'; document.getElementById('changePassForm').style.display = 'block'; }
+    else startSession(user);
 }
 
 function saveNewPassword() {
     const n1 = document.getElementById('newPassInput').value;
-    const n2 = document.getElementById('confirmPassInput').value;
-
-    if (n1 !== n2) return alert("Contraseñas no coinciden.");
-    if (n1 === GENERIC_PASS) return alert("No puede usar la contraseña genérica.");
-    
-    if (!/^(?=.*[A-Z])(?=.*\d).+$/.test(n1)) return alert("Debe incluir al menos una mayúscula y un número.");
-
-    localStorage.setItem('userAuth_' + currentUser, JSON.stringify({
-        pass: n1,
-        lastChange: new Date().toISOString()
-    }));
+    if (!/^(?=.*[A-Z])(?=.*\d).+$/.test(n1)) return alert("Debe incluir 1 Mayúscula y 1 Número.");
+    localStorage.setItem('userAuth_' + currentUser, JSON.stringify({ pass: n1, lastChange: new Date().toISOString() }));
     startSession(currentUser);
 }
 
 function startSession(user) {
-    currentUser = user;
-    sessionStorage.setItem('sessionGrifo', user);
+    currentUser = user; sessionStorage.setItem('sessionGrifo', user);
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('mainContent').style.display = 'block';
     document.getElementById('displayUser').innerText = user;
-
-    if (USERS[user] === "ADMIN") {
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-    } else {
-        document.getElementById('registroCard').style.display = 'none';
-        document.getElementById('monitorCard').style.gridColumn = "span 2";
-    }
+    if (USERS[user] === "ADMIN") document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+    else { document.getElementById('registroCard').style.display = 'none'; document.getElementById('monitorCard').style.gridColumn = "span 2"; }
     cargarDatos();
-}
-
-function logout() {
-    sessionStorage.clear();
-    location.reload();
-}
-
-// --- LÓGICA DE DATOS ---
-
-async function gestionarFiltros(accion, tipo, equipo = '') {
-    const payload = { action: 'updateFiltros', subAction: accion, tipo: tipo, equipo: equipo };
-    try {
-        const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
-        if(res.ok) {
-            alert(accion === 'compra' ? `Stock de ${tipo} actualizado (+1)` : `Mantenimiento de ${equipo} realizado.`);
-            cargarDatos();
-        }
-    } catch (e) { alert("Error al actualizar filtros"); }
 }
 
 async function cargarDatos() {
     try {
-        const response = await fetch(`${WEB_APP_URL}?action=read`);
-        const data = await response.json();
-        
-        data.filtros.cf60 = 3; 
-        data.filtros.cf100 = 2;
-
-        if(data.equipos) {
-            data.equipos = data.equipos.map(e => {
-                if(e.id.includes('Hipotanque')) e.ult = '2025-12-10';
-                return e;
-            });
-        }
-
+        const res = await fetch(`${WEB_APP_URL}?action=read`);
+        const data = await res.json();
+        data.filtros.cf60 = 3; data.filtros.cf100 = 2;
+        if(data.equipos) data.equipos = data.equipos.map(e => { if(e.id.includes('Hipotanque')) e.ult = '2025-12-10'; return e; });
         datosCache = data.historial;
         actualizarUI(data);
         llenarSelectorMeses();
-        procesarGrafico();
         calcularConsumoAnual();
+        procesarGrafico();
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
-    } catch (e) { console.log("Error de conexion..."); }
-}
-
-function calcularConsumoAnual() {
-    const anioSeleccionado = parseInt(document.getElementById('selectAnioFiscal').value);
-    document.getElementById('currentYearDisplay').innerText = anioSeleccionado;
-    let totalDiesel = 0; let totalGasohol = 0;
-
-    datosCache.forEach(h => {
-        const fecha = parseFechaBase(h.fecha);
-        if(!fecha) return;
-        if(fecha.getFullYear() === anioSeleccionado && h.mov.toUpperCase() === 'SALIDA') {
-            if(h.prod.toUpperCase() === 'DIESEL') totalDiesel += parseFloat(h.cant);
-            if(h.prod.toUpperCase() === 'GASOHOL') totalGasohol += parseFloat(h.cant);
-        }
-    });
-
-    document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
-    document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
+    } catch (e) { console.error("Error cargando datos"); }
 }
 
 function actualizarUI(data) {
@@ -342,22 +254,30 @@ function actualizarUI(data) {
     document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
     document.getElementById('f60').innerText = data.filtros.cf60;
     document.getElementById('f100').innerText = data.filtros.cf100;
-
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
         const fManto = parseFechaBase(e.ult);
         const diff = Math.floor((hoy - fManto) / (1000*60*60*24));
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
-        const tipoFiltro = e.f.includes('CF60') ? 'cf60' : (e.f.includes('CF100') ? 'cf100' : 'malla');
-        const btnReset = USERS[currentUser] === "ADMIN" ? 
-            `<button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '${tipoFiltro}', '${e.id}')">Reset</button>` : "-";
-
-        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
-        <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
-        <td class="admin-only" style="display:${USERS[currentUser]==='ADMIN'?'table-cell':'none'}">${btnReset}</td></tr>`;
+        const btn = USERS[currentUser] === "ADMIN" ? `<button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '', '${e.id}')">Reset</button>` : "-";
+        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td><td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td><td class="admin-only">${btn}</td></tr>`;
     }).join('');
-
     renderHistorial(datosCache);
+}
+
+function calcularConsumoAnual() {
+    const anio = parseInt(document.getElementById('selectAnioFiscal').value);
+    document.getElementById('currentYearDisplay').innerText = anio;
+    let d = 0, g = 0;
+    datosCache.forEach(h => {
+        const f = parseFechaBase(h.fecha);
+        if(f && f.getFullYear() === anio && h.mov.toUpperCase() === 'SALIDA') {
+            if(h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
+            else if(h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
+        }
+    });
+    document.getElementById('annualDiesel').innerText = d.toLocaleString('en-US') + " gl";
+    document.getElementById('annualGasohol').innerText = g.toLocaleString('en-US') + " gl";
 }
 
 function parseFechaBase(str) {
@@ -368,43 +288,21 @@ function parseFechaBase(str) {
         if(partes[0].length === 4) return new Date(partes[0], partes[1]-1, partes[2]);
         return new Date(partes[2], partes[1]-1, partes[0]);
     }
-    const d = new Date(str);
-    return isNaN(d.getTime()) ? null : d;
-}
-
-function renderHistorial(lista) {
-    const desdeRaw = document.getElementById('filtroDesde').value;
-    const hastaRaw = document.getElementById('filtroHasta').value;
-    let filtrada = [...lista];
-    if(desdeRaw || hastaRaw) {
-        filtrada = lista.filter(h => {
-            const fechaH = parseFechaBase(h.fecha);
-            if(!fechaH) return false;
-            fechaH.setHours(0,0,0,0);
-            const tiempoH = fechaH.getTime();
-            let okDesde = true, okHasta = true;
-            if(desdeRaw) okDesde = tiempoH >= new Date(desdeRaw + "T00:00:00").getTime();
-            if(hastaRaw) okHasta = tiempoH <= new Date(hastaRaw + "T23:59:59").getTime();
-            return okDesde && okHasta;
-        });
-    }
-    document.getElementById('historialBody').innerHTML = filtrada.map(h => `
-        <tr><td>${h.fecha.replace('T',' ').substring(0,16)}</td><td style="color:${h.mov.toUpperCase()==='INGRESO'?'green':'red'}"><b>${h.mov}</b></td>
-        <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>`).join('');
+    return new Date(str);
 }
 
 function llenarSelectorMeses() {
-    const selector = document.getElementById('filtroMesGrafico');
-    if (selector.options.length > 0) return;
+    const sel = document.getElementById('filtroMesGrafico');
+    if (sel.options.length > 0) return;
     ["Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026"].forEach(m => {
-        let opt = document.createElement('option'); opt.value = m; opt.innerHTML = m; selector.appendChild(opt);
+        let o = document.createElement('option'); o.value = m; o.innerText = m; sel.appendChild(o);
     });
-    selector.value = "Marzo 2026";
+    sel.value = "Marzo 2026";
 }
 
 function obtenerConsumoMes(lista, mesAnio) {
     let d = 0, g = 0;
-    const mesBuscado = mesAnio.toLowerCase().trim();
+    const mesBuscado = mesAnio.toLowerCase();
     lista.forEach(h => {
         const fecha = parseFechaBase(h.fecha);
         if(!fecha) return;
@@ -424,25 +322,38 @@ function procesarGrafico() {
     const dataActual = obtenerConsumoMes(datosCache, mesActual);
     const index = sel.selectedIndex;
     const dataPrev = index > 0 ? obtenerConsumoMes(datosCache, sel.options[index-1].value) : { diesel: 0, gasohol: 0 };
-
     const ctx = document.getElementById('consumoChart').getContext('2d');
     if (miGrafico) miGrafico.destroy();
     miGrafico = new Chart(ctx, {
         data: {
-            labels: ['Diesel', 'Gasohol'],
+            labels: ['DIESEL', 'GASOHOL'],
             datasets: [
-                { type: 'bar', label: mesActual, data: [dataActual.diesel, dataActual.gasohol], backgroundColor: ['#2563eb', '#10b981'], borderRadius: 5, order: 2 },
-                { type: 'line', label: 'Mes Anterior', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', borderWidth: 3, pointBackgroundColor: '#f59e0b', fill: false, tension: 0.1, order: 1 }
+                { type: 'bar', label: mesActual, data: [dataActual.diesel, dataActual.gasohol], backgroundColor: ['#3b82f6', '#10b981'], borderRadius: 5, order: 2 },
+                { type: 'line', label: 'Mes Anterior', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', fill: false, tension: 0.1, order: 1 }
             ]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        options: { responsive: true, maintainAspectRatio: false }
     });
 }
 
+function renderHistorial(lista) {
+    const desde = document.getElementById('filtroDesde').value;
+    const hasta = document.getElementById('filtroHasta').value;
+    let fil = lista;
+    if(desde || hasta) {
+        fil = lista.filter(h => {
+            const f = parseFechaBase(h.fecha); if(!f) return false;
+            let ok = true;
+            if(desde) ok = ok && f >= new Date(desde + "T00:00:00");
+            if(hasta) ok = ok && f <= new Date(hasta + "T23:59:59");
+            return ok;
+        });
+    }
+    document.getElementById('historialBody').innerHTML = fil.map(x => `<tr><td>${x.fecha.replace('T',' ').substring(0,16)}</td><td><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>`).join('');
+}
+
 async function procesarMovimiento() {
-    const cant = parseFloat(document.getElementById('cant').value);
-    if (isNaN(cant) || cant <= 0) return alert("Cantidad invalida");
-    const p = { action: 'write', mov: document.getElementById('tipoMov').value.toUpperCase(), prod: document.getElementById('prod').value.toUpperCase(), cant: cant, ref: document.getElementById('referencia').value || 'DESPACHO', fechaManual: document.getElementById('fechaMov').value || null };
+    const p = { action: 'write', mov: document.getElementById('tipoMov').value.toUpperCase(), prod: document.getElementById('prod').value.toUpperCase(), cant: parseFloat(document.getElementById('cant').value), ref: document.getElementById('referencia').value || 'DESPACHO', fechaManual: document.getElementById('fechaMov').value || null };
     await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(p) });
     document.getElementById('cant').value = ""; cargarDatos();
 }
@@ -450,18 +361,10 @@ async function procesarMovimiento() {
 function toggleCisterna() { document.getElementById('extraData').style.display = (document.getElementById('tipoMov').value === 'ingreso') ? 'block' : 'none'; }
 function aplicarFiltros() { renderHistorial(datosCache); }
 function limpiarFiltros() { document.getElementById('filtroDesde').value = ""; document.getElementById('filtroHasta').value = ""; renderHistorial(datosCache); }
-
-function exportarExcel() {
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(datosCache);
-    XLSX.utils.book_append_sheet(wb, ws, "Historial");
-    XLSX.writeFile(wb, "Reporte_ACP_Filtrado.xlsx");
-}
-
-window.onload = () => {
-    const session = sessionStorage.getItem('sessionGrifo');
-    if(session) startSession(session);
-};
+async function gestionarFiltros(a, t, e) { await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'updateFiltros', subAction: a, tipo: t, equipo: e }) }); cargarDatos(); }
+function logout() { sessionStorage.clear(); location.reload(); }
+window.onload = () => { const s = sessionStorage.getItem('sessionGrifo'); if(s) startSession(s); };
+function exportarExcel() { const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(datosCache); XLSX.utils.book_append_sheet(wb, ws, "Historial"); XLSX.writeFile(wb, "Reporte_ACP.xlsx"); }
 </script>
 </body>
 </html>
