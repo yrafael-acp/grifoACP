@@ -259,8 +259,12 @@ function actualizarUI(data) {
         const fManto = parseFechaBase(e.ult);
         const diff = Math.floor((hoy - fManto) / (1000*60*60*24));
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
-        const btn = USERS[currentUser] === "ADMIN" ? `<button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '', '${e.id}')">Reset</button>` : "-";
-        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td><td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td><td class="admin-only">${btn}</td></tr>`;
+        
+        // Habilitar Reset solo para administradores
+        const btnReset = (USERS[currentUser] === "ADMIN") ? 
+            `<button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '', '${e.id}')">Reset</button>` : "-";
+
+        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td><td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td><td class="admin-only" style="display:${USERS[currentUser]==='ADMIN'?'table-cell':'none'}">${btnReset}</td></tr>`;
     }).join('');
     renderHistorial(datosCache);
 }
@@ -306,6 +310,7 @@ function obtenerConsumoMes(lista, mesAnio) {
     lista.forEach(h => {
         const fecha = parseFechaBase(h.fecha);
         if(!fecha) return;
+        // Comparación estandarizada para todos los usuarios
         const comp = fecha.toLocaleString('es-ES', { month: 'long', year: 'numeric' }).toLowerCase();
         if (comp === mesBuscado && h.mov.toUpperCase() === 'SALIDA') {
             if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
