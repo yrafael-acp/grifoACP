@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACP - Resumen de Galones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <nav class="bg-green-700 text-white p-4 shadow-lg flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <img src="https://via.placeholder.com/40" alt="Logo ACP" class="bg-white rounded p-1">
+            <h1 class="text-xl font-bold tracking-wider">GALONES ASIGNADOS POR VEHÍCULO</h1>
+        </div>
+        <div class="text-sm bg-green-800 px-4 py-2 rounded-lg">
+            <span class="font-semibold">SEMANA 10:</span> 02/03/2026 - 08/03/2026
+        </div>
+    </nav>
+
+    <main class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
+                <p class="text-gray-500 text-sm font-medium">TOTAL ASIGNADO</p>
+                <p class="text-3xl font-bold text-gray-800">545.00 gal</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-red-500">
+                <p class="text-gray-500 text-sm font-medium">TOTAL CONSUMIDO</p>
+                <p class="text-3xl font-bold text-gray-800">147.15 gal</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
+                <p class="text-gray-500 text-sm font-medium">DISPONIBLE TOTAL</p>
+                <p class="text-3xl font-bold text-gray-800">397.85 gal</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-800 text-white text-xs uppercase tracking-wider">
+                            <th class="px-4 py-3">Placa</th>
+                            <th class="px-4 py-3">Responsable</th>
+                            <th class="px-4 py-3">Área</th>
+                            <th class="px-4 py-3 text-center">Asignado</th>
+                            <th class="px-4 py-3 text-center">Consumido</th>
+                            <th class="px-4 py-3 text-center">Disponible</th>
+                            <th class="px-4 py-3 text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700 divide-y divide-gray-200">
+                        <tr class="hover:bg-green-50 transition-colors">
+                            <td class="px-4 py-3 font-bold text-green-700">BRI090</td>
+                            <td class="px-4 py-3">WENDY CHILCON</td>
+                            <td class="px-4 py-3 text-sm">CERRO LA PATA</td>
+                            <td class="px-4 py-3 text-center font-semibold">15.00</td>
+                            <td class="px-4 py-3 text-center text-blue-600 font-bold">7.50</td>
+                            <td class="px-4 py-3 text-center text-green-600 font-bold">7.50</td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">En Uso</span>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-green-50 transition-colors">
+                            <td class="px-4 py-3 font-bold text-green-700">BXM905</td>
+                            <td class="px-4 py-3">MANUEL MARENGO</td>
+                            <td class="px-4 py-3 text-sm">TRANSPORTE</td>
+                            <td class="px-4 py-3 text-center font-semibold">48.00</td>
+                            <td class="px-4 py-3 text-center text-blue-600 font-bold">34.95</td>
+                            <td class="px-4 py-3 text-center text-red-600 font-bold">13.05</td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Crítico</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <a href="index.html" class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition shadow-md">
+                <i class="fas fa-arrow-left"></i> Volver al Inicio
+            </a>
+        </div>
+    </main>
+</body>
+</html>
