@@ -13,9 +13,11 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
         
+        /* Estilos de Login */
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-card { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
         
+        /* Dashboard Layout */
         #mainContent { display: none; }
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); position: relative; }
@@ -220,7 +222,7 @@
 </div>
 
 <script>
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R40Vo84fo7PZtDg3DJMc5dwxIQua6SsHrrHFt0uvCF8jEOO0wdLA/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R40Vo84fo7PZtDg3DJMc5dwxIQua6SsHrrHFt0uvCF8jEOO0wdLA/exec'; 
 const GENERIC_PASS = "GrifoACP2026";
 const USERS = { "ADMIN": "ADMIN", "CVILLANUEVA": "ADMIN", "LJUAREZ": "READ", "CGONZALES": "READ", "CORRILLO": "READ", "FFERNANDEZ": "READ", "WNEYRA": "READ", "ASALAZAR": "READ" };
 
@@ -341,7 +343,7 @@ function obtenerConsumoMes(lista, mesAnio) {
     lista.forEach(h => {
         const fecha = parseFechaBase(h.fecha);
         if(!fecha) return;
-        if (mesNombres[fecha.getMonth()] === mesNombreBuscado && fecha.getFullYear().toString() === anioBuscado && h.mov.toUpperCase() === 'SALIDA') {
+        if (mesesNombres[fecha.getMonth()] === mesNombreBuscado && fecha.getFullYear().toString() === anioBuscado && h.mov.toUpperCase() === 'SALIDA') {
             if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
             if (h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
         }
@@ -383,7 +385,10 @@ function renderHistorial(lista) {
             return ok;
         });
     }
-    document.getElementById('historialBody').innerHTML = fil.map(x => `<tr><td>${x.fecha.replace('T',' ').substring(0,16)}</td><td><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>`).join('');
+    document.getElementById('historialBody').innerHTML = fil.map(x => {
+        const color = x.mov.toUpperCase() === 'INGRESO' ? 'green' : 'red';
+        return `<tr><td>${x.fecha.replace('T',' ').substring(0,16)}</td><td style="color:${color}"><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>`;
+    }).join('');
 }
 
 async function procesarMovimiento() {
@@ -404,10 +409,7 @@ function exportarExcel() { const wb = XLSX.utils.book_new(); const ws = XLSX.uti
 function ejecutarSimulacion() {
     const stockIni = parseFloat(document.getElementById('simStockIni').value) || 0;
     const varillaFinal = parseFloat(document.getElementById('simVarilla').value) || 0;
-    
-    // El consumo es Stock Inicial - Lectura Final Varilla
     const resultado = stockIni - varillaFinal;
-    
     document.getElementById('simResultado').innerText = (resultado >= 0 ? resultado.toFixed(2) : "0.00") + " gl";
 }
 </script>
