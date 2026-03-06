@@ -3,85 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ACP - Resumen de Galones</title>
+    <title>ACP - Consumo Flota</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .table-container { max-height: 65vh; overflow-y: auto; }
+        .bg-acp { background-color: #007d32; } /* Verde institucional aproximado */
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100 font-sans text-gray-800">
 
-    <nav class="bg-green-700 text-white p-4 shadow-lg flex justify-between items-center">
-        <div class="flex items-center gap-3">
-            <img src="https://via.placeholder.com/40" alt="Logo ACP" class="bg-white rounded p-1">
-            <h1 class="text-xl font-bold tracking-wider">GALONES ASIGNADOS POR VEHÍCULO</h1>
-        </div>
-        <div class="text-sm bg-green-800 px-4 py-2 rounded-lg">
-            <span class="font-semibold">SEMANA 10:</span> 02/03/2026 - 08/03/2026
-        </div>
-    </nav>
-
-    <main class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
-                <p class="text-gray-500 text-sm font-medium">TOTAL ASIGNADO</p>
-                <p class="text-3xl font-bold text-gray-800">545.00 gal</p>
+    <header class="bg-acp text-white shadow-md p-4 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-gas-pump text-2xl"></i>
+                <h1 class="text-xl font-black tracking-tighter">CONSUMO FLOTA - ACP</h1>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-red-500">
-                <p class="text-gray-500 text-sm font-medium">TOTAL CONSUMIDO</p>
-                <p class="text-3xl font-bold text-gray-800">147.15 gal</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
-                <p class="text-gray-500 text-sm font-medium">DISPONIBLE TOTAL</p>
-                <p class="text-3xl font-bold text-gray-800">397.85 gal</p>
+            
+            <div class="flex items-center gap-4">
+                <div class="bg-white/10 p-1 rounded-lg flex items-center border border-white/20">
+                    <button onclick="cambiarSemana(-1)" class="px-3 hover:bg-white/10 rounded"> < </button>
+                    <select id="semanaSelector" onchange="actualizarReporte()" class="bg-transparent font-bold text-sm px-2 outline-none cursor-pointer">
+                        </select>
+                    <button onclick="cambiarSemana(1)" class="px-3 hover:bg-white/10 rounded"> > </button>
+                </div>
             </div>
         </div>
+    </header>
 
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-800 text-white text-xs uppercase tracking-wider">
-                            <th class="px-4 py-3">Placa</th>
-                            <th class="px-4 py-3">Responsable</th>
-                            <th class="px-4 py-3">Área</th>
-                            <th class="px-4 py-3 text-center">Asignado</th>
-                            <th class="px-4 py-3 text-center">Consumido</th>
-                            <th class="px-4 py-3 text-center">Disponible</th>
-                            <th class="px-4 py-3 text-center">Estado</th>
+    <main class="max-w-7xl mx-auto p-4 md:p-6">
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
+                <span class="text-xs font-bold text-gray-400 uppercase">Total Asignado</span>
+                <p id="resumenAsignado" class="text-2xl font-black text-gray-800">0.00 GLN</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-orange-500">
+                <span class="text-xs font-bold text-gray-400 uppercase">Total Consumido</span>
+                <p id="resumenConsumido" class="text-2xl font-black text-gray-800">0.00 GLN</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500">
+                <span class="text-xs font-bold text-gray-400 uppercase">Saldo Disponible</span>
+                <p id="resumenDisponible" class="text-2xl font-black text-gray-800">0.00 GLN</p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500">
+                <span class="text-xs font-bold text-gray-400 uppercase">Eficiencia</span>
+                <p id="resumenEficiencia" class="text-2xl font-black text-gray-800">0%</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-t-xl border-b flex flex-col md:flex-row justify-between gap-4">
+            <div class="relative w-full md:w-1/3">
+                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa, responsable o área..." 
+                    class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition-all">
+            </div>
+            <div class="flex gap-2">
+                <button onclick="exportarExcel()" class="bg-green-100 text-green-700 px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-200 transition">
+                    <i class="fas fa-file-excel mr-2"></i> Exportar
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-sm rounded-b-xl overflow-hidden border">
+            <div class="table-container">
+                <table class="w-full text-left text-sm border-collapse" id="tablaPrincipal">
+                    <thead class="bg-gray-50 sticky top-0 z-10 border-b">
+                        <tr class="text-gray-600 font-bold">
+                            <th class="p-4 uppercase tracking-wider">Placa / Unidad</th>
+                            <th class="p-4 uppercase tracking-wider">Responsable</th>
+                            <th class="p-4 uppercase tracking-wider text-center">Asignado</th>
+                            <th class="p-4 uppercase tracking-wider text-center">Consumido</th>
+                            <th class="p-4 uppercase tracking-wider text-center">Saldo</th>
+                            <th class="p-4 uppercase tracking-wider">Estado</th>
                         </tr>
                     </thead>
-                    <tbody class="text-gray-700 divide-y divide-gray-200">
-                        <tr class="hover:bg-green-50 transition-colors">
-                            <td class="px-4 py-3 font-bold text-green-700">BRI090</td>
-                            <td class="px-4 py-3">WENDY CHILCON</td>
-                            <td class="px-4 py-3 text-sm">CERRO LA PATA</td>
-                            <td class="px-4 py-3 text-center font-semibold">15.00</td>
-                            <td class="px-4 py-3 text-center text-blue-600 font-bold">7.50</td>
-                            <td class="px-4 py-3 text-center text-green-600 font-bold">7.50</td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">En Uso</span>
-                            </td>
-                        </tr>
-                        <tr class="hover:bg-green-50 transition-colors">
-                            <td class="px-4 py-3 font-bold text-green-700">BXM905</td>
-                            <td class="px-4 py-3">MANUEL MARENGO</td>
-                            <td class="px-4 py-3 text-sm">TRANSPORTE</td>
-                            <td class="px-4 py-3 text-center font-semibold">48.00</td>
-                            <td class="px-4 py-3 text-center text-blue-600 font-bold">34.95</td>
-                            <td class="px-4 py-3 text-center text-red-600 font-bold">13.05</td>
-                            <td class="px-4 py-3 text-center">
-                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Crítico</span>
-                            </td>
-                        </tr>
-                    </tbody>
+                    <tbody id="cuerpoTabla" class="divide-y divide-gray-100">
+                        </tbody>
                 </table>
             </div>
         </div>
-
-        <div class="mt-8">
-            <a href="index.html" class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition shadow-md">
-                <i class="fas fa-arrow-left"></i> Volver al Inicio
-            </a>
-        </div>
     </main>
+
+    <script>
+        // 1. CONFIGURACIÓN INICIAL DE PLACAS Y GRUPOS (Basado en tus imágenes)
+        const MASTER_DATA = [
+            { placa: "BRI090", resp: "WENDY CHILCON", area: "CERRO LA PATA", asignado: 15.00, grupo: null },
+            { placa: "BRI612", resp: "LUIS MACHER", area: "MANTENIMIENTO FUNDO", asignado: 15.00, grupo: null },
+            { placa: "AZO588", resp: "KARINA VASQUEZ", area: "SEGURIDAD INDUSTRIAL", asignado: 15.00, grupo: null },
+            { placa: "CDL730", resp: "CASE VIP", area: "CASE VIP", asignado: 76.00, grupo: "CASE_VIP" },
+            { placa: "CBA760", resp: "CASE VIP", area: "CASE VIP", asignado: 76.00, grupo: "CASE_VIP" },
+            { placa: "CDM720", resp: "CASE VIP", area: "CASE VIP", asignado: 76.00, grupo: "CASE_VIP" },
+            // ... Aquí añadirías las 73 placas
+        ];
+
+        // 2. GENERADOR DE SEMANAS 2026 (Lunes a Domingo)
+        function generarSemanas() {
+            const selector = document.getElementById('semanaSelector');
+            let fecha = new Date(2026, 0, 5); // Primer lunes de 2026
+            
+            for (let i = 1; i <= 52; i++) {
+                let finSemana = new Date(fecha);
+                finSemana.setDate(fecha.getDate() + 6);
+                
+                let texto = `Semana ${i} (${fecha.toLocaleDateString('es-PE', {day:'2-digit', month:'2-digit'})} - ${finSemana.toLocaleDateString('es-PE', {day:'2-digit', month:'2-digit'})})`;
+                let option = new Option(texto, i);
+                selector.add(option);
+                
+                fecha.setDate(fecha.getDate() + 7);
+            }
+            selector.value = 10; // Por defecto semana actual en tu ejemplo
+        }
+
+        // 3. LÓGICA DE ACTUALIZACIÓN
+        function actualizarReporte() {
+            const cuerpo = document.getElementById('cuerpoTabla');
+            cuerpo.innerHTML = "";
+            
+            let totalA = 0, totalC = 0;
+
+            MASTER_DATA.forEach(item => {
+                // Simulación de cruce con dat_comb (Aquí iría tu lógica de sumar la hoja dat_comb)
+                let consumido = Math.random() * item.asignado; // Simulado para el ejemplo
+                let disponible = item.asignado - consumido;
+                let porcentaje = (consumido / item.asignado) * 100;
+                
+                totalA += item.asignado;
+                totalC += consumido;
+
+                let row = `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-4 font-bold text-blue-800">${item.placa}</td>
+                        <td class="p-4">
+                            <div class="font-medium">${item.resp}</div>
+                            <div class="text-xs text-gray-400">${item.area}</div>
+                        </td>
+                        <td class="p-4 text-center font-bold text-gray-600">${item.asignado.toFixed(2)}</td>
+                        <td class="p-4 text-center font-bold text-orange-600">${consumido.toFixed(2)}</td>
+                        <td class="p-4 text-center font-bold ${disponible < 5 ? 'text-red-600' : 'text-green-600'}">${disponible.toFixed(2)}</td>
+                        <td class="p-4">
+                            <div class="w-24 bg-gray-200 rounded-full h-1.5 mb-1">
+                                <div class="${porcentaje > 90 ? 'bg-red-500' : 'bg-green-500'} h-1.5 rounded-full" style="width: ${porcentaje}%"></div>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase ${porcentaje > 90 ? 'text-red-500' : 'text-gray-400'}">
+                                ${porcentaje > 90 ? 'Límite Crítico' : 'Normal'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+                cuerpo.innerHTML += row;
+            });
+
+            // Actualizar Tarjetas Superiores
+            document.getElementById('resumenAsignado').innerText = totalA.toFixed(2) + " GLN";
+            document.getElementById('resumenConsumido').innerText = totalC.toFixed(2) + " GLN";
+            document.getElementById('resumenDisponible').innerText = (totalA - totalC).toFixed(2) + " GLN";
+            document.getElementById('resumenEficiencia').innerText = ((totalC/totalA)*100).toFixed(1) + "%";
+        }
+
+        // 4. FUNCIONES AUXILIARES
+        function filtrarTabla() {
+            let filtro = document.getElementById('buscador').value.toUpperCase();
+            let filas = document.getElementById('cuerpoTabla').getElementsByTagName('tr');
+            for (let fila of filas) {
+                fila.style.display = fila.innerText.toUpperCase().includes(filtro) ? "" : "none";
+            }
+        }
+
+        function cambiarSemana(delta) {
+            const selector = document.getElementById('semanaSelector');
+            selector.selectedIndex += delta;
+            actualizarReporte();
+        }
+
+        // Iniciar
+        generarSemanas();
+        actualizarReporte();
+
+    </script>
 </body>
 </html>
