@@ -10,6 +10,7 @@
         :root { 
             --primary: #1e293b; --accent: #3b82f6; --diesel: #2563eb; 
             --gasohol: #10b981; --danger: #ef4444; --warning: #f59e0b; --success: #059669;
+            --acp-green: #007d32;
         }
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
         
@@ -20,7 +21,7 @@
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); position: relative; }
         .full-width { grid-column: span 2; }
-        .btn { cursor: pointer; padding: 12px; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; text-align: center; }
+        .btn { cursor: pointer; padding: 12px; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; text-align: center; text-decoration: none; display: inline-block; }
         .btn-blue { background: var(--accent); }
         .btn-green { background: var(--success); }
         .btn-excel { background: #107c41; }
@@ -55,6 +56,10 @@
         /* Estilos Simulador */
         .sim-box { background: #fdfcfe; border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin-top: 20px; }
         .sim-res { font-weight: bold; color: var(--diesel); font-size: 1.1rem; }
+
+        /* Estilo Boton Flota */
+        .btn-flota { background: var(--acp-green); display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,125,50,0.2); }
+        .btn-flota:hover { filter: brightness(1.1); }
     </style>
 </head>
 <body>
@@ -139,6 +144,17 @@
             </div>
         </div>
 
+        <div class="card" id="flotaCard">
+            <h2>Control de Flota</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 15px;">Acceso al reporte detallado de galones asignados vs consumidos (Base de datos: <span style="font-family: monospace; font-weight: bold;">dat_comb</span>).</p>
+            <a href="consumo-flota.html" class="btn btn-flota" style="width:100%">
+                <span style="font-size: 1.2rem;">🚛</span> 
+                <span>CONSUMO FLOTA</span>
+            </a>
+            <div style="margin-top: 15px; font-size: 0.75rem; text-align: center; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+                Reporte Semanal: Lunes a Domingo
+            </div>
+        </div>
         <div class="card" id="monitorCard">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin:0">Monitor y Analisis</h2>
@@ -256,7 +272,7 @@ function startSession(user) {
         document.getElementById('thAccion').style.display = 'table-cell';
     } else {
         document.getElementById('registroCard').style.display = 'none';
-        document.getElementById('monitorCard').style.gridColumn = "span 2";
+        document.getElementById('monitorCard').style.gridColumn = "span 1"; // Ajustado para que quepa el nuevo modulo
         document.getElementById('thAccion').style.display = 'none';
     }
     cargarDatos();
