@@ -174,7 +174,7 @@
             <h2>Plan Trimestral (Aviso preventivo 85 dias)</h2>
             <table>
                 <thead>
-                    <tr><th>Equipo</th><th>Filtro</th><th>Ultima Fecha</th><th>Dias Pasados</th><th>Estado</th><th class="admin-only">Accion</th></tr>
+                    <tr><th>Equipo</th><th>Filtro</th><th>Ultima Fecha</th><th>Dias Pasados</th><th>Estado</th><th id="thAccion" style="display:none;">Accion</th></tr>
                 </thead>
                 <tbody id="mantoBody"></tbody>
             </table>
@@ -229,8 +229,15 @@ function startSession(user) {
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('mainContent').style.display = 'block';
     document.getElementById('displayUser').innerText = user;
-    if (USERS[user] === "ADMIN") document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-    else { document.getElementById('registroCard').style.display = 'none'; document.getElementById('monitorCard').style.gridColumn = "span 2"; }
+    
+    if (USERS[user] === "ADMIN") {
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+        document.getElementById('thAccion').style.display = 'table-cell';
+    } else {
+        document.getElementById('registroCard').style.display = 'none';
+        document.getElementById('monitorCard').style.gridColumn = "span 2";
+        document.getElementById('thAccion').style.display = 'none';
+    }
     cargarDatos();
 }
 
@@ -260,11 +267,12 @@ function actualizarUI(data) {
         const diff = Math.floor((hoy - fManto) / (1000*60*60*24));
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
         
-        // Habilitar Reset solo para administradores
-        const btnReset = (USERS[currentUser] === "ADMIN") ? 
-            `<button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '', '${e.id}')">Reset</button>` : "-";
+        let accionTd = "";
+        if (USERS[currentUser] === "ADMIN") {
+            accionTd = `<td><button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '', '${e.id}')">Reset</button></td>`;
+        }
 
-        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td><td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td><td class="admin-only" style="display:${USERS[currentUser]==='ADMIN'?'table-cell':'none'}">${btnReset}</td></tr>`;
+        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td><td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>${accionTd}</tr>`;
     }).join('');
     renderHistorial(datosCache);
 }
@@ -286,6 +294,7 @@ function calcularConsumoAnual() {
 
 function parseFechaBase(str) {
     if(!str) return null;
+    // Manejo de formatos ISO o locales (DD/MM/YYYY)
     const limpia = str.split('T')[0].split(',')[0].trim();
     const partes = limpia.split(/[/-]/);
     if(partes.length === 3) {
@@ -298,21 +307,32 @@ function parseFechaBase(str) {
 function llenarSelectorMeses() {
     const sel = document.getElementById('filtroMesGrafico');
     if (sel.options.length > 0) return;
-    ["Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026"].forEach(m => {
-        let o = document.createElement('option'); o.value = m; o.innerText = m; sel.appendChild(o);
+    const mesesNombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const periodos = ["Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026"];
+    periodos.forEach(p => {
+        let o = document.createElement('option'); o.value = p; o.innerText = p; sel.appendChild(o);
     });
-    sel.value = "Marzo 2026";
+    sel.value = periodos[periodos.length - 1];
 }
 
+// CORRECCIÓN EXPLÍCITA DEL REPORTE MENSUAL
 function obtenerConsumoMes(lista, mesAnio) {
     let d = 0, g = 0;
-    const mesBuscado = mesAnio.toLowerCase();
+    const partesBuscadas = mesAnio.toLowerCase().split(' ');
+    const mesNombreBuscado = partesBuscadas[0];
+    const anioBuscado = partesBuscadas[1];
+
+    const mesesNombres = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
     lista.forEach(h => {
         const fecha = parseFechaBase(h.fecha);
         if(!fecha) return;
-        // Comparación estandarizada para todos los usuarios
-        const comp = fecha.toLocaleString('es-ES', { month: 'long', year: 'numeric' }).toLowerCase();
-        if (comp === mesBuscado && h.mov.toUpperCase() === 'SALIDA') {
+        
+        const mesIndex = fecha.getMonth();
+        const mesNombreData = mesesNombres[mesIndex];
+        const anioData = fecha.getFullYear().toString();
+
+        if (mesNombreData === mesNombreBuscado && anioData === anioBuscado && h.mov.toUpperCase() === 'SALIDA') {
             if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
             if (h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
         }
@@ -327,6 +347,7 @@ function procesarGrafico() {
     const dataActual = obtenerConsumoMes(datosCache, mesActual);
     const index = sel.selectedIndex;
     const dataPrev = index > 0 ? obtenerConsumoMes(datosCache, sel.options[index-1].value) : { diesel: 0, gasohol: 0 };
+    
     const ctx = document.getElementById('consumoChart').getContext('2d');
     if (miGrafico) miGrafico.destroy();
     miGrafico = new Chart(ctx, {
@@ -337,7 +358,13 @@ function procesarGrafico() {
                 { type: 'line', label: 'Mes Anterior', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', fill: false, tension: 0.1, order: 1 }
             ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
     });
 }
 
