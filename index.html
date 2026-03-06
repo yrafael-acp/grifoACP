@@ -13,11 +13,9 @@
         }
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
         
-        /* Estilos de Login */
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-card { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
         
-        /* Dashboard Layout */
         #mainContent { display: none; }
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); position: relative; }
@@ -144,10 +142,6 @@
         <div class="card" id="monitorCard">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin:0">Monitor y Analisis</h2>
-                <select id="selectAnioFiscal" class="year-select" onchange="calcularConsumoAnual()">
-                    <option value="2026" selected>Año 2026</option>
-                    <option value="2025">Año 2025</option>
-                </select>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
                 <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
@@ -163,7 +157,13 @@
             </div>
 
             <div style="margin-top:15px; padding: 12px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
-                <b style="font-size: 0.85rem; color: #475569; text-transform: uppercase;">Consumo Acumulado <span id="currentYearDisplay">2026</span></b>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <b style="font-size: 0.85rem; color: #475569; text-transform: uppercase;">Consumo Acumulado <span id="currentYearDisplay">2026</span></b>
+                    <select id="selectAnioFiscal" class="year-select" style="margin:0; width:auto;" onchange="calcularConsumoAnual()">
+                        <option value="2026" selected>Año 2026</option>
+                        <option value="2025">Año 2025</option>
+                    </select>
+                </div>
                 <div class="annual-summary">
                     <div class="summary-item" style="border-left: 4px solid var(--diesel);">
                         <small style="color: #64748b; font-weight: bold;">DIESEL TOTAL</small>
@@ -405,7 +405,6 @@ function logout() { sessionStorage.clear(); location.reload(); }
 window.onload = () => { const s = sessionStorage.getItem('sessionGrifo'); if(s) startSession(s); };
 function exportarExcel() { const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(datosCache); XLSX.utils.book_append_sheet(wb, ws, "Historial"); XLSX.writeFile(wb, "Reporte_ACP.xlsx"); }
 
-// LÓGICA DEL SIMULADOR
 function ejecutarSimulacion() {
     const stockIni = parseFloat(document.getElementById('simStockIni').value) || 0;
     const varillaFinal = parseFloat(document.getElementById('simVarilla').value) || 0;
