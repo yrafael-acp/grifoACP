@@ -562,6 +562,13 @@ window.onload = () => {
     const session = sessionStorage.getItem('sessionGrifo');
     if(session) startSession(session);
 };
+    // Actualización automática cada 15 segundos
+setInterval(() => {
+    if (currentUser) {
+        cargarDatos();
+        console.log("Sincronización automática realizada.");
+    }
+}, 15000);
 </script>
 </body>
 </html>
