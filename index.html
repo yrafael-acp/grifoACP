@@ -13,8 +13,10 @@
             --acp-green: #007d32;
         }
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
+        
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-card { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
+        
         #mainContent { display: none; }
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); position: relative; }
@@ -25,18 +27,30 @@
         .btn-excel { background: #107c41; }
         .btn-logout { background: var(--danger); font-size: 0.8rem; padding: 8px 15px; margin-left: 10px; }
         .btn-flota-sm { background: var(--acp-green); font-size: 0.8rem; padding: 8px 15px; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         .status-badge { padding: 5px 10px; border-radius: 6px; font-size: 0.85em; font-weight: bold; }
         .bg-danger { background: #fee2e2; color: var(--danger); border: 1px solid var(--danger); }
         .bg-success { background: #dcfce7; color: var(--gasohol); }
         .bg-warning { background: #fef3c7; color: var(--warning); }
+        
         input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
         .stock-label { font-size: 1.8rem; font-weight: bold; display: block; margin: 5px 0; }
         .sync-indicator { font-size: 0.75rem; color: #64748b; font-weight: normal; }
+        
+        .filter-bar { display: flex; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; align-items: flex-end; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .group-label { font-size: 0.75rem; font-weight: bold; color: #64748b; margin-bottom: 5px; display: block; text-transform: uppercase; }
+        canvas { max-height: 250px; width: 100%; }
+        .table-container { max-height: 500px; overflow-y: auto; }
+
+        .app-header-logo { height: 50px; width: auto; margin-right: 15px; vertical-align: middle; }
+        .header-content { display: flex; align-items: center; }
+
         .annual-summary { display: flex; gap: 15px; margin-top: 10px; }
         .summary-item { flex: 1; padding: 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; }
         .summary-value { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; }
+
         .admin-only { display: none; }
         .sim-box { background: #fdfcfe; border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin-top: 20px; }
         .sim-res { font-weight: bold; color: var(--diesel); font-size: 1.1rem; }
@@ -65,8 +79,8 @@
 <div id="mainContent">
     <div class="dashboard">
         <div class="card full-width" style="background: var(--primary); color: white; border:none; display:flex; justify-content:space-between; align-items:center;">
-            <div style="display: flex; align-items: center;">
-                <img src="logo.png" alt="Logo" style="height: 50px; margin-right: 15px;">
+            <div class="header-content">
+                <img src="logo.png" alt="Logo ACP" class="app-header-logo">
                 <div>
                     <h1 style="margin:0; font-size: 1.5rem;">Gestión Corporativa - <span id="displayUser"></span></h1>
                     <span class="sync-indicator">Sistema online | Sinc: <span id="lastUpdate">-</span></span>
@@ -74,16 +88,16 @@
             </div>
             <div>
                 <a href="consumo-flota.html" class="btn btn-flota-sm">🚛 Flota</a>
-                <button onclick="exportarExcel()" class="btn btn-excel" style="width:auto; padding: 8px 15px;">Excel</button>
+                <button onclick="exportarExcel()" class="btn btn-excel" style="padding: 8px 15px; width: auto;">Excel</button>
                 <button onclick="logout()" class="btn btn-logout">Salir</button>
             </div>
         </div>
 
         <div class="card admin-only" id="registroCard">
             <h2>Registro de Movimiento</h2>
-            <label class="group-label">Fecha (Opcional)</label>
+            <label class="group-label">Fecha del Movimiento (Opcional)</label>
             <input type="date" id="fechaMov">
-            <label class="group-label">Operación</label>
+            <label class="group-label">Tipo de Operacion</label>
             <select id="tipoMov" onchange="toggleCisterna()"><option value="salida">Salida (Consumo Diario)</option><option value="ingreso">Ingreso (Cisterna)</option></select>
             <label class="group-label">Producto</label>
             <select id="prod"><option value="diesel">Diesel (Cap: 5000 gl)</option><option value="gasohol">Gasohol (Cap: 1000 gl)</option></select>
@@ -92,18 +106,29 @@
             <div id="extraData" style="display:none;"><label class="group-label">Referencia</label><input type="text" id="referencia" placeholder="Placa / Chofer"></div>
             <button class="btn btn-blue" onclick="procesarMovimiento()">Guardar Registro</button>
             
+            <h3 style="margin-top:20px;">Stock de Filtros</h3>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf60')">Ingreso CF60</button>
+                <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf100')">Ingreso CF100</button>
+            </div>
+
             <div class="sim-box">
-                <h3 style="margin:0; font-size: 0.9rem;">📊 Simulador de Varilla</h3>
-                <input type="number" id="simStockIni" step="0.01" placeholder="Stock actual monitor">
-                <input type="number" id="simVarilla" step="0.01" placeholder="Lectura varilla final" oninput="ejecutarSimulacion()">
+                <h3 style="margin:0; font-size: 0.9rem;">📊 Simulador: Consumo por Varilla</h3>
+                <label class="group-label">Stock Actual</label>
+                <input type="number" id="simStockIni" step="0.01" placeholder="Copiar stock monitor">
+                <label class="group-label">Lectura Varilla Final</label>
+                <input type="number" id="simVarilla" step="0.01" oninput="ejecutarSimulacion()">
                 <div id="simResultado" class="sim-res" style="margin-top:10px; background:#eef2ff; padding:10px; border-radius:8px; text-align:center;">0.00 gl</div>
             </div>
         </div>
 
         <div class="card" id="monitorCard">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2 style="margin:0">Monitor y Análisis</h2>
-                <select id="selectAnioFiscal" style="width:auto; margin:0; padding:2px;" onchange="calcularConsumoAnual()"><option value="2026">Año 2026</option><option value="2025">Año 2025</option></select>
+                <h2 style="margin:0">Monitor y Analisis</h2>
+                <select id="selectAnioFiscal" style="width:auto; margin:0; padding:2px;" onchange="calcularConsumoAnual()">
+                    <option value="2026">Año 2026</option>
+                    <option value="2025">Año 2025</option>
+                </select>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
                 <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid var(--gasohol)"><b>DIESEL</b><span id="sDiesel" class="stock-label">0.00</span></div>
@@ -111,35 +136,45 @@
             </div>
 
             <div style="margin-top:15px; padding: 12px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <b style="font-size: 0.85rem; color: #475569;">Consumo Acumulado <span id="currentYearDisplay">2026</span></b>
+                <b style="font-size: 0.85rem; color: #475569; text-transform: uppercase;">Consumo Acumulado <span id="currentYearDisplay">2026</span></b>
                 <div class="annual-summary">
                     <div class="summary-item" style="border-left: 4px solid var(--diesel);"><small>DIESEL TOTAL</small><span id="annualDiesel" class="summary-value">0.00 gl</span></div>
                     <div class="summary-item" style="border-left: 4px solid var(--gasohol);"><small>GASOHOL TOTAL</small><span id="annualGasohol" class="summary-value">0.00 gl</span></div>
                 </div>
             </div>
 
-            <div style="margin-top:15px;">
+            <div style="margin-top:15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <b>Comparativo Mensual</b>
+                    <b>Consumo vs Mes Anterior</b>
                     <select id="filtroMesGrafico" onchange="procesarGrafico()" style="width:auto; margin:0; padding:5px;"></select>
                 </div>
                 <canvas id="consumoChart"></canvas>
+            </div>
+
+            <div style="margin-top:15px; font-size:0.9em;">
+                <b>Inventario Filtros:</b> CF60: <span id="f60">0</span> | CF100: <span id="f100">0</span>
             </div>
         </div>
 
         <div class="card full-width">
             <h2>Plan Trimestral (Filtros)</h2>
             <table>
-                <thead><tr><th>Equipo</th><th>Filtro</th><th>Ult. Cambio</th><th>Días</th><th>Estado</th><th id="thAccion" style="display:none;">Acción</th></tr></thead>
+                <thead><tr><th>Equipo</th><th>Filtro</th><th>Ultima Fecha</th><th>Dias Pasados</th><th>Estado</th><th id="thAccion" style="display:none;">Accion</th></tr></thead>
                 <tbody id="mantoBody"></tbody>
             </table>
         </div>
 
         <div class="card full-width">
             <h2>Historial de Movimientos</h2>
+            <div class="filter-bar">
+                <div style="flex:1"><label class="group-label">Desde:</label><input type="date" id="filtroDesde"></div>
+                <div style="flex:1"><label class="group-label">Hasta:</label><input type="date" id="filtroHasta"></div>
+                <button class="btn btn-blue" style="width:auto; padding:10px 20px;" onclick="aplicarFiltros()">Filtrar</button>
+                <button class="btn" style="background:#64748b; width:auto;" onclick="limpiarFiltros()">Limpiar</button>
+            </div>
             <div class="table-container">
                 <table>
-                    <thead><tr><th>Fecha</th><th>Operación</th><th>Producto</th><th>Cant.</th><th>Ref.</th><th>Saldo</th></tr></thead>
+                    <thead><tr><th>Fecha</th><th>Operacion</th><th>Producto</th><th>Cantidad</th><th>Referencia</th><th>Saldo Final</th></tr></thead>
                     <tbody id="historialBody"></tbody>
                 </table>
             </div>
@@ -153,6 +188,7 @@ const USERS = { "ADMIN": "ADMIN", "CVILLANUEVA": "ADMIN", "LJUAREZ": "READ", "CG
 
 let currentUser = null; let datosCache = []; let miGrafico = null;
 
+// LOGIN CENTRALIZADO
 async function handleLogin() {
     const user = document.getElementById('userInput').value.trim().toUpperCase();
     const pass = document.getElementById('passInput').value.trim();
@@ -168,16 +204,16 @@ async function handleLogin() {
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('changePassForm').style.display = 'block';
             } else { startSession(user); }
-        } else { alert("Clave incorrecta."); }
-    } catch (e) { alert("Error."); }
+        } else { alert("Contraseña incorrecta."); }
+    } catch (e) { alert("Error de conexión."); }
     btn.innerText = "Entrar"; btn.disabled = false;
 }
 
 async function saveNewPassword() {
     const p1 = document.getElementById('newPassInput').value;
     const p2 = document.getElementById('confirmPassInput').value;
-    if (p1 !== p2) return alert("No coinciden.");
-    if (!/^(?=.*[A-Z])(?=.*\d).+$/.test(p1)) return alert("Requiere 1 Mayúscula y 1 Número.");
+    if (p1 !== p2) return alert("Las claves no coinciden.");
+    if (!/^(?=.*[A-Z])(?=.*\d).+$/.test(p1)) return alert("Debe incluir 1 Mayúscula y 1 Número.");
     await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'updatePassword', user: currentUser, newPass: p1 }) });
     startSession(currentUser);
 }
@@ -208,7 +244,7 @@ async function cargarDatos() {
         calcularConsumoAnual();
         procesarGrafico();
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
-    } catch (e) { console.error("Sync Error"); }
+    } catch (e) { console.error("Error sync"); }
 }
 
 function actualizarUI(data) {
@@ -219,49 +255,50 @@ function actualizarUI(data) {
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
         const fM = parseFechaBase(e.ult);
-        const d = fM ? Math.floor((hoy - fM) / 86400000) : 0;
+        const d = Math.floor((hoy - fM) / 86400000);
         const c = d >= 90 ? 'bg-danger' : (d >= 85 ? 'bg-warning' : 'bg-success');
         let btn = (USERS[currentUser] === "ADMIN") ? `<td><button class="btn btn-blue" style="padding:5px; width:auto;" onclick="gestionarFiltros('reset', '${e.f}', '${e.id}')">Reset</button></td>` : "";
         return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${d} d</td><td><span class="status-badge ${c}">${d>=90?'VENCIDO':'OK'}</span></td>${btn}</tr>`;
     }).join('');
-    document.getElementById('historialBody').innerHTML = data.historial.map(x => {
-        const color = x.mov.toString().toUpperCase().includes('INGRESO') ? 'var(--success)' : 'var(--danger)';
+    renderHistorial(datosCache);
+}
+
+function renderHistorial(lista) {
+    const desde = document.getElementById('filtroDesde').value;
+    const hasta = document.getElementById('filtroHasta').value;
+    let fil = lista;
+    if(desde || hasta) {
+        fil = lista.filter(h => {
+            const f = parseFechaBase(h.fecha);
+            if(desde && f < new Date(desde + "T00:00:00")) return false;
+            if(hasta && f > new Date(hasta + "T23:59:59")) return false;
+            return true;
+        });
+    }
+    document.getElementById('historialBody').innerHTML = fil.map(x => {
+        const movStr = x.mov ? x.mov.toString().toUpperCase() : "";
+        const color = movStr.includes('INGRESO') ? 'var(--success)' : 'var(--danger)';
         return `<tr><td>${x.fecha}</td><td style="color:${color}"><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>`;
     }).join('');
 }
 
-// FUNCIÓN DE CONTEO CORREGIDA (REFORZADA)
 function calcularConsumoAnual() {
     const anio = document.getElementById('selectAnioFiscal').value;
     document.getElementById('currentYearDisplay').innerText = anio;
     let d = 0, g = 0;
-
     datosCache.forEach(h => {
-        const fechaObj = parseFechaBase(h.fecha);
-        const mov = h.mov ? h.mov.toString().toUpperCase() : "";
-        const prod = h.prod ? h.prod.toString().toUpperCase() : "";
-
-        if (fechaObj && fechaObj.getFullYear().toString() === anio && mov.includes("SALIDA")) {
-            const cant = parseFloat(h.cant) || 0;
-            if (prod.includes("DIESEL")) d += cant;
-            else if (prod.includes("GASOHOL")) g += cant;
+        const f = parseFechaBase(h.fecha);
+        const movStr = h.mov ? h.mov.toString().toUpperCase() : "";
+        const prodStr = h.prod ? h.prod.toString().toUpperCase() : "";
+        
+        if(f && f.getFullYear().toString() === anio && movStr.includes('SALIDA')) {
+            const cantVal = parseFloat(h.cant) || 0;
+            if(prodStr.includes('DIESEL')) d += cantVal;
+            else if(prodStr.includes('GASOHOL')) g += cantVal;
         }
     });
-
     document.getElementById('annualDiesel').innerText = d.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
     document.getElementById('annualGasohol').innerText = g.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
-}
-
-function parseFechaBase(s) {
-    if(!s) return null;
-    if (s instanceof Date) return s;
-    const limpia = s.toString().split(' ')[0];
-    const p = limpia.split(/[/-]/);
-    if(p.length === 3) {
-        if(p[0].length === 4) return new Date(p[0], p[1]-1, p[2]);
-        return new Date(p[2], p[1]-1, p[0]);
-    }
-    return new Date(s);
 }
 
 function llenarSelectorMeses() {
@@ -271,23 +308,6 @@ function llenarSelectorMeses() {
         let o = document.createElement('option'); o.value = p; o.innerText = p; sel.appendChild(o);
     });
     sel.value = "Marzo 2026";
-}
-
-function obtenerConsumoMes(lista, mesAnio) {
-    let d = 0, g = 0;
-    const partes = mesAnio.toLowerCase().split(' ');
-    const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-    lista.forEach(h => {
-        const f = parseFechaBase(h.fecha);
-        const mov = h.mov ? h.mov.toString().toUpperCase() : "";
-        const prod = h.prod ? h.prod.toString().toUpperCase() : "";
-        if (f && meses[f.getMonth()] === partes[0] && f.getFullYear().toString() === partes[1] && mov.includes("SALIDA")) {
-            const cant = parseFloat(h.cant) || 0;
-            if (prod.includes("DIESEL")) d += cant;
-            if (prod.includes("GASOHOL")) g += cant;
-        }
-    });
-    return { diesel: d, gasohol: g };
 }
 
 function procesarGrafico() {
@@ -304,8 +324,38 @@ function procesarGrafico() {
                 { type: 'line', label: 'Mes Ant.', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', fill: false, tension: 0.1 }
             ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
+}
+
+function obtenerConsumoMes(lista, mesAnio) {
+    let d = 0, g = 0;
+    const partes = mesAnio.toLowerCase().split(' ');
+    const mesesNombres = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    lista.forEach(h => {
+        const f = parseFechaBase(h.fecha);
+        const movStr = h.mov ? h.mov.toString().toUpperCase() : "";
+        const prodStr = h.prod ? h.prod.toString().toUpperCase() : "";
+        
+        if (f && mesesNombres[f.getMonth()] === partes[0] && f.getFullYear().toString() === partes[1] && movStr.includes('SALIDA')) {
+            const cantVal = parseFloat(h.cant) || 0;
+            if (prodStr.includes('DIESEL')) d += cantVal;
+            if (prodStr.includes('GASOHOL')) g += cantVal;
+        }
+    });
+    return { diesel: d, gasohol: g };
+}
+
+function parseFechaBase(s) {
+    if(!s) return null;
+    if (s instanceof Date) return s;
+    const limpia = s.toString().split(' ')[0];
+    const partes = limpia.split(/[/-]/);
+    if(partes.length === 3) {
+        if(partes[0].length === 4) return new Date(partes[0], partes[1]-1, partes[2]);
+        return new Date(partes[2], partes[1]-1, partes[0]);
+    }
+    return new Date(s);
 }
 
 function ejecutarSimulacion() {
@@ -314,6 +364,9 @@ function ejecutarSimulacion() {
 }
 
 function toggleCisterna() { document.getElementById('extraData').style.display = (document.getElementById('tipoMov').value === 'ingreso') ? 'block' : 'none'; }
+function aplicarFiltros() { renderHistorial(datosCache); }
+function limpiarFiltros() { document.getElementById('filtroDesde').value = ""; document.getElementById('filtroHasta').value = ""; renderHistorial(datosCache); }
+
 async function gestionarFiltros(a, t, e) { await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'updateFiltros', subAction: a, tipo: t, equipo: e }) }); cargarDatos(); }
 async function procesarMovimiento() {
     const p = { action: 'write', mov: document.getElementById('tipoMov').value, prod: document.getElementById('prod').value, cant: document.getElementById('cant').value, ref: document.getElementById('referencia').value, fechaManual: document.getElementById('fechaMov').value };
