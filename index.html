@@ -325,15 +325,46 @@ function obtenerConsumoMes(lista, mesAnio) {
 }
 
 function parseFechaBase(s) {
-    if(!s) return null;
+    if (!s) return null;
     if (s instanceof Date) return s;
-    const limpia = s.toString().split(' ')[0];
-    const partes = limpia.split(/[/-]/);
-    if(partes.length === 3) {
-        if(partes[0].length === 4) return new Date(partes[0], partes[1]-1, partes[2]);
-        return new Date(partes[2], partes[1]-1, partes[0]);
+    
+    try {
+        let str = s.toString().split(' ')[0]; // Quita la hora si la hay
+        let partes = str.split(/[/-]/);
+        
+        if (partes.length === 3) {
+            // Intenta detectar si es YYYY al inicio o al final
+            if (partes[0].length === 4) return new Date(partes[0], partes[1] - 1, partes[2]);
+            if (partes[2].length === 4) return new Date(partes[2], partes[1] - 1, partes[0]);
+        }
+        return new Date(s);
+    } catch (e) {
+        console.error("Error parseando fecha:", s);
+        return null;
     }
-    return new Date(s);
+}
+
+function calcularConsumoAnual() {
+    const anioFiltro = document.getElementById('selectAnioFiscal').value;
+    document.getElementById('currentYearDisplay').innerText = anioFiltro;
+    
+    let d = 0, g = 0;
+    
+    datosCache.forEach(h => {
+        const f = parseFechaBase(h.fecha);
+        const mov = h.mov ? h.mov.toString().toUpperCase() : "";
+        const prod = h.prod ? h.prod.toString().toUpperCase() : "";
+        
+        // Verificamos si la fila es una salida y el año coincide
+        if (f && f.getFullYear().toString() === anioFiltro.toString() && mov.includes("SALIDA")) {
+            const cant = parseFloat(h.cant) || 0;
+            if (prod.includes("DIESEL")) d += cant;
+            else if (prod.includes("GASOHOL")) g += cant;
+        }
+    });
+
+    document.getElementById('annualDiesel').innerText = d.toFixed(2) + " gl";
+    document.getElementById('annualGasohol').innerText = g.toFixed(2) + " gl";
 }
 
 function ejecutarSimulacion() {
