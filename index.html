@@ -233,13 +233,26 @@ const USERS = { "ADMIN": "ADMIN", "CVILLANUEVA": "ADMIN", "LJUAREZ": "READ", "CG
 let currentUser = null; let datosCache = []; let miGrafico = null;
 
 function handleLogin() {
-    const user = document.getElementById('userInput').value.toUpperCase();
+    const user = document.getElementById('userInput').value.trim().toUpperCase();
     const pass = document.getElementById('passInput').value;
+    
     if (!USERS[user]) return alert("Usuario no reconocido.");
+
+    // Intenta obtener la clave guardada en este equipo, si no existe usa la GENÉRICA
     const auth = JSON.parse(localStorage.getItem('userAuth_' + user)) || { pass: GENERIC_PASS };
-    if (pass !== auth.pass) return alert("Contraseña incorrecta.");
-    if (pass === GENERIC_PASS) { currentUser = user; document.getElementById('loginForm').style.display = 'none'; document.getElementById('changePassForm').style.display = 'block'; }
-    else startSession(user);
+    
+    // Si la clave coincide con la guardada O con la genérica (para permitir acceso en nuevas PCs)
+    if (pass === auth.pass || pass === GENERIC_PASS) {
+        if (pass === GENERIC_PASS) { 
+            currentUser = user; 
+            document.getElementById('loginForm').style.display = 'none'; 
+            document.getElementById('changePassForm').style.display = 'block'; 
+        } else {
+            startSession(user);
+        }
+    } else {
+        alert("Contraseña incorrecta.");
+    }
 }
 
 function saveNewPassword() {
