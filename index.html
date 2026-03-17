@@ -37,21 +37,31 @@
         
         input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
         .stock-label { font-size: 1.8rem; font-weight: bold; display: block; margin: 5px 0; }
+        .sync-indicator { font-size: 0.75rem; color: #64748b; font-weight: normal; }
         
-        /* Estilos Monitor Segregado */
-        .segregated-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .seg-item { text-align: left; }
-        .seg-item label { font-size: 0.65rem; font-weight: bold; color: #64748b; text-transform: uppercase; display: block; }
-        .seg-item span { font-size: 1.1rem; font-weight: bold; color: var(--primary); }
-        .input-iso { padding: 5px; height: 30px; font-size: 0.8rem; margin-top: 5px; border: 1px solid var(--accent); }
-
+        .filter-bar { display: flex; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; align-items: flex-end; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .group-label { font-size: 0.75rem; font-weight: bold; color: #64748b; margin-bottom: 5px; display: block; text-transform: uppercase; }
         canvas { max-height: 250px; width: 100%; }
         .table-container { max-height: 500px; overflow-y: auto; }
 
         .app-header-logo { height: 50px; width: auto; margin-right: 15px; vertical-align: middle; }
         .header-content { display: flex; align-items: center; }
+
+        .annual-summary { display: flex; gap: 15px; margin-top: 10px; }
+        .summary-item { flex: 1; padding: 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; }
+        .summary-value { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; }
+        .year-select { padding: 4px 8px; font-size: 0.85rem; border-radius: 4px; border: 1px solid #cbd5e1; cursor: pointer; }
+
         .admin-only { display: none; }
+
+        /* NUEVOS ESTILOS SEGREGADO */
+        .segregated-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .seg-item { text-align: left; }
+        .seg-item label { font-size: 0.65rem; font-weight: bold; color: #64748b; text-transform: uppercase; display: block; }
+        .seg-item span { font-size: 1.1rem; font-weight: bold; color: var(--primary); }
+        .input-iso { padding: 5px; height: 30px; font-size: 0.8rem; margin-top: 5px; border: 1px solid var(--accent); }
+
+        .isotanque-alert { background: #fffbeb; border: 1px solid #f59e0b; color: #92400e; padding: 8px; border-radius: 6px; font-size: 0.75rem; margin-top: 8px; font-weight: bold; text-align: left; }
         .sim-box { background: #fdfcfe; border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin-top: 20px; }
         .sim-res { font-weight: bold; color: var(--diesel); font-size: 1.1rem; }
     </style>
@@ -142,12 +152,11 @@
                     <option value="2025">Año 2025</option>
                 </select>
             </div>
-
+            <div id="alertasContainer"></div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
                 <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981; height: fit-content;">
                     <b>DIESEL (FÍSICO TOTAL)</b>
                     <span id="sDiesel" class="stock-label">0.00</span>
-                    
                     <div class="segregated-box">
                         <div class="seg-item">
                             <label>Tanque Central</label>
@@ -158,12 +167,11 @@
                             <input type="number" id="inputIsoDiesel" class="input-iso" value="0" onchange="actualizarReservaNube('diesel')">
                         </div>
                     </div>
+                    <div id="isoDiesel" class="isotanque-alert" style="display:none;"></div>
                 </div>
-
                 <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981; height: fit-content;">
                     <b>GASOHOL (FÍSICO TOTAL)</b>
                     <span id="sGasohol" class="stock-label">0.00</span>
-                    
                     <div class="segregated-box">
                         <div class="seg-item">
                             <label>Tanque Central</label>
@@ -174,6 +182,7 @@
                             <input type="number" id="inputIsoGasohol" class="input-iso" value="0" onchange="actualizarReservaNube('gasohol')">
                         </div>
                     </div>
+                    <div id="isoGasohol" class="isotanque-alert" style="display:none;"></div>
                 </div>
             </div>
 
@@ -199,6 +208,11 @@
                 </div>
                 <canvas id="consumoChart"></canvas>
             </div>
+
+            <div id="statusFiltros" style="margin-top:15px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <b>Inventario Filtros:</b> CF60: <span id="f60">3</span> | CF100: <span id="f100">2</span>
+                <div id="alertaStockFiltros" style="margin-top:5px; font-weight:bold; font-size:0.85em;"></div>
+            </div>
         </div>
 
         <div class="card full-width">
@@ -213,6 +227,12 @@
 
         <div class="card full-width">
             <h2>Historial de Movimientos</h2>
+            <div class="filter-bar">
+                <div style="flex:1"><label class="group-label">Desde:</label><input type="date" id="filtroDesde"></div>
+                <div style="flex:1"><label class="group-label">Hasta:</label><input type="date" id="filtroHasta"></div>
+                <button class="btn btn-blue" onclick="aplicarFiltros()">Filtrar Fechas</button>
+                <button class="btn" style="background:#64748b" onclick="limpiarFiltros()">Limpiar</button>
+            </div>
             <div class="table-container">
                 <table id="tablaHistorialWeb">
                     <thead>
@@ -228,24 +248,28 @@
 <script>
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R40Vo84fo7PZtDg3DJMc5dwxIQua6SsHrrHFt0uvCF8jEOO0wdLA/exec'; 
 
-const USERS = { "ADMIN": "ADMIN", "CVILLANUEVA": "ADMIN", "LJUAREZ": "READ", "CGONZALES": "READ", "CORRILLO": "READ", "FFERNANDEZ": "READ", "WNEYRA": "READ", "ASALAZAR": "READ" };
+const USERS = {
+    "ADMIN": "ADMIN", "CVILLANUEVA": "ADMIN",
+    "LJUAREZ": "READ", "CGONZALES": "READ", "CORRILLO": "READ", 
+    "FFERNANDEZ": "READ", "WNEYRA": "READ", "ASALAZAR": "READ"
+};
 
 let currentUser = null;
 let datosCache = [];
 let miGrafico = null;
 let stockTotalDiesel = 0;
 let stockTotalGasohol = 0;
-let reservaDiesel = 0;
-let reservaGasohol = 0;
 
-// --- SEGURIDAD ---
+// --- SEGURIDAD CENTRALIZADA ---
 
 async function handleLogin() {
     const user = document.getElementById('userInput').value.trim().toUpperCase();
     const pass = document.getElementById('passInput').value.trim();
     if (!USERS[user]) return alert("Usuario no reconocido.");
+
     const btn = document.getElementById('btnLogin');
     btn.innerText = "Verificando..."; btn.disabled = true;
+
     try {
         const resp = await fetch(`${WEB_APP_URL}?action=login&user=${user}&pass=${pass}`);
         const res = await resp.json();
@@ -254,30 +278,61 @@ async function handleLogin() {
             if (res.forceChange) {
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('changePassForm').style.display = 'block';
-            } else { startSession(user); }
+            } else {
+                startSession(user);
+            }
         } else { alert("Clave incorrecta."); }
-    } catch (e) { alert("Error de conexión."); }
+    } catch (e) { alert("Error de conexión con el servidor."); }
     btn.innerText = "Entrar"; btn.disabled = false;
 }
 
+async function saveNewPassword() {
+    const p1 = document.getElementById('newPassInput').value;
+    const p2 = document.getElementById('confirmPassInput').value;
+    if (p1 !== p2) return alert("Las claves no coinciden.");
+    if (!/^(?=.*[A-Z])(?=.*\d).+$/.test(p1)) return alert("Debe incluir al menos 1 Mayúscula y 1 Número.");
+
+    try {
+        await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'updatePassword', user: currentUser, newPass: p1 }) });
+        alert("Clave actualizada correctamente.");
+        startSession(currentUser);
+    } catch (e) { alert("Error al guardar clave."); }
+}
+
 function startSession(user) {
-    currentUser = user; sessionStorage.setItem('sessionGrifo', user);
+    currentUser = user;
+    sessionStorage.setItem('sessionGrifo', user);
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('mainContent').style.display = 'block';
     document.getElementById('displayUser').innerText = user;
+
     if (USERS[user] === "ADMIN") {
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
         document.getElementById('thAccion').style.display = 'table-cell';
     } else {
         document.getElementById('registroCard').style.display = 'none';
         document.getElementById('monitorCard').style.gridColumn = "span 2";
+        document.getElementById('thAccion').style.display = 'none';
     }
     cargarDatos();
 }
 
-function logout() { sessionStorage.clear(); location.reload(); }
+function logout() {
+    sessionStorage.clear();
+    location.reload();
+}
 
-// --- DATOS ---
+// --- LÓGICA DE DATOS ---
+
+async function gestionarFiltros(accion, tipo, equipo = '') {
+    const payload = { action: 'updateFiltros', subAction: accion, tipo: tipo, equipo: equipo };
+    try {
+        const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
+        if(res.ok) {
+            cargarDatos();
+        }
+    } catch (e) { alert("Error al actualizar filtros"); }
+}
 
 async function cargarDatos() {
     try {
@@ -287,111 +342,137 @@ async function cargarDatos() {
         stockTotalDiesel = data.stocks.diesel;
         stockTotalGasohol = data.stocks.gasohol;
         
-        // Jalar valores de Isotanques guardados en la nube
-        reservaDiesel = parseFloat(data.reservas.diesel || 0);
-        reservaGasohol = parseFloat(data.reservas.gasohol || 0);
-        
-        document.getElementById('inputIsoDiesel').value = reservaDiesel;
-        document.getElementById('inputIsoGasohol').value = reservaGasohol;
-        
+        // Jalar reservas de la nube
+        document.getElementById('inputIsoDiesel').value = data.reservas ? data.reservas.diesel : 0;
+        document.getElementById('inputIsoGasohol').value = data.reservas ? data.reservas.gasohol : 0;
+
         actualizarUI(data);
         actualizarDesgloseLocal();
         llenarSelectorMeses();
         procesarGrafico();
         calcularConsumoAnual();
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
-    } catch (e) { console.log("Error sync"); }
+    } catch (e) { console.log("Error de conexion..."); }
+}
+
+function calcularConsumoAnual() {
+    const anioSeleccionado = parseInt(document.getElementById('selectAnioFiscal').value);
+    document.getElementById('currentYearDisplay').innerText = anioSeleccionado;
+    let totalDiesel = 0; let totalGasohol = 0;
+
+    datosCache.forEach(h => {
+        const fecha = parseFechaBase(h.fecha);
+        if(!fecha) return;
+        if(fecha.getFullYear() === anioSeleccionado && h.mov.toUpperCase().includes('SALIDA')) {
+            if(h.prod.toUpperCase().includes('DIESEL')) totalDiesel += parseFloat(h.cant);
+            if(h.prod.toUpperCase().includes('GASOHOL')) totalGasohol += parseFloat(h.cant);
+        }
+    });
+
+    document.getElementById('annualDiesel').innerText = totalDiesel.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
+    document.getElementById('annualGasohol').innerText = totalGasohol.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
 }
 
 function actualizarUI(data) {
     document.getElementById('sDiesel').innerText = stockTotalDiesel.toFixed(2);
     document.getElementById('sGasohol').innerText = stockTotalGasohol.toFixed(2);
-    
+    document.getElementById('f60').innerText = data.filtros.cf60;
+    document.getElementById('f100').innerText = data.filtros.cf100;
+
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
         const fManto = parseFechaBase(e.ult);
         const diff = Math.floor((hoy - fManto) / (1000*60*60*24));
         const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
-        let btnReset = USERS[currentUser] === "ADMIN" ? `<td><button class="btn btn-blue btn-sm" style="padding: 5px; font-size: 0.7rem;" onclick="gestionarFiltros('reset', '${e.f}', '${e.id}')">Reset</button></td>` : "";
-        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td><td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>${btnReset}</tr>`;
+        
+        let btnReset = "";
+        if (USERS[currentUser] === "ADMIN") {
+            const tipoFiltro = e.f.includes('CF60') ? 'cf60' : (e.f.includes('CF100') ? 'cf100' : 'malla');
+            btnReset = `<td><button class="btn btn-blue btn-sm" style="padding: 5px 10px; font-size: 0.75rem;" onclick="gestionarFiltros('reset', '${tipoFiltro}', '${e.id}')">Reset</button></td>`;
+        }
+
+        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
+        <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
+        ${btnReset}</tr>`;
     }).join('');
+
     renderHistorial(datosCache);
 }
 
-// Cálculo visual: El Total baja con despachos, Isotanques es fijo, el Principal absorbe la resta.
+// NUEVA FUNCIÓN DESGLOSE
 function actualizarDesgloseLocal() {
     const isoD = parseFloat(document.getElementById('inputIsoDiesel').value) || 0;
     const isoG = parseFloat(document.getElementById('inputIsoGasohol').value) || 0;
-    
     document.getElementById('tanqueDiesel').innerText = (stockTotalDiesel - isoD).toFixed(2);
     document.getElementById('tanqueGasohol').innerText = (stockTotalGasohol - isoG).toFixed(2);
 }
 
-// Guardar valor de Isotanques en la nube para que todos lo vean igual
+// GUARDAR EN LA NUBE
 async function actualizarReservaNube(prod) {
     const valor = parseFloat(document.getElementById(prod === 'diesel' ? 'inputIsoDiesel' : 'inputIsoGasohol').value) || 0;
-    actualizarDesgloseLocal(); // Cambio visual inmediato
-    
+    actualizarDesgloseLocal();
     try {
         await fetch(WEB_APP_URL, { 
             method: 'POST', 
             body: JSON.stringify({ action: 'updateReservas', producto: prod, cantidad: valor }) 
         });
-        console.log("Reserva centralizada actualizada.");
-    } catch (e) { alert("Error al sincronizar reserva."); }
-}
-
-async function procesarMovimiento() {
-    const cantInput = document.getElementById('cant');
-    const cant = parseFloat(cantInput.value);
-    const btn = document.querySelector('#registroCard .btn-blue');
-    if (isNaN(cant) || cant <= 0) return alert("Cantidad inválida");
-    
-    btn.innerText = "REGISTRANDO..."; btn.disabled = true;
-    const p = { action: 'write', mov: document.getElementById('tipoMov').value.toUpperCase(), prod: document.getElementById('prod').value.toUpperCase(), cant: cant, ref: document.getElementById('referencia').value || 'DESPACHO', fechaManual: document.getElementById('fechaMov').value || null };
-    
-    try {
-        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-        cantInput.value = ""; document.getElementById('referencia').value = "";
-        alert("Despacho registrado. El tanque principal se actualizará en breve.");
-        setTimeout(cargarDatos, 2000);
-    } catch (e) { alert("Error."); }
-    btn.innerText = "Guardar Registro"; btn.disabled = false;
+    } catch (e) { console.log("Error sincronizando reserva."); }
 }
 
 function parseFechaBase(str) {
     if(!str) return null;
-    const limpia = str.toString().split(' ')[0].trim();
+    if (str instanceof Date) return str;
+    const limpia = str.toString().split(' ')[0].split(',')[0].trim();
     const partes = limpia.split(/[/-]/);
     if(partes.length === 3) {
         if(partes[0].length === 4) return new Date(partes[0], partes[1]-1, partes[2]);
         return new Date(partes[2], partes[1]-1, partes[0]);
     }
-    return new Date(str);
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
 }
 
 function renderHistorial(lista) {
-    document.getElementById('historialBody').innerHTML = lista.map(h => `<tr><td>${h.fecha}</td><td style="color:${h.mov.includes('INGRESO')?'green':'red'}">${h.mov}</td><td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td>${h.saldo}</td></tr>`).join('');
+    const desdeRaw = document.getElementById('filtroDesde').value;
+    const hastaRaw = document.getElementById('filtroHasta').value;
+    let filtrada = [...lista];
+    if(desdeRaw || hastaRaw) {
+        filtrada = lista.filter(h => {
+            const fechaH = parseFechaBase(h.fecha);
+            if(!fechaH) return false;
+            fechaH.setHours(0,0,0,0);
+            const tiempoH = fechaH.getTime();
+            let okDesde = true, okHasta = true;
+            if(desdeRaw) okDesde = tiempoH >= new Date(desdeRaw + "T00:00:00").getTime();
+            if(hastaRaw) okHasta = tiempoH <= new Date(hastaRaw + "T23:59:59").getTime();
+            return okDesde && okHasta;
+        });
+    }
+    document.getElementById('historialBody').innerHTML = filtrada.map(h => `
+        <tr><td>${h.fecha.replace('T',' ').substring(0,16)}</td><td style="color:${h.mov.toUpperCase().includes('INGRESO')?'green':'red'}"><b>${h.mov}</b></td>
+        <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>`).join('');
 }
 
 function llenarSelectorMeses() {
-    const s = document.getElementById('filtroMesGrafico');
-    if (s.options.length > 0) return;
+    const selector = document.getElementById('filtroMesGrafico');
+    if (selector.options.length > 0) return;
     ["Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026"].forEach(m => {
-        let o = document.createElement('option'); o.value = m; o.innerText = m; s.appendChild(o);
+        let opt = document.createElement('option'); opt.value = m; opt.innerHTML = m; selector.appendChild(opt);
     });
-    s.value = "Marzo 2026";
+    selector.value = "Marzo 2026";
 }
 
 function obtenerConsumoMes(lista, mesAnio) {
     let d = 0, g = 0;
-    const partes = mesAnio.toLowerCase().split(' ');
-    const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    const partesLabel = mesAnio.toLowerCase().split(' ');
+    const mesesNombres = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    
     lista.forEach(h => {
-        const f = parseFechaBase(h.fecha);
-        if (f && meses[f.getMonth()] === partes[0] && f.getFullYear().toString() === partes[1] && h.mov.includes('SALIDA')) {
-            if (h.prod.includes('DIESEL')) d += parseFloat(h.cant);
-            if (h.prod.includes('GASOHOL')) g += parseFloat(h.cant);
+        const fecha = parseFechaBase(h.fecha);
+        if(!fecha) return;
+        if (mesesNombres[fecha.getMonth()] === partesLabel[0] && fecha.getFullYear().toString() === partesLabel[1] && h.mov.toUpperCase().includes('SALIDA')) {
+            if (h.prod.toUpperCase().includes('DIESEL')) d += parseFloat(h.cant);
+            if (h.prod.toUpperCase().includes('GASOHOL')) g += parseFloat(h.cant);
         }
     });
     return { diesel: d, gasohol: g };
@@ -399,46 +480,88 @@ function obtenerConsumoMes(lista, mesAnio) {
 
 function procesarGrafico() {
     const sel = document.getElementById('filtroMesGrafico');
-    const dataActual = obtenerConsumoMes(datosCache, sel.value);
-    const dataPrev = sel.selectedIndex > 0 ? obtenerConsumoMes(datosCache, sel.options[sel.selectedIndex-1].value) : { diesel: 0, gasohol: 0 };
+    if(!sel.value) return;
+    const mesActual = sel.value;
+    const dataActual = obtenerConsumoMes(datosCache, mesActual);
+    const index = sel.selectedIndex;
+    const dataPrev = index > 0 ? obtenerConsumoMes(datosCache, sel.options[index-1].value) : { diesel: 0, gasohol: 0 };
+
     const ctx = document.getElementById('consumoChart').getContext('2d');
     if (miGrafico) miGrafico.destroy();
     miGrafico = new Chart(ctx, {
         data: {
             labels: ['Diesel', 'Gasohol'],
             datasets: [
-                { type: 'bar', label: sel.value, data: [dataActual.diesel, dataActual.gasohol], backgroundColor: ['#2563eb', '#10b981'], borderRadius: 5 },
-                { type: 'line', label: 'Anterior', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', fill: false }
+                { type: 'bar', label: mesActual, data: [dataActual.diesel, dataActual.gasohol], backgroundColor: ['#2563eb', '#10b981'], borderRadius: 5, order: 2 },
+                { type: 'line', label: 'Mes Anterior', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', borderWidth: 3, pointBackgroundColor: '#f59e0b', fill: false, tension: 0.1, order: 1 }
             ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 }
 
-function calcularConsumoAnual() {
-    const anio = document.getElementById('selectAnioFiscal').value;
-    document.getElementById('currentYearDisplay').innerText = anio;
-    let d = 0, g = 0;
-    datosCache.forEach(h => {
-        const f = parseFechaBase(h.fecha);
-        if(f && f.getFullYear().toString() === anio && h.mov.toUpperCase().includes('SALIDA')) {
-            if(h.prod.toUpperCase().includes('DIESEL')) d += parseFloat(h.cant);
-            if(h.prod.toUpperCase().includes('GASOHOL')) g += parseFloat(h.cant);
-        }
-    });
-    document.getElementById('annualDiesel').innerText = d.toLocaleString() + " gl";
-    document.getElementById('annualGasohol').innerText = g.toLocaleString() + " gl";
+async function procesarMovimiento() {
+    const cantInput = document.getElementById('cant');
+    const cant = parseFloat(cantInput.value);
+    const btn = document.querySelector('#registroCard .btn-blue');
+
+    if (isNaN(cant) || cant <= 0) return alert("Cantidad inválida");
+
+    const originalText = btn.innerText;
+    btn.innerText = "REGISTRANDO...";
+    btn.disabled = true;
+
+    const p = { 
+        action: 'write', 
+        mov: document.getElementById('tipoMov').value.toUpperCase(), 
+        prod: document.getElementById('prod').value.toUpperCase(), 
+        cant: cant, 
+        ref: document.getElementById('referencia').value || 'DESPACHO', 
+        fechaManual: document.getElementById('fechaMov').value || null 
+    };
+
+    try {
+        await fetch(WEB_APP_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify(p) 
+        });
+
+        cantInput.value = "";
+        document.getElementById('referencia').value = "";
+        document.getElementById('fechaMov').value = "";
+        alert("Petición enviada al servidor.");
+        setTimeout(() => { cargarDatos(); }, 2000);
+    } catch (e) {
+        alert("Error al conectar con el servidor.");
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
 }
 
 function ejecutarSimulacion() {
     const stockIni = parseFloat(document.getElementById('simStockIni').value) || 0;
     const varillaFinal = parseFloat(document.getElementById('simVarilla').value) || 0;
-    document.getElementById('simResultado').innerText = (stockIni - varillaFinal).toFixed(2) + " gl";
+    const resultado = stockIni - varillaFinal;
+    document.getElementById('simResultado').innerText = (resultado >= 0 ? resultado.toFixed(2) : "0.00") + " gl";
 }
 
 function toggleCisterna() { document.getElementById('extraData').style.display = (document.getElementById('tipoMov').value === 'ingreso') ? 'block' : 'none'; }
+function aplicarFiltros() { renderHistorial(datosCache); }
+function limpiarFiltros() { document.getElementById('filtroDesde').value = ""; document.getElementById('filtroHasta').value = ""; renderHistorial(datosCache); }
 
-window.onload = () => { if(sessionStorage.getItem('sessionGrifo')) startSession(sessionStorage.getItem('sessionGrifo')); };
+function exportarExcel() {
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(datosCache);
+    XLSX.utils.book_append_sheet(wb, ws, "Historial");
+    XLSX.writeFile(wb, "Reporte_ACP_Filtrado.xlsx");
+}
+
+window.onload = () => {
+    const session = sessionStorage.getItem('sessionGrifo');
+    if(session) startSession(session);
+};
 </script>
 </body>
 </html>
