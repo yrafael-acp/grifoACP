@@ -86,7 +86,7 @@
             <label class="group-label">Operación</label>
             <select id="tipoMov" onchange="toggleCisterna()"><option value="salida">Salida (Consumo Diario)</option><option value="ingreso">Ingreso (Cisterna)</option></select>
             <label class="group-label">Producto</label>
-            <select id="prod"><option value="diesel">Diesel (Cap: 5000 gl)</option><option value="gasohol">Gasohol (Cap: 1000 gl)</option></select>
+            <select id="prod"><option value="diesel">Diesel</option><option value="gasohol">Gasohol</option></select>
             <label class="group-label">Cantidad</label>
             <input type="number" id="cant" step="0.01" placeholder="0.00 gl">
             <div id="extraData" style="display:none;"><label class="group-label">Referencia</label><input type="text" id="referencia" placeholder="Placa / Chofer"></div>
@@ -96,7 +96,7 @@
                 <h3 style="margin:0; font-size: 0.9rem;">📊 Simulador de Varilla</h3>
                 <input type="number" id="simStockIni" step="0.01" placeholder="Stock actual monitor">
                 <input type="number" id="simVarilla" step="0.01" placeholder="Lectura varilla final" oninput="ejecutarSimulacion()">
-                <div id="simResultado" class="sim-res" style="margin-top:10px; background:#eef2ff; padding:10px; border-radius:8px; text-align:center;">0.00 gl</div>
+                <div id="simResultado" class="sim-res" style="margin-top:10px; background:#eef2ff; padding:5px; text-align:center;">0.00 gl</div>
             </div>
         </div>
 
@@ -225,29 +225,26 @@ function actualizarUI(data) {
         return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${d} d</td><td><span class="status-badge ${c}">${d>=90?'VENCIDO':'OK'}</span></td>${btn}</tr>`;
     }).join('');
     document.getElementById('historialBody').innerHTML = data.historial.map(x => {
-        const color = x.mov.toString().toUpperCase().includes('INGRESO') ? 'var(--success)' : 'var(--danger)';
+        const mov = x.mov ? x.mov.toString().toUpperCase() : "";
+        const color = mov.includes('INGRESO') ? 'var(--success)' : 'var(--danger)';
         return `<tr><td>${x.fecha}</td><td style="color:${color}"><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>`;
     }).join('');
 }
 
-// FUNCIÓN DE CONTEO CORREGIDA (REFORZADA)
 function calcularConsumoAnual() {
     const anio = document.getElementById('selectAnioFiscal').value;
     document.getElementById('currentYearDisplay').innerText = anio;
     let d = 0, g = 0;
-
     datosCache.forEach(h => {
-        const fechaObj = parseFechaBase(h.fecha);
-        const mov = h.mov ? h.mov.toString().toUpperCase() : "";
-        const prod = h.prod ? h.prod.toString().toUpperCase() : "";
-
-        if (fechaObj && fechaObj.getFullYear().toString() === anio && mov.includes("SALIDA")) {
-            const cant = parseFloat(h.cant) || 0;
+        const f = parseFechaBase(h.fecha);
+        const mov = h.mov ? h.mov.toString().toUpperCase().trim() : "";
+        const prod = h.prod ? h.prod.toString().toUpperCase().trim() : "";
+        if (f && f.getFullYear().toString() === anio && mov.includes("SALIDA")) {
+            const cant = parseFloat(h.cant.toString().replace(',','')) || 0;
             if (prod.includes("DIESEL")) d += cant;
             else if (prod.includes("GASOHOL")) g += cant;
         }
     });
-
     document.getElementById('annualDiesel').innerText = d.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
     document.getElementById('annualGasohol').innerText = g.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
 }
@@ -261,7 +258,8 @@ function parseFechaBase(s) {
         if(p[0].length === 4) return new Date(p[0], p[1]-1, p[2]);
         return new Date(p[2], p[1]-1, p[0]);
     }
-    return new Date(s);
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? null : d;
 }
 
 function llenarSelectorMeses() {
@@ -279,10 +277,10 @@ function obtenerConsumoMes(lista, mesAnio) {
     const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
     lista.forEach(h => {
         const f = parseFechaBase(h.fecha);
-        const mov = h.mov ? h.mov.toString().toUpperCase() : "";
-        const prod = h.prod ? h.prod.toString().toUpperCase() : "";
+        const mov = h.mov ? h.mov.toString().toUpperCase().trim() : "";
+        const prod = h.prod ? h.prod.toString().toUpperCase().trim() : "";
         if (f && meses[f.getMonth()] === partes[0] && f.getFullYear().toString() === partes[1] && mov.includes("SALIDA")) {
-            const cant = parseFloat(h.cant) || 0;
+            const cant = parseFloat(h.cant.toString().replace(',','')) || 0;
             if (prod.includes("DIESEL")) d += cant;
             if (prod.includes("GASOHOL")) g += cant;
         }
