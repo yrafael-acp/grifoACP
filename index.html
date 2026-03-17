@@ -238,20 +238,19 @@ function handleLogin() {
     
     if (!USERS[user]) return alert("Usuario no reconocido.");
 
-    // Intenta obtener la clave guardada en este equipo, si no existe usa la GENÉRICA
-    const auth = JSON.parse(localStorage.getItem('userAuth_' + user)) || { pass: GENERIC_PASS };
+    // Busca si hay clave guardada localmente
+    const auth = JSON.parse(localStorage.getItem('userAuth_' + user));
     
-    // Si la clave coincide con la guardada O con la genérica (para permitir acceso en nuevas PCs)
-    if (pass === auth.pass || pass === GENERIC_PASS) {
-        if (pass === GENERIC_PASS) { 
-            currentUser = user; 
-            document.getElementById('loginForm').style.display = 'none'; 
-            document.getElementById('changePassForm').style.display = 'block'; 
-        } else {
-            startSession(user);
-        }
+    // VALIDACIÓN CRÍTICA: Permite entrar con la clave maestra GrifoACP2026 
+    // o con la clave guardada si la hubiera en esta PC.
+    if (pass === GENERIC_PASS) {
+        currentUser = user; 
+        document.getElementById('loginForm').style.display = 'none'; 
+        document.getElementById('changePassForm').style.display = 'block'; 
+    } else if (auth && pass === auth.pass) {
+        startSession(user);
     } else {
-        alert("Contraseña incorrecta.");
+        alert("Contraseña incorrecta. Si es una PC nueva, use la clave maestra.");
     }
 }
 
