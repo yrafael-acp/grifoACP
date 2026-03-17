@@ -273,21 +273,58 @@ function renderHistorial(lista) {
     }).join('');
 }
 
+// Reemplaza estas funciones en tu bloque de <script>
+
 function calcularConsumoAnual() {
-    const anio = parseInt(document.getElementById('selectAnioFiscal').value);
-    document.getElementById('currentYearDisplay').innerText = anio;
-    let d = 0, g = 0;
+    const anioSeleccionado = parseInt(document.getElementById('selectAnioFiscal').value);
+    document.getElementById('currentYearDisplay').innerText = anioSeleccionado;
+    
+    let totalD = 0;
+    let totalG = 0;
+
     datosCache.forEach(h => {
-        const f = parseFechaBase(h.fecha);
-        if(f && f.getFullYear() === anio && h.mov.toUpperCase() === 'SALIDA') {
-            if(h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
-            else if(h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
+        const fecha = parseFechaBase(h.fecha);
+        // Validamos que sea una SALIDA y que el año coincida
+        if (fecha && fecha.getFullYear() === anioSeleccionado && h.mov.trim().toUpperCase() === 'SALIDA') {
+            const cantidad = parseFloat(h.cant) || 0;
+            if (h.prod.trim().toUpperCase() === 'DIESEL') totalD += cantidad;
+            if (h.prod.trim().toUpperCase() === 'GASOHOL') totalG += cantidad;
         }
     });
-    document.getElementById('annualDiesel').innerText = d.toLocaleString() + " gl";
-    document.getElementById('annualGasohol').innerText = g.toLocaleString() + " gl";
+
+    document.getElementById('annualDiesel').innerText = totalD.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
+    document.getElementById('annualGasohol').innerText = totalG.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
 }
 
+function parseFechaBase(s) {
+    if (!s) return null;
+    // Si ya es un objeto Date (enviado directamente desde el script)
+    if (s instanceof Date) return s;
+    // Si viene como string de Google Sheets "dd/mm/yyyy" o "yyyy-mm-dd"
+    if (typeof s === 'string') {
+        const limpia = s.split(' ')[0].split(/[/-]/);
+        if (limpia[0].length === 4) return new Date(limpia[0], limpia[1] - 1, limpia[2]);
+        return new Date(limpia[2], limpia[1] - 1, limpia[1]);
+    }
+    return new Date(s);
+}
+
+function obtenerConsumoMes(lista, mesAnioLabel) {
+    let d = 0, g = 0;
+    const mesesNombres = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    const partesLabel = mesAnioLabel.toLowerCase().split(' '); // Ej: ["marzo", "2026"]
+    
+    lista.forEach(h => {
+        const f = parseFechaBase(h.fecha);
+        if (f && h.mov.toUpperCase() === 'SALIDA') {
+            if (mesesNombres[f.getMonth()] === partesLabel[0] && f.getFullYear().toString() === partesLabel[1]) {
+                if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
+                if (h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
+            }
+        }
+    });
+    return { diesel: d, gasohol: g };
+}
 function llenarSelectorMeses() {
     const sel = document.getElementById('filtroMesGrafico');
     if (sel.options.length > 0) return;
