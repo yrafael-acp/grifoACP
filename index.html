@@ -225,7 +225,6 @@ const USERS = { "ADMIN": "ADMIN", "CVILLANUEVA": "ADMIN", "LJUAREZ": "READ", "CG
 
 let currentUser = null; let datosCache = []; let miGrafico = null;
 
-// NUEVA FUNCIÓN DE LOGIN CENTRALIZADA
 async function handleLogin() {
     const user = document.getElementById('userInput').value.trim().toUpperCase();
     const pass = document.getElementById('passInput').value.trim();
@@ -237,7 +236,6 @@ async function handleLogin() {
     btn.disabled = true;
 
     try {
-        // Consultamos al Google Script si la clave es correcta
         const resp = await fetch(`${WEB_APP_URL}?action=login&user=${user}&pass=${pass}`);
         const result = await resp.json();
 
@@ -275,8 +273,6 @@ async function cargarDatos() {
     try {
         const res = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await res.json();
-        data.filtros.cf60 = 3; data.filtros.cf100 = 2;
-        if(data.equipos) data.equipos = data.equipos.map(e => { if(e.id.includes('Hipotanque')) e.ult = '2025-12-10'; return e; });
         datosCache = data.historial;
         actualizarUI(data);
         llenarSelectorMeses();
@@ -299,7 +295,8 @@ function actualizarUI(data) {
         
         let accionTd = "";
         if (USERS[currentUser] === "ADMIN") {
-            accionTd = `<td><button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '', '${e.id}')">Reset</button></td>`;
+            // CORRECCIÓN: Ahora envía e.f (el tipo de filtro) en lugar de un campo vacío
+            accionTd = `<td><button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '${e.f}', '${e.id}')">Reset</button></td>`;
         }
 
         return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td><td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>${accionTd}</tr>`;
