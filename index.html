@@ -21,11 +21,12 @@
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); position: relative; }
         .full-width { grid-column: span 2; }
-        .btn { cursor: pointer; padding: 12px; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; text-align: center; }
+        .btn { cursor: pointer; padding: 12px; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; text-align: center; text-decoration: none; display: inline-block; }
         .btn-blue { background: var(--accent); }
         .btn-green { background: var(--success); }
         .btn-excel { background: #107c41; }
         .btn-logout { background: var(--danger); font-size: 0.8rem; padding: 8px 15px; margin-left: 10px; }
+        .btn-flota { background: var(--acp-green); font-size: 0.85rem; padding: 8px 15px; margin-right: 10px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
@@ -52,6 +53,9 @@
         .year-select { padding: 4px 8px; font-size: 0.85rem; border-radius: 4px; border: 1px solid #cbd5e1; cursor: pointer; }
 
         .admin-only { display: none; }
+
+        /* Estilos Isotanques */
+        .isotanque-alert { background: #fffbeb; border: 1px solid #f59e0b; color: #92400e; padding: 8px; border-radius: 6px; font-size: 0.75rem; margin-top: 8px; font-weight: bold; text-align: left; }
 
         /* Estilos Simulador */
         .sim-box { background: #fdfcfe; border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin-top: 20px; }
@@ -88,7 +92,8 @@
                     <span class="sync-indicator">Sistema online | Sinc: <span id="lastUpdate">-</span></span>
                 </div>
             </div>
-            <div>
+            <div style="display: flex; align-items: center;">
+                <a href="consumo-flota.html" class="btn btn-flota">🚛 Consumo Flota</a>
                 <button onclick="exportarExcel()" class="btn btn-excel">Exportar Excel</button>
                 <button onclick="logout()" class="btn btn-logout">Salir</button>
             </div>
@@ -145,15 +150,17 @@
             </div>
             <div id="alertasContainer"></div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
-                <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
+                <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981; height: fit-content;">
                     <b>DIESEL</b>
                     <span id="sDiesel" class="stock-label">0.00</span>
-                    <small>Stock critico: 3000 gl</small>
+                    <small>Cap. Tanque: 5000 gl</small>
+                    <div id="isoDiesel" class="isotanque-alert" style="display:none;"></div>
                 </div>
-                <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
+                <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981; height: fit-content;">
                     <b>GASOHOL</b>
                     <span id="sGasohol" class="stock-label">0.00</span>
-                    <small>Stock critico: 450 gl</small>
+                    <small>Cap. Tanque: 1000 gl</small>
+                    <div id="isoGasohol" class="isotanque-alert" style="display:none;"></div>
                 </div>
             </div>
 
@@ -335,10 +342,28 @@ function calcularConsumoAnual() {
 }
 
 function actualizarUI(data) {
-    document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
-    document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
+    const sDiesel = data.stocks.diesel;
+    const sGasohol = data.stocks.gasohol;
+
+    document.getElementById('sDiesel').innerText = sDiesel.toFixed(2);
+    document.getElementById('sGasohol').innerText = sGasohol.toFixed(2);
     document.getElementById('f60').innerText = data.filtros.cf60;
     document.getElementById('f100').innerText = data.filtros.cf100;
+
+    // Lógica Isotanques
+    const isoD = document.getElementById('isoDiesel');
+    if (sDiesel > 5000) {
+        const numIso = Math.ceil((sDiesel - 5000) / 250);
+        isoD.innerHTML = `⚠️ Sobrestock: Usar ${numIso} Isotanques (250 gl c/u)`;
+        isoD.style.display = 'block';
+    } else { isoD.style.display = 'none'; }
+
+    const isoG = document.getElementById('isoGasohol');
+    if (sGasohol > 1000) {
+        const numIsoG = Math.ceil((sGasohol - 1000) / 250);
+        isoG.innerHTML = `⚠️ Sobrestock: Usar ${numIsoG} Isotanques (250 gl c/u)`;
+        isoG.style.display = 'block';
+    } else { isoG.style.display = 'none'; }
 
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
@@ -444,13 +469,10 @@ function procesarGrafico() {
 async function procesarMovimiento() {
     const cantInput = document.getElementById('cant');
     const cant = parseFloat(cantInput.value);
-    
-    // Captura segura del botón para el feedback visual
     const btn = document.querySelector('#registroCard .btn-blue');
 
     if (isNaN(cant) || cant <= 0) return alert("Cantidad inválida");
 
-    // Deshabilitar botón para evitar doble registro y dar feedback
     const originalText = btn.innerText;
     btn.innerText = "REGISTRANDO...";
     btn.disabled = true;
@@ -465,33 +487,25 @@ async function procesarMovimiento() {
     };
 
     try {
-        const response = await fetch(WEB_APP_URL, { 
+        await fetch(WEB_APP_URL, { 
             method: 'POST', 
-            mode: 'no-cors', // Importante para evitar bloqueos de CORS en Google Apps Script
+            mode: 'no-cors', 
             body: JSON.stringify(p) 
         });
 
-        // Limpieza de campos
         cantInput.value = "";
         document.getElementById('referencia').value = "";
         document.getElementById('fechaMov').value = "";
-        
         alert("Petición enviada al servidor.");
-        
-        // Esperar un momento a que Google procese y recargar
-        setTimeout(() => {
-            cargarDatos();
-        }, 2000);
-
+        setTimeout(() => { cargarDatos(); }, 2000);
     } catch (e) {
-        console.error("Error:", e);
         alert("Error al conectar con el servidor.");
     } finally {
         btn.innerText = originalText;
         btn.disabled = false;
     }
 }
-// LOGICA SIMULADOR
+
 function ejecutarSimulacion() {
     const stockIni = parseFloat(document.getElementById('simStockIni').value) || 0;
     const varillaFinal = parseFloat(document.getElementById('simVarilla').value) || 0;
