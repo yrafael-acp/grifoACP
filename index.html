@@ -170,6 +170,7 @@
                 <div style="flex:1"><label class="group-label">Desde:</label><input type="date" id="filtroDesde"></div>
                 <div style="flex:1"><label class="group-label">Hasta:</label><input type="date" id="filtroHasta"></div>
                 <button class="btn btn-blue" style="width:auto; padding:10px 20px;" onclick="aplicarFiltros()">Filtrar</button>
+                <button class="btn" style="background:#64748b; width:auto;" onclick="limpiarFiltros()">Limpiar</button>
             </div>
             <div class="table-container">
                 <table>
@@ -187,6 +188,7 @@ const USERS = { "ADMIN": "ADMIN", "CVILLANUEVA": "ADMIN", "LJUAREZ": "READ", "CG
 
 let currentUser = null; let datosCache = []; let miGrafico = null;
 
+// LOGIN CENTRALIZADO
 async function handleLogin() {
     const user = document.getElementById('userInput').value.trim().toUpperCase();
     const pass = document.getElementById('passInput').value.trim();
@@ -274,7 +276,8 @@ function renderHistorial(lista) {
         });
     }
     document.getElementById('historialBody').innerHTML = fil.map(x => {
-        const color = x.mov.toUpperCase().includes('INGRESO') ? 'var(--success)' : 'var(--danger)';
+        const movStr = x.mov ? x.mov.toString().toUpperCase() : "";
+        const color = movStr.includes('INGRESO') ? 'var(--success)' : 'var(--danger)';
         return `<tr><td>${x.fecha}</td><td style="color:${color}"><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>`;
     }).join('');
 }
@@ -285,10 +288,13 @@ function calcularConsumoAnual() {
     let d = 0, g = 0;
     datosCache.forEach(h => {
         const f = parseFechaBase(h.fecha);
-        if(f && f.getFullYear().toString() === anio && h.mov.toUpperCase().includes('SALIDA')) {
+        const movStr = h.mov ? h.mov.toString().toUpperCase() : "";
+        const prodStr = h.prod ? h.prod.toString().toUpperCase() : "";
+        
+        if(f && f.getFullYear().toString() === anio && movStr.includes('SALIDA')) {
             const cantVal = parseFloat(h.cant) || 0;
-            if(h.prod.toUpperCase().includes('DIESEL')) d += cantVal;
-            else if(h.prod.toUpperCase().includes('GASOHOL')) g += cantVal;
+            if(prodStr.includes('DIESEL')) d += cantVal;
+            else if(prodStr.includes('GASOHOL')) g += cantVal;
         }
     });
     document.getElementById('annualDiesel').innerText = d.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
@@ -325,13 +331,16 @@ function procesarGrafico() {
 function obtenerConsumoMes(lista, mesAnio) {
     let d = 0, g = 0;
     const partes = mesAnio.toLowerCase().split(' ');
-    const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    const mesesNombres = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
     lista.forEach(h => {
         const f = parseFechaBase(h.fecha);
-        if (f && meses[f.getMonth()] === partes[0] && f.getFullYear().toString() === partes[1] && h.mov.toUpperCase().includes('SALIDA')) {
+        const movStr = h.mov ? h.mov.toString().toUpperCase() : "";
+        const prodStr = h.prod ? h.prod.toString().toUpperCase() : "";
+        
+        if (f && mesesNombres[f.getMonth()] === partes[0] && f.getFullYear().toString() === partes[1] && movStr.includes('SALIDA')) {
             const cantVal = parseFloat(h.cant) || 0;
-            if (h.prod.toUpperCase().includes('DIESEL')) d += cantVal;
-            if (h.prod.toUpperCase().includes('GASOHOL')) g += cantVal;
+            if (prodStr.includes('DIESEL')) d += cantVal;
+            if (prodStr.includes('GASOHOL')) g += cantVal;
         }
     });
     return { diesel: d, gasohol: g };
@@ -356,6 +365,8 @@ function ejecutarSimulacion() {
 
 function toggleCisterna() { document.getElementById('extraData').style.display = (document.getElementById('tipoMov').value === 'ingreso') ? 'block' : 'none'; }
 function aplicarFiltros() { renderHistorial(datosCache); }
+function limpiarFiltros() { document.getElementById('filtroDesde').value = ""; document.getElementById('filtroHasta').value = ""; renderHistorial(datosCache); }
+
 async function gestionarFiltros(a, t, e) { await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'updateFiltros', subAction: a, tipo: t, equipo: e }) }); cargarDatos(); }
 async function procesarMovimiento() {
     const p = { action: 'write', mov: document.getElementById('tipoMov').value, prod: document.getElementById('prod').value, cant: document.getElementById('cant').value, ref: document.getElementById('referencia').value, fechaManual: document.getElementById('fechaMov').value };
