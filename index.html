@@ -444,13 +444,15 @@ function procesarGrafico() {
 async function procesarMovimiento() {
     const cantInput = document.getElementById('cant');
     const cant = parseFloat(cantInput.value);
-    const btn = event.target; // Captura el botón que hizo clic
+    
+    // Captura segura del botón para el feedback visual
+    const btn = document.querySelector('#registroCard .btn-blue');
 
     if (isNaN(cant) || cant <= 0) return alert("Cantidad inválida");
 
-    // Deshabilitar botón para evitar doble registro
+    // Deshabilitar botón para evitar doble registro y dar feedback
     const originalText = btn.innerText;
-    btn.innerText = "Registrando...";
+    btn.innerText = "REGISTRANDO...";
     btn.disabled = true;
 
     const p = { 
@@ -463,19 +465,32 @@ async function procesarMovimiento() {
     };
 
     try {
-        await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(p) });
+        const response = await fetch(WEB_APP_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', // Importante para evitar bloqueos de CORS en Google Apps Script
+            body: JSON.stringify(p) 
+        });
+
+        // Limpieza de campos
         cantInput.value = "";
         document.getElementById('referencia').value = "";
-        alert("Registro guardado con éxito");
-        await cargarDatos(); // Recargar datos del monitor
+        document.getElementById('fechaMov').value = "";
+        
+        alert("Petición enviada al servidor.");
+        
+        // Esperar un momento a que Google procese y recargar
+        setTimeout(() => {
+            cargarDatos();
+        }, 2000);
+
     } catch (e) {
-        alert("Error al guardar el movimiento");
+        console.error("Error:", e);
+        alert("Error al conectar con el servidor.");
     } finally {
         btn.innerText = originalText;
         btn.disabled = false;
     }
 }
-
 // LOGICA SIMULADOR
 function ejecutarSimulacion() {
     const stockIni = parseFloat(document.getElementById('simStockIni').value) || 0;
