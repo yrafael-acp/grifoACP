@@ -13,8 +13,10 @@
             --acp-green: #007d32;
         }
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
+        
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-card { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
+        
         #mainContent { display: none; }
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); position: relative; }
@@ -24,23 +26,31 @@
         .btn-green { background: var(--success); }
         .btn-excel { background: #107c41; }
         .btn-logout { background: var(--danger); font-size: 0.8rem; padding: 8px 15px; margin-left: 10px; }
-        .btn-flota { background: var(--acp-green); font-size: 0.8rem; padding: 8px 15px; margin-left: 10px; }
+        .btn-flota-sm { background: var(--acp-green); font-size: 0.8rem; padding: 8px 15px; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         .status-badge { padding: 5px 10px; border-radius: 6px; font-size: 0.85em; font-weight: bold; }
         .bg-danger { background: #fee2e2; color: var(--danger); border: 1px solid var(--danger); }
         .bg-success { background: #dcfce7; color: var(--gasohol); }
         .bg-warning { background: #fef3c7; color: var(--warning); }
+        
         input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
         .stock-label { font-size: 1.8rem; font-weight: bold; display: block; margin: 5px 0; }
         .sync-indicator { font-size: 0.75rem; color: #64748b; font-weight: normal; }
+        
         .filter-bar { display: flex; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; align-items: flex-end; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .group-label { font-size: 0.75rem; font-weight: bold; color: #64748b; margin-bottom: 5px; display: block; text-transform: uppercase; }
         canvas { max-height: 250px; width: 100%; }
         .table-container { max-height: 500px; overflow-y: auto; }
+
+        .app-header-logo { height: 50px; width: auto; margin-right: 15px; vertical-align: middle; }
+        .header-content { display: flex; align-items: center; }
+
         .annual-summary { display: flex; gap: 15px; margin-top: 10px; }
         .summary-item { flex: 1; padding: 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; }
         .summary-value { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; }
+
         .admin-only { display: none; }
         .sim-box { background: #fdfcfe; border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin-top: 20px; }
         .sim-res { font-weight: bold; color: var(--diesel); font-size: 1.1rem; }
@@ -69,16 +79,16 @@
 <div id="mainContent">
     <div class="dashboard">
         <div class="card full-width" style="background: var(--primary); color: white; border:none; display:flex; justify-content:space-between; align-items:center;">
-            <div style="display: flex; align-items: center;">
-                <img src="logo.png" alt="Logo" style="height: 50px; margin-right: 15px;">
+            <div class="header-content">
+                <img src="logo.png" alt="Logo ACP" class="app-header-logo">
                 <div>
                     <h1 style="margin:0; font-size: 1.5rem;">Gestión Corporativa - <span id="displayUser"></span></h1>
                     <span class="sync-indicator">Sistema online | Sinc: <span id="lastUpdate">-</span></span>
                 </div>
             </div>
             <div>
-                <a href="consumo-flota.html" class="btn btn-flota">🚛 Flota</a>
-                <button onclick="exportarExcel()" class="btn btn-excel" style="width:auto; padding: 8px 15px;">Excel</button>
+                <a href="consumo-flota.html" class="btn btn-flota-sm">🚛 Flota</a>
+                <button onclick="exportarExcel()" class="btn btn-excel" style="padding: 8px 15px; width: auto;">Excel</button>
                 <button onclick="logout()" class="btn btn-logout">Salir</button>
             </div>
         </div>
@@ -115,11 +125,14 @@
         <div class="card" id="monitorCard">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h2 style="margin:0">Monitor y Analisis</h2>
-                <select id="selectAnioFiscal" style="width:auto; margin:0; padding:2px;" onchange="calcularConsumoAnual()"><option value="2026">Año 2026</option><option value="2025">Año 2025</option></select>
+                <select id="selectAnioFiscal" style="width:auto; margin:0; padding:2px;" onchange="calcularConsumoAnual()">
+                    <option value="2026">Año 2026</option>
+                    <option value="2025">Año 2025</option>
+                </select>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
-                <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid var(--gasohol)"><b>DIESEL</b><span id="sDiesel" class="stock-label">0.00</span><small>Stock critico: 3000 gl</small></div>
-                <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid var(--gasohol)"><b>GASOHOL</b><span id="sGasohol" class="stock-label">0.00</span><small>Stock critico: 450 gl</small></div>
+                <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid var(--gasohol)"><b>DIESEL</b><span id="sDiesel" class="stock-label">0.00</span></div>
+                <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid var(--gasohol)"><b>GASOHOL</b><span id="sGasohol" class="stock-label">0.00</span></div>
             </div>
 
             <div style="margin-top:15px; padding: 12px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1;">
@@ -197,8 +210,8 @@ async function handleLogin() {
 async function saveNewPassword() {
     const p1 = document.getElementById('newPassInput').value;
     const p2 = document.getElementById('confirmPassInput').value;
-    if (p1 !== p2) return alert("No coinciden.");
-    if (!/^(?=.*[A-Z])(?=.*\d).+$/.test(p1)) return alert("Requiere 1 Mayúscula y 1 Número.");
+    if (p1 !== p2) return alert("Las claves no coinciden.");
+    if (!/^(?=.*[A-Z])(?=.*\d).+$/.test(p1)) return alert("Debe incluir 1 Mayúscula y 1 Número.");
     await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'updatePassword', user: currentUser, newPass: p1 }) });
     startSession(currentUser);
 }
@@ -223,31 +236,47 @@ async function cargarDatos() {
     try {
         const res = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await res.json();
-        // Limpiamos y normalizamos los datos al llegar
-        datosCache = data.historial.map(h => ({
-            ...h,
-            fechaObj: parseFechaBase(h.fecha),
-            cantNum: parseFloat(h.cant) || 0
-        }));
+        datosCache = data.historial;
         actualizarUI(data);
         llenarSelectorMeses();
         calcularConsumoAnual();
         procesarGrafico();
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
-    } catch (e) { console.error("Error sync:", e); }
+    } catch (e) { console.error("Error sync"); }
 }
 
-function parseFechaBase(s) {
-    if (!s) return null;
-    if (s instanceof Date) return s;
-    let fechaStr = s.toString().split(' ')[0];
-    let partes = fechaStr.split(/[/-]/);
-    if (partes.length === 3) {
-        if (partes[0].length === 4) return new Date(partes[0], partes[1] - 1, partes[2]);
-        return new Date(partes[2], partes[1] - 1, partes[0]);
+function actualizarUI(data) {
+    document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
+    document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
+    document.getElementById('f60').innerText = data.filtros.cf60;
+    document.getElementById('f100').innerText = data.filtros.cf100;
+    const hoy = new Date();
+    document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
+        const fM = parseFechaBase(e.ult);
+        const d = Math.floor((hoy - fM) / 86400000);
+        const c = d >= 90 ? 'bg-danger' : (d >= 85 ? 'bg-warning' : 'bg-success');
+        let btn = (USERS[currentUser] === "ADMIN") ? `<td><button class="btn btn-blue" style="padding:5px; width:auto;" onclick="gestionarFiltros('reset', '${e.f}', '${e.id}')">Reset</button></td>` : "";
+        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${d} d</td><td><span class="status-badge ${c}">${d>=90?'VENCIDO':'OK'}</span></td>${btn}</tr>`;
+    }).join('');
+    renderHistorial(datosCache);
+}
+
+function renderHistorial(lista) {
+    const desde = document.getElementById('filtroDesde').value;
+    const hasta = document.getElementById('filtroHasta').value;
+    let fil = lista;
+    if(desde || hasta) {
+        fil = lista.filter(h => {
+            const f = parseFechaBase(h.fecha);
+            if(desde && f < new Date(desde + "T00:00:00")) return false;
+            if(hasta && f > new Date(hasta + "T23:59:59")) return false;
+            return true;
+        });
     }
-    let d = new Date(s);
-    return isNaN(d.getTime()) ? null : d;
+    document.getElementById('historialBody').innerHTML = fil.map(x => {
+        const color = x.mov.toUpperCase().includes('INGRESO') ? 'var(--success)' : 'var(--danger)';
+        return `<tr><td>${x.fecha}</td><td style="color:${color}"><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>`;
+    }).join('');
 }
 
 function calcularConsumoAnual() {
@@ -255,13 +284,24 @@ function calcularConsumoAnual() {
     document.getElementById('currentYearDisplay').innerText = anio;
     let d = 0, g = 0;
     datosCache.forEach(h => {
-        if (h.fechaObj && h.fechaObj.getFullYear().toString() === anio && h.mov.toUpperCase().includes('SALIDA')) {
-            if (h.prod.toUpperCase().includes('DIESEL')) d += h.cantNum;
-            else if (h.prod.toUpperCase().includes('GASOHOL')) g += h.cantNum;
+        const f = parseFechaBase(h.fecha);
+        if(f && f.getFullYear().toString() === anio && h.mov.toUpperCase().includes('SALIDA')) {
+            const cantVal = parseFloat(h.cant) || 0;
+            if(h.prod.toUpperCase().includes('DIESEL')) d += cantVal;
+            else if(h.prod.toUpperCase().includes('GASOHOL')) g += cantVal;
         }
     });
-    document.getElementById('annualDiesel').innerText = d.toFixed(2) + " gl";
-    document.getElementById('annualGasohol').innerText = g.toFixed(2) + " gl";
+    document.getElementById('annualDiesel').innerText = d.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
+    document.getElementById('annualGasohol').innerText = g.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
+}
+
+function llenarSelectorMeses() {
+    const sel = document.getElementById('filtroMesGrafico');
+    if (sel.options.length > 0) return;
+    ["Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026"].forEach(p => {
+        let o = document.createElement('option'); o.value = p; o.innerText = p; sel.appendChild(o);
+    });
+    sel.value = "Marzo 2026";
 }
 
 function procesarGrafico() {
@@ -278,64 +318,35 @@ function procesarGrafico() {
                 { type: 'line', label: 'Mes Ant.', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', fill: false, tension: 0.1 }
             ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 }
 
-function obtenerConsumoMes(lista, mesAnioLabel) {
+function obtenerConsumoMes(lista, mesAnio) {
     let d = 0, g = 0;
-    const partes = mesAnioLabel.toLowerCase().split(' '); // ["marzo", "2026"]
+    const partes = mesAnio.toLowerCase().split(' ');
     const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
     lista.forEach(h => {
-        if (h.fechaObj && meses[h.fechaObj.getMonth()] === partes[0] && h.fechaObj.getFullYear().toString() === partes[1] && h.mov.toUpperCase().includes('SALIDA')) {
-            if (h.prod.toUpperCase().includes('DIESEL')) d += h.cantNum;
-            else if (h.prod.toUpperCase().includes('GASOHOL')) g += h.cantNum;
+        const f = parseFechaBase(h.fecha);
+        if (f && meses[f.getMonth()] === partes[0] && f.getFullYear().toString() === partes[1] && h.mov.toUpperCase().includes('SALIDA')) {
+            const cantVal = parseFloat(h.cant) || 0;
+            if (h.prod.toUpperCase().includes('DIESEL')) d += cantVal;
+            if (h.prod.toUpperCase().includes('GASOHOL')) g += cantVal;
         }
     });
     return { diesel: d, gasohol: g };
 }
 
-function actualizarUI(data) {
-    document.getElementById('sDiesel').innerText = data.stocks.diesel.toFixed(2);
-    document.getElementById('sGasohol').innerText = data.stocks.gasohol.toFixed(2);
-    document.getElementById('f60').innerText = data.filtros.cf60;
-    document.getElementById('f100').innerText = data.filtros.cf100;
-    const hoy = new Date();
-    document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
-        const fM = parseFechaBase(e.ult);
-        const diff = fM ? Math.floor((hoy - fM) / 86400000) : 0;
-        const c = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
-        let btn = (USERS[currentUser] === "ADMIN") ? `<td><button class="btn btn-blue" style="padding:5px; width:auto;" onclick="gestionarFiltros('reset', '${e.f}', '${e.id}')">Reset</button></td>` : "";
-        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td><td><span class="status-badge ${c}">${diff>=90?'VENCIDO':'OK'}</span></td>${btn}</tr>`;
-    }).join('');
-    renderHistorial(datosCache);
-}
-
-function renderHistorial(lista) {
-    const desde = document.getElementById('filtroDesde').value;
-    const hasta = document.getElementById('filtroHasta').value;
-    let fil = lista;
-    if(desde || hasta) {
-        fil = lista.filter(h => {
-            if(!h.fechaObj) return false;
-            if(desde && h.fechaObj < new Date(desde + "T00:00:00")) return false;
-            if(hasta && h.fechaObj > new Date(hasta + "T23:59:59")) return false;
-            return true;
-        });
+function parseFechaBase(s) {
+    if(!s) return null;
+    if (s instanceof Date) return s;
+    const limpia = s.toString().split(' ')[0];
+    const partes = limpia.split(/[/-]/);
+    if(partes.length === 3) {
+        if(partes[0].length === 4) return new Date(partes[0], partes[1]-1, partes[2]);
+        return new Date(partes[2], partes[1]-1, partes[0]);
     }
-    document.getElementById('historialBody').innerHTML = fil.map(x => {
-        const color = x.mov.toUpperCase().includes('INGRESO') ? 'var(--success)' : 'var(--danger)';
-        return `<tr><td>${x.fecha}</td><td style="color:${color}"><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>`;
-    }).join('');
-}
-
-function llenarSelectorMeses() {
-    const sel = document.getElementById('filtroMesGrafico');
-    if (sel.options.length > 0) return;
-    ["Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026"].forEach(p => {
-        let o = document.createElement('option'); o.value = p; o.innerText = p; sel.appendChild(o);
-    });
-    sel.value = "Marzo 2026";
+    return new Date(s);
 }
 
 function ejecutarSimulacion() {
@@ -351,6 +362,7 @@ async function procesarMovimiento() {
     await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(p) });
     document.getElementById('cant').value = ""; cargarDatos();
 }
+function exportarExcel() { const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(datosCache); XLSX.utils.book_append_sheet(wb, ws, "Historial"); XLSX.writeFile(wb, "Reporte_Grifo.xlsx"); }
 function logout() { sessionStorage.clear(); location.reload(); }
 window.onload = () => { if(sessionStorage.getItem('sessionGrifo')) startSession(sessionStorage.getItem('sessionGrifo')); };
 </script>
