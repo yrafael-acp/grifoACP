@@ -69,13 +69,7 @@
         <div id="loginForm">
             <input type="text" id="userInput" placeholder="Usuario (Ej: CVILLANUEVA)">
             <input type="password" id="passInput" placeholder="Contraseña">
-            <button class="btn btn-blue" style="width:100%" onclick="handleLogin()">Entrar</button>
-        </div>
-        <div id="changePassForm" style="display:none;">
-            <p style="color: var(--danger); font-size: 0.85em; margin-bottom: 15px;">Cambio obligatorio: Mínimo 1 mayúscula y 1 número.</p>
-            <input type="password" id="newPassInput" placeholder="Nueva Contraseña">
-            <input type="password" id="confirmPassInput" placeholder="Confirmar Contraseña">
-            <button class="btn btn-green" style="width:100%" onclick="saveNewPassword()">Actualizar y Entrar</button>
+            <button id="btnLogin" class="btn btn-blue" style="width:100%" onclick="handleLogin()">Entrar</button>
         </div>
     </div>
 </div>
@@ -227,38 +221,37 @@
 
 <script>
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R40Vo84fo7PZtDg3DJMc5dwxIQua6SsHrrHFt0uvCF8jEOO0wdLA/exec'; 
-const GENERIC_PASS = "GrifoACP2026";
 const USERS = { "ADMIN": "ADMIN", "CVILLANUEVA": "ADMIN", "LJUAREZ": "READ", "CGONZALES": "READ", "CORRILLO": "READ", "FFERNANDEZ": "READ", "WNEYRA": "READ", "ASALAZAR": "READ" };
 
 let currentUser = null; let datosCache = []; let miGrafico = null;
 
-function handleLogin() {
+// NUEVA FUNCIÓN DE LOGIN CENTRALIZADA
+async function handleLogin() {
     const user = document.getElementById('userInput').value.trim().toUpperCase();
-    const pass = document.getElementById('passInput').value;
+    const pass = document.getElementById('passInput').value.trim();
+    const btn = document.getElementById('btnLogin');
     
     if (!USERS[user]) return alert("Usuario no reconocido.");
 
-    // Busca si hay clave guardada localmente
-    const auth = JSON.parse(localStorage.getItem('userAuth_' + user));
-    
-    // VALIDACIÓN CRÍTICA: Permite entrar con la clave maestra GrifoACP2026 
-    // o con la clave guardada si la hubiera en esta PC.
-    if (pass === GENERIC_PASS) {
-        currentUser = user; 
-        document.getElementById('loginForm').style.display = 'none'; 
-        document.getElementById('changePassForm').style.display = 'block'; 
-    } else if (auth && pass === auth.pass) {
-        startSession(user);
-    } else {
-        alert("Contraseña incorrecta. Si es una PC nueva, use la clave maestra.");
-    }
-}
+    btn.innerText = "Verificando...";
+    btn.disabled = true;
 
-function saveNewPassword() {
-    const n1 = document.getElementById('newPassInput').value;
-    if (!/^(?=.*[A-Z])(?=.*\d).+$/.test(n1)) return alert("Debe incluir 1 Mayúscula y 1 Número.");
-    localStorage.setItem('userAuth_' + currentUser, JSON.stringify({ pass: n1, lastChange: new Date().toISOString() }));
-    startSession(currentUser);
+    try {
+        // Consultamos al Google Script si la clave es correcta
+        const resp = await fetch(`${WEB_APP_URL}?action=login&user=${user}&pass=${pass}`);
+        const result = await resp.json();
+
+        if (result.auth === "OK") {
+            startSession(user);
+        } else {
+            alert("Contraseña incorrecta. Verifique sus credenciales.");
+        }
+    } catch (e) {
+        alert("Error de conexión. Intente de nuevo.");
+    } finally {
+        btn.innerText = "Entrar";
+        btn.disabled = false;
+    }
 }
 
 function startSession(user) {
