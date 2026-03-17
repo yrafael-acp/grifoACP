@@ -52,6 +52,10 @@
         .year-select { padding: 4px 8px; font-size: 0.85rem; border-radius: 4px; border: 1px solid #cbd5e1; cursor: pointer; }
 
         .admin-only { display: none; }
+
+        /* Estilos Simulador */
+        .sim-box { background: #fdfcfe; border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin-top: 20px; }
+        .sim-res { font-weight: bold; color: var(--diesel); font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -116,6 +120,18 @@
             <div style="display:flex; gap:10px;">
                 <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf60')">Ingreso CF60</button>
                 <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf100')">Ingreso CF100</button>
+            </div>
+
+            <div class="sim-box">
+                <h3 style="margin-top:0; color:var(--primary); font-size: 0.9rem;">📊 Simulador: Consumo por Varilla</h3>
+                <label class="group-label">Stock Inicial (Monitor)</label>
+                <input type="number" id="simStockIni" step="0.01" placeholder="0.00">
+                <label class="group-label">Lectura Varilla Final</label>
+                <input type="number" id="simVarilla" step="0.01" placeholder="0.00 gl" oninput="ejecutarSimulacion()">
+                <div style="margin-top:10px; padding:10px; background:#eef2ff; border-radius:8px;">
+                    <small class="group-label" style="margin:0">Consumo estimado:</small>
+                    <div id="simResultado" class="sim-res">0.00 gl</div>
+                </div>
             </div>
         </div>
 
@@ -291,7 +307,6 @@ async function cargarDatos() {
     try {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
-        
         datosCache = data.historial;
         actualizarUI(data);
         llenarSelectorMeses();
@@ -334,7 +349,7 @@ function actualizarUI(data) {
         let btnReset = "";
         if (USERS[currentUser] === "ADMIN") {
             const tipoFiltro = e.f.includes('CF60') ? 'cf60' : (e.f.includes('CF100') ? 'cf100' : 'malla');
-            btnReset = `<td class="admin-only"><button class="btn btn-blue btn-sm" style="padding: 5px 10px; font-size: 0.75rem;" onclick="gestionarFiltros('reset', '${tipoFiltro}', '${e.id}')">Reset</button></td>`;
+            btnReset = `<td><button class="btn btn-blue btn-sm" style="padding: 5px 10px; font-size: 0.75rem;" onclick="gestionarFiltros('reset', '${tipoFiltro}', '${e.id}')">Reset</button></td>`;
         }
 
         return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
@@ -432,6 +447,14 @@ async function procesarMovimiento() {
     const p = { action: 'write', mov: document.getElementById('tipoMov').value.toUpperCase(), prod: document.getElementById('prod').value.toUpperCase(), cant: cant, ref: document.getElementById('referencia').value || 'DESPACHO', fechaManual: document.getElementById('fechaMov').value || null };
     await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(p) });
     document.getElementById('cant').value = ""; cargarDatos();
+}
+
+// LOGICA SIMULADOR
+function ejecutarSimulacion() {
+    const stockIni = parseFloat(document.getElementById('simStockIni').value) || 0;
+    const varillaFinal = parseFloat(document.getElementById('simVarilla').value) || 0;
+    const resultado = stockIni - varillaFinal;
+    document.getElementById('simResultado').innerText = (resultado >= 0 ? resultado.toFixed(2) : "0.00") + " gl";
 }
 
 function toggleCisterna() { document.getElementById('extraData').style.display = (document.getElementById('tipoMov').value === 'ingreso') ? 'block' : 'none'; }
