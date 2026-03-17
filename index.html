@@ -13,10 +13,8 @@
             --acp-green: #007d32;
         }
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
-        
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-card { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
-        
         #mainContent { display: none; }
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); position: relative; }
@@ -27,27 +25,22 @@
         .btn-excel { background: #107c41; }
         .btn-logout { background: var(--danger); font-size: 0.8rem; padding: 8px 15px; margin-left: 10px; }
         .btn-flota { background: var(--acp-green); font-size: 0.8rem; padding: 8px 15px; margin-left: 10px; }
-
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         .status-badge { padding: 5px 10px; border-radius: 6px; font-size: 0.85em; font-weight: bold; }
         .bg-danger { background: #fee2e2; color: var(--danger); border: 1px solid var(--danger); }
         .bg-success { background: #dcfce7; color: var(--gasohol); }
         .bg-warning { background: #fef3c7; color: var(--warning); }
-        
         input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
         .stock-label { font-size: 1.8rem; font-weight: bold; display: block; margin: 5px 0; }
         .sync-indicator { font-size: 0.75rem; color: #64748b; font-weight: normal; }
-        
         .filter-bar { display: flex; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; align-items: flex-end; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .group-label { font-size: 0.75rem; font-weight: bold; color: #64748b; margin-bottom: 5px; display: block; text-transform: uppercase; }
         canvas { max-height: 250px; width: 100%; }
         .table-container { max-height: 500px; overflow-y: auto; }
-
         .annual-summary { display: flex; gap: 15px; margin-top: 10px; }
         .summary-item { flex: 1; padding: 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; }
         .summary-value { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; }
-
         .admin-only { display: none; }
         .sim-box { background: #fdfcfe; border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin-top: 20px; }
         .sim-res { font-weight: bold; color: var(--diesel); font-size: 1.1rem; }
@@ -268,63 +261,27 @@ function renderHistorial(lista) {
         });
     }
     document.getElementById('historialBody').innerHTML = fil.map(x => {
-        const color = x.mov.toUpperCase() === 'INGRESO' ? 'var(--success)' : 'var(--danger)';
+        const color = x.mov.toUpperCase().includes('INGRESO') ? 'var(--success)' : 'var(--danger)';
         return `<tr><td>${x.fecha}</td><td style="color:${color}"><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>`;
     }).join('');
 }
 
-// Reemplaza estas funciones en tu bloque de <script>
-
 function calcularConsumoAnual() {
-    const anioSeleccionado = parseInt(document.getElementById('selectAnioFiscal').value);
-    document.getElementById('currentYearDisplay').innerText = anioSeleccionado;
-    
-    let totalD = 0;
-    let totalG = 0;
-
-    datosCache.forEach(h => {
-        const fecha = parseFechaBase(h.fecha);
-        // Validamos que sea una SALIDA y que el año coincida
-        if (fecha && fecha.getFullYear() === anioSeleccionado && h.mov.trim().toUpperCase() === 'SALIDA') {
-            const cantidad = parseFloat(h.cant) || 0;
-            if (h.prod.trim().toUpperCase() === 'DIESEL') totalD += cantidad;
-            if (h.prod.trim().toUpperCase() === 'GASOHOL') totalG += cantidad;
-        }
-    });
-
-    document.getElementById('annualDiesel').innerText = totalD.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
-    document.getElementById('annualGasohol').innerText = totalG.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
-}
-
-function parseFechaBase(s) {
-    if (!s) return null;
-    // Si ya es un objeto Date (enviado directamente desde el script)
-    if (s instanceof Date) return s;
-    // Si viene como string de Google Sheets "dd/mm/yyyy" o "yyyy-mm-dd"
-    if (typeof s === 'string') {
-        const limpia = s.split(' ')[0].split(/[/-]/);
-        if (limpia[0].length === 4) return new Date(limpia[0], limpia[1] - 1, limpia[2]);
-        return new Date(limpia[2], limpia[1] - 1, limpia[1]);
-    }
-    return new Date(s);
-}
-
-function obtenerConsumoMes(lista, mesAnioLabel) {
+    const anio = parseInt(document.getElementById('selectAnioFiscal').value);
+    document.getElementById('currentYearDisplay').innerText = anio;
     let d = 0, g = 0;
-    const mesesNombres = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-    const partesLabel = mesAnioLabel.toLowerCase().split(' '); // Ej: ["marzo", "2026"]
-    
-    lista.forEach(h => {
+    datosCache.forEach(h => {
         const f = parseFechaBase(h.fecha);
-        if (f && h.mov.toUpperCase() === 'SALIDA') {
-            if (mesesNombres[f.getMonth()] === partesLabel[0] && f.getFullYear().toString() === partesLabel[1]) {
-                if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
-                if (h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
-            }
+        if(f && f.getFullYear() === anio && h.mov.toUpperCase().includes('SALIDA')) {
+            const cantVal = parseFloat(h.cant) || 0;
+            if(h.prod.toUpperCase().includes('DIESEL')) d += cantVal;
+            else if(h.prod.toUpperCase().includes('GASOHOL')) g += cantVal;
         }
     });
-    return { diesel: d, gasohol: g };
+    document.getElementById('annualDiesel').innerText = d.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
+    document.getElementById('annualGasohol').innerText = g.toLocaleString('en-US', {minimumFractionDigits: 2}) + " gl";
 }
+
 function llenarSelectorMeses() {
     const sel = document.getElementById('filtroMesGrafico');
     if (sel.options.length > 0) return;
@@ -345,10 +302,10 @@ function procesarGrafico() {
             labels: ['DIESEL', 'GASOHOL'],
             datasets: [
                 { type: 'bar', label: sel.value, data: [dataActual.diesel, dataActual.gasohol], backgroundColor: ['#3b82f6', '#10b981'], borderRadius: 5 },
-                { type: 'line', label: 'Mes Ant.', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', fill: false }
+                { type: 'line', label: 'Mes Ant.', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', fill: false, tension: 0.1 }
             ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 }
 
@@ -358,9 +315,10 @@ function obtenerConsumoMes(lista, mesAnio) {
     const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
     lista.forEach(h => {
         const f = parseFechaBase(h.fecha);
-        if (f && meses[f.getMonth()] === partes[0] && f.getFullYear().toString() === partes[1] && h.mov.toUpperCase() === 'SALIDA') {
-            if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
-            if (h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
+        if (f && meses[f.getMonth()] === partes[0] && f.getFullYear().toString() === partes[1] && h.mov.toUpperCase().includes('SALIDA')) {
+            const cantVal = parseFloat(h.cant) || 0;
+            if (h.prod.toUpperCase().includes('DIESEL')) d += cantVal;
+            if (h.prod.toUpperCase().includes('GASOHOL')) g += cantVal;
         }
     });
     return { diesel: d, gasohol: g };
@@ -368,8 +326,14 @@ function obtenerConsumoMes(lista, mesAnio) {
 
 function parseFechaBase(s) {
     if(!s) return null;
-    const p = s.split(' ')[0].split(/[/-]/);
-    return (p[0].length === 4) ? new Date(p[0], p[1]-1, p[2]) : new Date(p[2], p[1]-1, p[0]);
+    if (s instanceof Date) return s;
+    const limpia = s.toString().split(' ')[0];
+    const partes = limpia.split(/[/-]/);
+    if(partes.length === 3) {
+        if(partes[0].length === 4) return new Date(partes[0], partes[1]-1, partes[2]);
+        return new Date(partes[2], partes[1]-1, partes[0]);
+    }
+    return new Date(s);
 }
 
 function ejecutarSimulacion() {
