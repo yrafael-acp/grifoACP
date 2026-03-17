@@ -442,11 +442,38 @@ function procesarGrafico() {
 }
 
 async function procesarMovimiento() {
-    const cant = parseFloat(document.getElementById('cant').value);
-    if (isNaN(cant) || cant <= 0) return alert("Cantidad invalida");
-    const p = { action: 'write', mov: document.getElementById('tipoMov').value.toUpperCase(), prod: document.getElementById('prod').value.toUpperCase(), cant: cant, ref: document.getElementById('referencia').value || 'DESPACHO', fechaManual: document.getElementById('fechaMov').value || null };
-    await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(p) });
-    document.getElementById('cant').value = ""; cargarDatos();
+    const cantInput = document.getElementById('cant');
+    const cant = parseFloat(cantInput.value);
+    const btn = event.target; // Captura el botón que hizo clic
+
+    if (isNaN(cant) || cant <= 0) return alert("Cantidad inválida");
+
+    // Deshabilitar botón para evitar doble registro
+    const originalText = btn.innerText;
+    btn.innerText = "Registrando...";
+    btn.disabled = true;
+
+    const p = { 
+        action: 'write', 
+        mov: document.getElementById('tipoMov').value.toUpperCase(), 
+        prod: document.getElementById('prod').value.toUpperCase(), 
+        cant: cant, 
+        ref: document.getElementById('referencia').value || 'DESPACHO', 
+        fechaManual: document.getElementById('fechaMov').value || null 
+    };
+
+    try {
+        await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(p) });
+        cantInput.value = "";
+        document.getElementById('referencia').value = "";
+        alert("Registro guardado con éxito");
+        await cargarDatos(); // Recargar datos del monitor
+    } catch (e) {
+        alert("Error al guardar el movimiento");
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
 }
 
 // LOGICA SIMULADOR
