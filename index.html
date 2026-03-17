@@ -7,57 +7,33 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { 
-            --primary: #1e293b; --accent: #3b82f6; --diesel: #2563eb; 
-            --gasohol: #10b981; --danger: #ef4444; --warning: #f59e0b; --success: #059669;
-            --acp-green: #007d32;
-        }
+        :root { --primary: #1e293b; --accent: #3b82f6; --diesel: #2563eb; --gasohol: #10b981; --danger: #ef4444; --warning: #f59e0b; --success: #059669; --acp-green: #007d32; }
         body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; color: #334155; }
-        
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .login-card { background: white; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
-        
         #mainContent { display: none; }
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); position: relative; }
         .full-width { grid-column: span 2; }
-        .btn { cursor: pointer; padding: 12px; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; text-align: center; text-decoration: none; display: inline-block; }
+        .btn { cursor: pointer; padding: 12px; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; text-align: center; text-decoration: none; display: inline-block; width: 100%; box-sizing: border-box; }
         .btn-blue { background: var(--accent); }
         .btn-green { background: var(--success); }
-        .btn-excel { background: #107c41; }
-        .btn-logout { background: var(--danger); font-size: 0.8rem; padding: 8px 15px; margin-left: 10px; }
-
+        .btn-logout { background: var(--danger); font-size: 0.8rem; padding: 8px 15px; width: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         .status-badge { padding: 5px 10px; border-radius: 6px; font-size: 0.85em; font-weight: bold; }
         .bg-danger { background: #fee2e2; color: var(--danger); border: 1px solid var(--danger); }
         .bg-success { background: #dcfce7; color: var(--gasohol); }
         .bg-warning { background: #fef3c7; color: var(--warning); }
-        
         input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
         .stock-label { font-size: 1.8rem; font-weight: bold; display: block; margin: 5px 0; }
         .sync-indicator { font-size: 0.75rem; color: #64748b; font-weight: normal; }
-        
         .filter-bar { display: flex; gap: 10px; background: #f8fafc; padding: 15px; border-radius: 8px; align-items: flex-end; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .group-label { font-size: 0.75rem; font-weight: bold; color: #64748b; margin-bottom: 5px; display: block; text-transform: uppercase; }
         canvas { max-height: 250px; width: 100%; }
         .table-container { max-height: 500px; overflow-y: auto; }
-
-        .app-header-logo { height: 50px; width: auto; margin-right: 15px; vertical-align: middle; }
-        .header-content { display: flex; align-items: center; }
-
-        .annual-summary { display: flex; gap: 15px; margin-top: 10px; }
-        .summary-item { flex: 1; padding: 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; }
-        .summary-value { font-size: 1.3rem; font-weight: bold; display: block; margin-top: 5px; }
-        .year-select { padding: 4px 8px; font-size: 0.85rem; border-radius: 4px; border: 1px solid #cbd5e1; cursor: pointer; }
-
         .admin-only { display: none; }
-
         .sim-box { background: #fdfcfe; border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin-top: 20px; }
-        .sim-res { font-weight: bold; color: var(--diesel); font-size: 1.1rem; }
-
-        .btn-flota-sm { background: var(--acp-green); font-size: 0.8rem; padding: 8px 15px; }
-        .btn-flota-sm:hover { filter: brightness(1.1); }
     </style>
 </head>
 <body>
@@ -66,10 +42,18 @@
     <div class="login-card">
         <img src="logo.png" alt="Logo" style="height: 60px; margin-bottom: 20px;">
         <h2 id="loginTitle">Acceso GRIFO ACP</h2>
+        
         <div id="loginForm">
-            <input type="text" id="userInput" placeholder="Usuario (Ej: CVILLANUEVA)">
-            <input type="password" id="passInput" placeholder="Contraseña">
-            <button id="btnLogin" class="btn btn-blue" style="width:100%" onclick="handleLogin()">Entrar</button>
+            <input type="text" id="userInput" placeholder="USUARIO">
+            <input type="password" id="passInput" placeholder="CONTRASEÑA">
+            <button id="btnLogin" class="btn btn-blue" onclick="handleLogin()">ENTRAR</button>
+        </div>
+
+        <div id="changePassForm" style="display:none;">
+            <p style="color: var(--danger); font-size: 0.85em; margin-bottom: 15px;">Cambio obligatorio: Mínimo 1 Mayúscula y 1 Número.</p>
+            <input type="password" id="newPassInput" placeholder="NUEVA CONTRASEÑA">
+            <input type="password" id="confirmPassInput" placeholder="CONFIRMAR CONTRASEÑA">
+            <button class="btn btn-green" onclick="saveNewPassword()">ACTUALIZAR Y ENTRAR</button>
         </div>
     </div>
 </div>
@@ -77,141 +61,65 @@
 <div id="mainContent">
     <div class="dashboard">
         <div class="card full-width" style="background: var(--primary); color: white; border:none; display:flex; justify-content:space-between; align-items:center;">
-            <div class="header-content">
-                <img src="logo.png" alt="Logo ACP" class="app-header-logo">
+            <div style="display: flex; align-items: center;">
+                <img src="logo.png" alt="Logo" style="height: 50px; margin-right: 15px;">
                 <div>
                     <h1 style="margin:0; font-size: 1.5rem;">Gestión Corporativa - <span id="displayUser"></span></h1>
                     <span class="sync-indicator">Sistema online | Sinc: <span id="lastUpdate">-</span></span>
                 </div>
             </div>
             <div>
-                <a href="consumo-flota.html" class="btn btn-flota-sm">🚛 Flota</a>
-                <button onclick="exportarExcel()" class="btn btn-excel">Exportar Excel</button>
                 <button onclick="logout()" class="btn btn-logout">Salir</button>
             </div>
         </div>
 
         <div class="card admin-only" id="registroCard">
             <h2>Registro de Movimiento</h2>
-            <label class="group-label">Fecha del Movimiento (Opcional)</label>
+            <label class="group-label">Fecha (Opcional)</label>
             <input type="date" id="fechaMov">
-            <label class="group-label">Tipo de Operacion</label>
-            <select id="tipoMov" onchange="toggleCisterna()">
-                <option value="salida">Salida (Consumo Diario)</option>
-                <option value="ingreso">Ingreso (Cisterna)</option>
-            </select>
+            <label class="group-label">Tipo Operación</label>
+            <select id="tipoMov" onchange="toggleCisterna()"><option value="salida">Salida</option><option value="ingreso">Ingreso</option></select>
             <label class="group-label">Producto</label>
-            <select id="prod">
-                <option value="diesel">Diesel (Cap: 5000 gl)</option>
-                <option value="gasohol">Gasohol (Cap: 1000 gl)</option>
-            </select>
-            <label class="group-label">Cantidad</label>
-            <input type="number" id="cant" step="0.01" placeholder="0.00 gl">
-            <div id="extraData" style="display:none;">
-                <label class="group-label">Referencia</label>
-                <input type="text" id="referencia" placeholder="Placa / Chofer">
-            </div>
-            <button class="btn btn-blue" style="width:100%" onclick="procesarMovimiento()">Guardar Registro</button>
+            <select id="prod"><option value="diesel">Diesel</option><option value="gasohol">Gasohol</option></select>
+            <label class="group-label">Cantidad (gl)</label>
+            <input type="number" id="cant" step="0.01" placeholder="0.00">
+            <div id="extraData" style="display:none;"><label class="group-label">Referencia</label><input type="text" id="referencia" placeholder="Placa / Chofer"></div>
+            <button class="btn btn-blue" onclick="procesarMovimiento()">Guardar Registro</button>
             
-            <h3 style="margin-top:20px;">Stock de Filtros</h3>
+            <h3 style="margin-top:20px;">Filtros</h3>
             <div style="display:flex; gap:10px;">
-                <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf60')">Ingreso CF60</button>
-                <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf100')">Ingreso CF100</button>
-            </div>
-
-            <div class="sim-box">
-                <h3 style="margin-top:0; color:var(--primary); font-size: 0.9rem;">📊 Simulador: Consumo por Varilla</h3>
-                <label class="group-label">Producto a simular</label>
-                <select id="simProd">
-                    <option value="diesel">Diesel</option>
-                    <option value="gasohol">Gasohol</option>
-                </select>
-                <label class="group-label">Stock Inicial (Copiar del Monitor)</label>
-                <input type="number" id="simStockIni" step="0.01" placeholder="0.00">
-                <label class="group-label">Lectura Varilla Final</label>
-                <input type="number" id="simVarilla" step="0.01" placeholder="Lectura final gl" oninput="ejecutarSimulacion()">
-                <div style="margin-top:10px; padding:10px; background:#eef2ff; border-radius:8px;">
-                    <small class="group-label" style="margin:0">Consumo estimado del turno:</small>
-                    <div id="simResultado" class="sim-res">0.00 gl</div>
-                </div>
+                <button class="btn btn-green" onclick="gestionarFiltros('compra', 'cf60')">+ CF60</button>
+                <button class="btn btn-green" onclick="gestionarFiltros('compra', 'cf100')">+ CF100</button>
             </div>
         </div>
 
         <div class="card" id="monitorCard">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin:0">Monitor y Analisis</h2>
+            <h2>Monitor de Stocks</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="status-badge bg-success" style="text-align:center;"><b>DIESEL</b><span id="sDiesel" class="stock-label">0.00</span></div>
+                <div class="status-badge bg-success" style="text-align:center;"><b>GASOHOL</b><span id="sGasohol" class="stock-label">0.00</span></div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top:10px;">
-                <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
-                    <b>DIESEL</b>
-                    <span id="sDiesel" class="stock-label">0.00</span>
-                    <small>Stock critico: 3000 gl</small>
-                </div>
-                <div class="status-badge bg-success" style="text-align:center; padding:15px; border:1px solid #10b981">
-                    <b>GASOHOL</b>
-                    <span id="sGasohol" class="stock-label">0.00</span>
-                    <small>Stock critico: 450 gl</small>
-                </div>
-            </div>
-
-            <div style="margin-top:15px; padding: 12px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                    <b style="font-size: 0.85rem; color: #475569; text-transform: uppercase;">Consumo Acumulado <span id="currentYearDisplay">2026</span></b>
-                    <select id="selectAnioFiscal" class="year-select" style="margin:0; width:auto; padding: 2px 5px;" onchange="calcularConsumoAnual()">
-                        <option value="2026" selected>Año 2026</option>
-                        <option value="2025">Año 2025</option>
-                    </select>
-                </div>
-                <div class="annual-summary">
-                    <div class="summary-item" style="border-left: 4px solid var(--diesel);">
-                        <small style="color: #64748b; font-weight: bold;">DIESEL TOTAL</small>
-                        <span id="annualDiesel" class="summary-value" style="color: var(--diesel);">0.00 gl</span>
-                    </div>
-                    <div class="summary-item" style="border-left: 4px solid var(--gasohol);">
-                        <small style="color: #64748b; font-weight: bold;">GASOHOL TOTAL</small>
-                        <span id="annualGasohol" class="summary-value" style="color: var(--gasohol);">0.00 gl</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div style="margin-top:15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <b>Consumo vs Mes Anterior</b>
-                    <select id="filtroMesGrafico" onchange="procesarGrafico()" style="width: auto; margin:0; padding:5px;">
-                    </select>
-                </div>
+            <div style="margin-top:15px;">
                 <canvas id="consumoChart"></canvas>
             </div>
-
-            <div id="statusFiltros" style="margin-top:15px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <b>Inventario Filtros:</b> CF60: <span id="f60">3</span> | CF100: <span id="f100">2</span>
-                <div id="alertaStockFiltros" style="margin-top:5px; font-weight:bold; font-size:0.85em;"></div>
+            <div id="statusFiltros" style="margin-top:10px; font-size: 0.9em;">
+                <b>Inventario:</b> CF60: <span id="f60">0</span> | CF100: <span id="f100">0</span>
             </div>
         </div>
 
         <div class="card full-width">
-            <h2>Plan Trimestral (Aviso preventivo 85 dias)</h2>
+            <h2>Plan Trimestral</h2>
             <table>
-                <thead>
-                    <tr><th>Equipo</th><th>Filtro</th><th>Ultima Fecha</th><th>Dias Pasados</th><th>Estado</th><th id="thAccion" style="display:none;">Accion</th></tr>
-                </thead>
+                <thead><tr><th>Equipo</th><th>Filtro</th><th>Ult. Cambio</th><th>Días</th><th>Estado</th><th id="thAccion" style="display:none;">Acción</th></tr></thead>
                 <tbody id="mantoBody"></tbody>
             </table>
         </div>
 
         <div class="card full-width">
-            <h2>Historial de Movimientos</h2>
-            <div class="filter-bar">
-                <div style="flex:1"><label class="group-label">Desde:</label><input type="date" id="filtroDesde"></div>
-                <div style="flex:1"><label class="group-label">Hasta:</label><input type="date" id="filtroHasta"></div>
-                <button class="btn btn-blue" onclick="aplicarFiltros()">Filtrar Fechas</button>
-                <button class="btn" style="background:#64748b" onclick="limpiarFiltros()">Limpiar</button>
-            </div>
+            <h2>Historial</h2>
             <div class="table-container">
-                <table id="tablaHistorialWeb">
-                    <thead>
-                        <tr><th>Fecha</th><th>Operacion</th><th>Producto</th><th>Cantidad</th><th>Referencia</th><th>Saldo Final</th></tr>
-                    </thead>
+                <table>
+                    <thead><tr><th>Fecha</th><th>Mov</th><th>Prod</th><th>Cant</th><th>Ref</th><th>Saldo</th></tr></thead>
                     <tbody id="historialBody"></tbody>
                 </table>
             </div>
@@ -228,28 +136,38 @@ let currentUser = null; let datosCache = []; let miGrafico = null;
 async function handleLogin() {
     const user = document.getElementById('userInput').value.trim().toUpperCase();
     const pass = document.getElementById('passInput').value.trim();
-    const btn = document.getElementById('btnLogin');
-    
     if (!USERS[user]) return alert("Usuario no reconocido.");
 
-    btn.innerText = "Verificando...";
-    btn.disabled = true;
+    const btn = document.getElementById('btnLogin');
+    btn.innerText = "Verificando..."; btn.disabled = true;
 
     try {
         const resp = await fetch(`${WEB_APP_URL}?action=login&user=${user}&pass=${pass}`);
-        const result = await resp.json();
+        const res = await resp.json();
+        if (res.auth === "OK") {
+            currentUser = user;
+            if (res.forceChange) {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('changePassForm').style.display = 'block';
+            } else {
+                startSession(user);
+            }
+        } else { alert("Clave incorrecta."); }
+    } catch (e) { alert("Error de conexión."); }
+    btn.innerText = "Entrar"; btn.disabled = false;
+}
 
-        if (result.auth === "OK") {
-            startSession(user);
-        } else {
-            alert("Contraseña incorrecta. Verifique sus credenciales.");
-        }
-    } catch (e) {
-        alert("Error de conexión. Intente de nuevo.");
-    } finally {
-        btn.innerText = "Entrar";
-        btn.disabled = false;
-    }
+async function saveNewPassword() {
+    const p1 = document.getElementById('newPassInput').value;
+    const p2 = document.getElementById('confirmPassInput').value;
+    if (p1 !== p2) return alert("Las claves no coinciden.");
+    if (!/^(?=.*[A-Z])(?=.*\d).+$/.test(p1)) return alert("Debe incluir 1 Mayúscula y 1 Número.");
+
+    try {
+        await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'updatePassword', user: currentUser, newPass: p1 }) });
+        alert("Clave actualizada correctamente.");
+        startSession(currentUser);
+    } catch (e) { alert("Error al guardar clave."); }
 }
 
 function startSession(user) {
@@ -264,7 +182,6 @@ function startSession(user) {
     } else {
         document.getElementById('registroCard').style.display = 'none';
         document.getElementById('monitorCard').style.gridColumn = "span 2";
-        document.getElementById('thAccion').style.display = 'none';
     }
     cargarDatos();
 }
@@ -275,8 +192,6 @@ async function cargarDatos() {
         const data = await res.json();
         datosCache = data.historial;
         actualizarUI(data);
-        llenarSelectorMeses();
-        calcularConsumoAnual();
         procesarGrafico();
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
     } catch (e) { console.error("Error cargando datos"); }
@@ -289,134 +204,36 @@ function actualizarUI(data) {
     document.getElementById('f100').innerText = data.filtros.cf100;
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
-        const fManto = parseFechaBase(e.ult);
-        const diff = Math.floor((hoy - fManto) / (1000*60*60*24));
-        const color = diff >= 90 ? 'bg-danger' : (diff >= 85 ? 'bg-warning' : 'bg-success');
-        
-        let accionTd = "";
-        if (USERS[currentUser] === "ADMIN") {
-            // CORRECCIÓN: Ahora envía e.f (el tipo de filtro) en lugar de un campo vacío
-            accionTd = `<td><button class="btn btn-blue btn-sm" onclick="gestionarFiltros('reset', '${e.f}', '${e.id}')">Reset</button></td>`;
-        }
-
-        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td><td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>${accionTd}</tr>`;
+        const fM = parseFechaBase(e.ult);
+        const d = Math.floor((hoy - fM) / 86400000);
+        const c = d >= 90 ? 'bg-danger' : (d >= 85 ? 'bg-warning' : 'bg-success');
+        let btn = (USERS[currentUser] === "ADMIN") ? `<td><button class="btn btn-blue" style="padding:5px;" onclick="gestionarFiltros('reset', '${e.f}', '${e.id}')">Reset</button></td>` : "";
+        return `<tr><td>${e.id}</td><td>${e.f}</td><td>${e.ult}</td><td>${d} d</td><td><span class="status-badge ${c}">${d>=90?'VENCIDO':'OK'}</span></td>${btn}</tr>`;
     }).join('');
-    renderHistorial(datosCache);
+    document.getElementById('historialBody').innerHTML = data.historial.map(x => `<tr><td>${x.fecha}</td><td>${x.mov}</td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td>${x.saldo}</td></tr>`).join('');
 }
 
-function calcularConsumoAnual() {
-    const anio = parseInt(document.getElementById('selectAnioFiscal').value);
-    document.getElementById('currentYearDisplay').innerText = anio;
-    let d = 0, g = 0;
-    datosCache.forEach(h => {
-        const f = parseFechaBase(h.fecha);
-        if(f && f.getFullYear() === anio && h.mov.toUpperCase() === 'SALIDA') {
-            if(h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
-            else if(h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
-        }
-    });
-    document.getElementById('annualDiesel').innerText = d.toLocaleString('en-US') + " gl";
-    document.getElementById('annualGasohol').innerText = g.toLocaleString('en-US') + " gl";
+function parseFechaBase(s) {
+    const p = s.split(/[/-]/);
+    return (p[0].length === 4) ? new Date(p[0], p[1]-1, p[2]) : new Date(p[2], p[1]-1, p[0]);
 }
 
-function parseFechaBase(str) {
-    if(!str) return null;
-    const limpia = str.split('T')[0].split(',')[0].trim();
-    const partes = limpia.split(/[/-]/);
-    if(partes.length === 3) {
-        if(partes[0].length === 4) return new Date(partes[0], partes[1]-1, partes[2]);
-        return new Date(partes[2], partes[1]-1, partes[0]);
-    }
-    return new Date(str);
-}
-
-function llenarSelectorMeses() {
-    const sel = document.getElementById('filtroMesGrafico');
-    if (sel.options.length > 0) return;
-    const periodos = ["Septiembre 2025", "Octubre 2025", "Noviembre 2025", "Diciembre 2025", "Enero 2026", "Febrero 2026", "Marzo 2026"];
-    periodos.forEach(p => {
-        let o = document.createElement('option'); o.value = p; o.innerText = p; sel.appendChild(o);
-    });
-    sel.value = periodos[periodos.length - 1];
-}
-
-function obtenerConsumoMes(lista, mesAnio) {
-    let d = 0, g = 0;
-    const partesBuscadas = mesAnio.toLowerCase().split(' ');
-    const mesNombreBuscado = partesBuscadas[0];
-    const anioBuscado = partesBuscadas[1];
-    const mesesNombres = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-    lista.forEach(h => {
-        const fecha = parseFechaBase(h.fecha);
-        if(!fecha) return;
-        if (mesesNombres[fecha.getMonth()] === mesNombreBuscado && fecha.getFullYear().toString() === anioBuscado && h.mov.toUpperCase() === 'SALIDA') {
-            if (h.prod.toUpperCase() === 'DIESEL') d += parseFloat(h.cant);
-            if (h.prod.toUpperCase() === 'GASOHOL') g += parseFloat(h.cant);
-        }
-    });
-    return { diesel: d, gasohol: g };
-}
-
-function procesarGrafico() {
-    const sel = document.getElementById('filtroMesGrafico');
-    if(!sel.value) return;
-    const mesActual = sel.value;
-    const dataActual = obtenerConsumoMes(datosCache, mesActual);
-    const index = sel.selectedIndex;
-    const dataPrev = index > 0 ? obtenerConsumoMes(datosCache, sel.options[index-1].value) : { diesel: 0, gasohol: 0 };
-    const ctx = document.getElementById('consumoChart').getContext('2d');
-    if (miGrafico) miGrafico.destroy();
-    miGrafico = new Chart(ctx, {
-        data: {
-            labels: ['DIESEL', 'GASOHOL'],
-            datasets: [
-                { type: 'bar', label: mesActual, data: [dataActual.diesel, dataActual.gasohol], backgroundColor: ['#3b82f6', '#10b981'], borderRadius: 5, order: 2 },
-                { type: 'line', label: 'Mes Anterior', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', fill: false, tension: 0.1, order: 1 }
-            ]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-    });
-}
-
-function renderHistorial(lista) {
-    const desde = document.getElementById('filtroDesde').value;
-    const hasta = document.getElementById('filtroHasta').value;
-    let fil = lista;
-    if(desde || hasta) {
-        fil = lista.filter(h => {
-            const f = parseFechaBase(h.fecha); if(!f) return false;
-            let ok = true;
-            if(desde) ok = ok && f >= new Date(desde + "T00:00:00");
-            if(hasta) ok = ok && f <= new Date(hasta + "T23:59:59");
-            return ok;
-        });
-    }
-    document.getElementById('historialBody').innerHTML = fil.map(x => {
-        const color = x.mov.toUpperCase() === 'INGRESO' ? 'green' : 'red';
-        return `<tr><td>${x.fecha.replace('T',' ').substring(0,16)}</td><td style="color:${color}"><b>${x.mov}</b></td><td>${x.prod}</td><td>${x.cant}</td><td>${x.ref}</td><td><b>${x.saldo}</b></td></tr>`;
-    }).join('');
-}
-
+async function gestionarFiltros(a, t, e) { await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'updateFiltros', subAction: a, tipo: t, equipo: e }) }); cargarDatos(); }
 async function procesarMovimiento() {
-    const p = { action: 'write', mov: document.getElementById('tipoMov').value.toUpperCase(), prod: document.getElementById('prod').value.toUpperCase(), cant: parseFloat(document.getElementById('cant').value), ref: document.getElementById('referencia').value || 'DESPACHO', fechaManual: document.getElementById('fechaMov').value || null };
+    const p = { action: 'write', mov: document.getElementById('tipoMov').value, prod: document.getElementById('prod').value, cant: document.getElementById('cant').value, ref: document.getElementById('referencia').value, fechaManual: document.getElementById('fechaMov').value };
     await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(p) });
     document.getElementById('cant').value = ""; cargarDatos();
 }
 
+function procesarGrafico() {
+    const ctx = document.getElementById('consumoChart').getContext('2d');
+    if (miGrafico) miGrafico.destroy();
+    miGrafico = new Chart(ctx, { type: 'bar', data: { labels: ['DIESEL', 'GASOHOL'], datasets: [{ label: 'Stock Actual', data: [parseFloat(document.getElementById('sDiesel').innerText), parseFloat(document.getElementById('sGasohol').innerText)], backgroundColor: ['#3b82f6', '#10b981'] }] }, options: { responsive: true, maintainAspectRatio: false } });
+}
+
 function toggleCisterna() { document.getElementById('extraData').style.display = (document.getElementById('tipoMov').value === 'ingreso') ? 'block' : 'none'; }
-function aplicarFiltros() { renderHistorial(datosCache); }
-function limpiarFiltros() { document.getElementById('filtroDesde').value = ""; document.getElementById('filtroHasta').value = ""; renderHistorial(datosCache); }
-async function gestionarFiltros(a, t, e) { await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'updateFiltros', subAction: a, tipo: t, equipo: e }) }); cargarDatos(); }
 function logout() { sessionStorage.clear(); location.reload(); }
 window.onload = () => { const s = sessionStorage.getItem('sessionGrifo'); if(s) startSession(s); };
-function exportarExcel() { const wb = XLSX.utils.book_new(); const ws = XLSX.utils.json_to_sheet(datosCache); XLSX.utils.book_append_sheet(wb, ws, "Historial"); XLSX.writeFile(wb, "Reporte_ACP.xlsx"); }
-
-function ejecutarSimulacion() {
-    const stockIni = parseFloat(document.getElementById('simStockIni').value) || 0;
-    const varillaFinal = parseFloat(document.getElementById('simVarilla').value) || 0;
-    const resultado = stockIni - varillaFinal;
-    document.getElementById('simResultado').innerText = (resultado >= 0 ? resultado.toFixed(2) : "0.00") + " gl";
-}
 </script>
 </body>
 </html>
