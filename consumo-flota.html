@@ -19,17 +19,22 @@
     <header class="bg-acp text-white p-4 shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <i class="fas fa-truck-moving text-2xl"></i>
-                <h1 class="text-xl font-bold italic">CONTROL DIARIO Y SEMANAL - FLOTA</h1>
+                <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                <h1 class="text-xl font-bold italic">CONTROL NUBE - FLOTA</h1>
             </div>
             <div class="flex items-center gap-4">
+                <select id="selectorSemanas" onchange="cargarSemanaGuardada()" class="bg-green-900 text-white text-xs p-2 rounded border border-white/30 outline-none">
+                    <option value="actual">-- SEMANA ACTUAL --</option>
+                </select>
+
+                <button onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-4 py-2 rounded-lg font-bold text-sm transition shadow-lg">
+                    <i class="fas fa-save mr-2"></i> CERRAR SEMANA
+                </button>
+
                 <input type="file" id="uploadExcel" accept=".xlsx, .xls" class="hidden" onchange="leerExcel(this)">
                 <button onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-50 transition shadow-lg">
                     <i class="fas fa-upload mr-2"></i> CARGAR DAT_COMB
                 </button>
-                <div class="bg-green-900/50 px-3 py-1 rounded-lg border border-white/20">
-                    <span id="labelSemana" class="font-bold text-xs uppercase tracking-widest">Semana 10 (Marzo 2026)</span>
-                </div>
             </div>
         </div>
     </header>
@@ -60,9 +65,8 @@
                     <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                     <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa, responsable o área..." class="pl-10 pr-4 py-2 border rounded-lg text-sm w-96 outline-none focus:ring-2 focus:ring-green-500">
                 </div>
-                <div class="flex items-center gap-2 text-xs font-bold text-gray-500">
-                    <span class="flex items-center gap-1"><div class="w-3 h-3 bg-green-500 rounded"></div> OK</span>
-                    <span class="flex items-center gap-1"><div class="w-3 h-3 bg-red-500 rounded"></div> CRÍTICO</span>
+                <div id="indicadorCarga" class="hidden text-green-600 font-bold animate-pulse text-sm">
+                    <i class="fas fa-sync fa-spin mr-2"></i> Conectando con la nube...
                 </div>
             </div>
             
@@ -85,45 +89,43 @@
                         </tr>
                     </thead>
                     <tbody id="cuerpoTabla" class="divide-y divide-gray-200">
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
         </div>
     </main>
 
     <script>
-        // CONFIGURACIÓN DE PLACAS Y GRUPOS SEGÚN TUS ÓRDENES
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R40Vo84fo7PZtDg3DJMc5dwxIQua6SsHrrHFt0uvCF8jEOO0wdLA/exec';
+        
         const ESTRUCTURA_FLOTA = [
             { p: ["BRI090"], r: "WENDY CHILCON", area: "CERRO LA PATA", a: 15.00 },
             { p: ["BRI612"], r: "LUIS MACHER", area: "MANTENIMIENTO FUNDO", a: 15.00 },
             { p: ["BRI635"], r: "JAVIER CALLIRGOS", area: "ARANDANO", a: 15.00 },
             { p: ["AZO588"], r: "KARINA VASQUEZ", area: "SEGURIDAD INDUSTRIAL", a: 15.00 },
             { p: ["AZO431"], r: "GISEL TIXE", area: "ARANDANO", a: 15.00 },
-            // GRUPOS COMPARTIDOS
             { p: ["BUF786", "BSH717"], r: "MANUEL MARENGO", area: "TRANSPORTE", a: 35.00, shared: true },
             { p: ["BRS810", "CHJ914"], r: "LUIS MACHER", area: "MANTENIMIENTO FUNDO", a: 30.00, shared: true },
             { p: ["CLF287", "BVD408"], r: "PERCY MUENTE", area: "GERENCIA GENERAL", a: 20.00, shared: true },
             { p: ["CLD318", "CPH672"], r: "CASE VIP (GASOHOL)", area: "CASE VIP", a: 36.00, shared: true },
             { p: ["CDL730", "CBA760"], r: "CASE VIP", area: "CASE VIP", a: 76.00, shared: true },
-            // MÁS PLACAS DEL REPORTE
             { p: ["BYM949"], r: "LUIS REAÑO", area: "RECLUTAMIENTO", a: 48.00 },
             { p: ["BXM905"], r: "MANUEL MARENGO", area: "TRANSPORTE", a: 48.00 },
             { p: ["BYN730"], r: "VICTOR YEMHENG", area: "ARANDANO", a: 25.00 },
             { p: ["H3K913"], r: "EDGARH SANTIESTEBAN", area: "AUDITORIA", a: 20.00 }
         ];
 
-        function renderTabla(datosConsumo = {}) {
+        let datosActuales = {};
+
+        function renderTabla(datosConsumo = {}, estructuraUsar = ESTRUCTURA_FLOTA) {
             const cuerpo = document.getElementById('cuerpoTabla');
             cuerpo.innerHTML = "";
             let tA = 0, tC = 0;
 
-            ESTRUCTURA_FLOTA.forEach(grupo => {
+            estructuraUsar.forEach(grupo => {
                 const numPlacas = grupo.p.length;
-                
                 grupo.p.forEach((placa, index) => {
                     const diario = datosConsumo[placa] || {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
-                    
-                    // Solo el primer elemento del grupo muestra el saldo y asignación combinada
                     const mostrarAsig = index === 0; 
                     const totalGrupoConsumo = grupo.p.reduce((acc, pl) => acc + (datosConsumo[pl]?.total || 0), 0);
                     const saldoGrupo = grupo.a - totalGrupoConsumo;
@@ -131,31 +133,28 @@
                     if(mostrarAsig) { tA += grupo.a; tC += totalGrupoConsumo; }
 
                     cuerpo.innerHTML += `
-                        <tr class="${grupo.shared ? 'group-row' : ''} hover:bg-yellow-50 transition-colors">
-                            <td class="p-3 font-bold border-r border-gray-200 text-blue-800">${placa}</td>
-                            <td class="p-3 border-r border-gray-200">
+                        <tr class="${grupo.shared ? 'group-row' : ''} hover:bg-yellow-50 transition-colors text-[11px]">
+                            <td class="p-2 font-bold border-r border-gray-200 text-blue-800">${placa}</td>
+                            <td class="p-2 border-r border-gray-200">
                                 <span class="font-semibold block">${grupo.r}</span>
-                                <span class="text-[10px] text-gray-400 uppercase italic">${grupo.area}</span>
+                                <span class="text-[9px] text-gray-400 uppercase">${grupo.area}</span>
                             </td>
-                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.L || '-'}</td>
-                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.M || '-'}</td>
-                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.Mi || '-'}</td>
-                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.J || '-'}</td>
-                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.V || '-'}</td>
-                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.S || '-'}</td>
-                            <td class="p-2 text-center font-mono-data text-gray-400">${diario.D || '-'}</td>
-                            
+                            <td class="p-1 text-center font-mono-data text-gray-500">${diario.L || '-'}</td>
+                            <td class="p-1 text-center font-mono-data text-gray-500">${diario.M || '-'}</td>
+                            <td class="p-1 text-center font-mono-data text-gray-500">${diario.Mi || '-'}</td>
+                            <td class="p-1 text-center font-mono-data text-gray-500">${diario.J || '-'}</td>
+                            <td class="p-1 text-center font-mono-data text-gray-500">${diario.V || '-'}</td>
+                            <td class="p-1 text-center font-mono-data text-gray-500">${diario.S || '-'}</td>
+                            <td class="p-1 text-center font-mono-data text-gray-500">${diario.D || '-'}</td>
                             ${mostrarAsig ? `
-                                <td class="p-3 text-center font-black bg-gray-50 border-l border-gray-300" rowspan="${numPlacas}">${grupo.a.toFixed(2)}</td>
-                                <td class="p-3 text-center font-black bg-orange-50 text-orange-700" rowspan="${numPlacas}">${totalGrupoConsumo.toFixed(2)}</td>
-                                <td class="p-3 text-center font-black ${saldoGrupo < 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}" rowspan="${numPlacas}">${saldoGrupo.toFixed(2)}</td>
+                                <td class="p-2 text-center font-black bg-gray-50 border-l border-gray-300" rowspan="${numPlacas}">${grupo.a.toFixed(2)}</td>
+                                <td class="p-2 text-center font-black bg-orange-50 text-orange-700" rowspan="${numPlacas}">${totalGrupoConsumo.toFixed(2)}</td>
+                                <td class="p-2 text-center font-black ${saldoGrupo < 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}" rowspan="${numPlacas}">${saldoGrupo.toFixed(2)}</td>
                             ` : ''}
-                        </tr>
-                    `;
+                        </tr>`;
                 });
             });
 
-            // Actualizar Dashboard
             document.getElementById('resumenAsignado').innerText = tA.toFixed(2) + " GLN";
             document.getElementById('resumenConsumido').innerText = tC.toFixed(2) + " GLN";
             document.getElementById('resumenSaldo').innerText = (tA - tC).toFixed(2) + " GLN";
@@ -167,33 +166,73 @@
             reader.onload = (e) => {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array'});
-                const sheet = workbook.Sheets['dat_comb']; //
-                
+                const sheet = workbook.Sheets['dat_comb'];
                 if(!sheet) return alert("Pestaña 'dat_comb' no encontrada.");
                 
                 const rows = XLSX.utils.sheet_to_json(sheet);
                 const procesado = {};
-
                 rows.forEach(row => {
-                    const placa = row['Placa']; //
+                    const placa = row['Placa'];
                     const cant = parseFloat(row['Ctd.en UM entrada']) || 0;
-                    const fecha = new Date(row['Fecha contabiliz.']); //
-                    const diaSemana = fecha.getDay(); // 0=Dom, 1=Lun...
-
+                    const fecha = new Date(row['Fecha contabiliz.']);
+                    const diaSemana = fecha.getDay();
                     if(!procesado[placa]) procesado[placa] = {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
-                    
                     const mapaDias = {1:'L', 2:'M', 3:'Mi', 4:'J', 5:'V', 6:'S', 0:'D'};
-                    const letraDia = mapaDias[diaSemana];
-                    
-                    procesado[placa][letraDia] += cant;
+                    procesado[placa][mapaDias[diaSemana]] += cant;
                     procesado[placa].total += cant;
                 });
-
-                renderTabla(procesado);
-                document.getElementById('cardConsumo').classList.add('scale-105', 'shadow-lg');
-                setTimeout(() => document.getElementById('cardConsumo').classList.remove('scale-105'), 500);
+                datosActuales = procesado;
+                renderTabla(datosActuales);
             };
             reader.readAsArrayBuffer(input.files[0]);
+        }
+
+        // FUNCIONES CLOUD
+        async function guardarSemanaCloud() {
+            const nombre = prompt("Nombre de la semana (Ej: Semana_11_2026):");
+            if(!nombre) return;
+            
+            document.getElementById('indicadorCarga').classList.remove('hidden');
+            const snapshot = {
+                configFlota: JSON.parse(JSON.stringify(ESTRUCTURA_FLOTA)),
+                consumos: datosActuales,
+                fechaCierre: new Date().toLocaleString()
+            };
+
+            const payload = { action: 'saveFlotaSnapshot', idSemana: nombre, data: JSON.stringify(snapshot) };
+
+            try {
+                await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
+                alert("✅ Guardado en la nube exitosamente.");
+                actualizarSelectorSemanas();
+            } catch (e) { alert("Error al guardar."); }
+            document.getElementById('indicadorCarga').classList.add('hidden');
+        }
+
+        async function actualizarSelectorSemanas() {
+            try {
+                const res = await fetch(`${WEB_APP_URL}?action=getFlotaSnapshots`);
+                const semanas = await res.json();
+                const sel = document.getElementById('selectorSemanas');
+                sel.innerHTML = '<option value="actual">-- SEMANA ACTUAL --</option>';
+                semanas.forEach(s => {
+                    sel.innerHTML += `<option value="${s.id}">${s.id}</option>`;
+                });
+            } catch (e) { console.log("Error cargando lista."); }
+        }
+
+        async function cargarSemanaGuardada() {
+            const id = document.getElementById('selectorSemanas').value;
+            if(id === "actual") { renderTabla(datosActuales); return; }
+
+            document.getElementById('indicadorCarga').classList.remove('hidden');
+            try {
+                const res = await fetch(`${WEB_APP_URL}?action=getSnapshotDetail&id=${id}`);
+                const json = await res.json();
+                const obj = JSON.parse(json.data);
+                renderTabla(obj.consumos, obj.configFlota);
+            } catch (e) { alert("Error al cargar datos."); }
+            document.getElementById('indicadorCarga').classList.add('hidden');
         }
 
         function filtrarTabla() {
@@ -202,7 +241,10 @@
             for (let f of filas) { f.style.display = f.innerText.toUpperCase().includes(query) ? "" : "none"; }
         }
 
-        window.onload = () => renderTabla();
+        window.onload = () => {
+            actualizarSelectorSemanas();
+            renderTabla();
+        };
     </script>
 </body>
 </html>
