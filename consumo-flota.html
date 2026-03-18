@@ -12,7 +12,6 @@
         .table-container { max-height: 65vh; overflow-y: auto; }
         .group-row { background-color: #f0fdf4; }
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
-        /* Scrollbar personalizado ACP */
         .table-container::-webkit-scrollbar { width: 8px; }
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; }
         .table-container::-webkit-scrollbar-thumb { background: #007d32; border-radius: 4px; }
@@ -23,10 +22,6 @@
     <header class="bg-acp text-white p-4 shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <button onclick="irDashboard()" class="bg-green-700 hover:bg-green-800 p-2 rounded-lg transition">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
-                <div class="h-8 w-[2px] bg-white/20 mx-1"></div>
                 <i class="fas fa-truck-moving text-2xl text-yellow-400"></i>
                 <div>
                     <h1 class="text-xl font-bold italic leading-none">FLOTA NUBE</h1>
@@ -39,15 +34,19 @@
                     <option value="actual">-- SEMANA ACTUAL --</option>
                 </select>
 
+                <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-xs transition shadow-lg flex items-center">
+                    <i class="fas fa-gas-pump mr-2"></i> REGISTRAR DESPACHO
+                </button>
+
                 <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-xs transition shadow-lg flex items-center">
                     <i class="fas fa-sync-alt mr-2"></i> SINCRONIZAR
                 </button>
 
-                <button id="btnGestionar" onclick="abrirModalConfig()" class="hidden bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-xs transition shadow-lg flex items-center">
+                <button id="btnGestionar" onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-xs transition shadow-lg flex items-center">
                     <i class="fas fa-users-cog mr-2"></i> GESTIONAR
                 </button>
 
-                <button id="btnCerrarSemana" onclick="guardarSemanaCloud()" class="hidden bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-xs transition shadow-lg flex items-center">
+                <button id="btnCerrarSemana" onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-xs transition shadow-lg flex items-center">
                     <i class="fas fa-cloud-upload-alt mr-2"></i> CERRAR SEMANA
                 </button>
 
@@ -60,12 +59,6 @@
     </header>
 
     <main class="max-w-[1580px] mx-auto p-4">
-        <div class="mb-4 flex justify-end">
-            <span id="userBadge" class="text-[10px] bg-white px-3 py-1 rounded-full shadow-sm border border-gray-200 font-bold text-gray-500 uppercase">
-                Cargando usuario...
-            </span>
-        </div>
-
         <div id="contenedorAlertas" class="mb-4 space-y-2 hidden"></div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -116,12 +109,44 @@
                             <th class="p-3 text-center bg-green-700">SALDO</th>
                         </tr>
                     </thead>
-                    <tbody id="cuerpoTabla" class="divide-y divide-gray-200 text-gray-700">
-                        </tbody>
+                    <tbody id="cuerpoTabla" class="divide-y divide-gray-200 text-gray-700"></tbody>
                 </table>
             </div>
         </div>
     </main>
+
+    <div id="modalRegistro" class="modal flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[450px] overflow-hidden">
+            <div class="p-4 bg-orange-600 text-white flex justify-between items-center">
+                <h2 class="font-bold"><i class="fas fa-edit mr-2"></i> REGISTRAR DESPACHO MANUAL</h2>
+                <button onclick="cerrarModalRegistro()" class="text-white text-2xl">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase">Placa del Vehículo</label>
+                    <input type="text" id="regPlaca" class="w-full p-2 border rounded mt-1 uppercase font-bold text-blue-700 focus:ring-2 focus:ring-orange-500 outline-none" placeholder="ABC-123">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase">Fecha de Despacho</label>
+                    <input type="date" id="regFecha" class="w-full p-2 border rounded mt-1 outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase">Tipo de Combustible</label>
+                    <select id="regTipo" class="w-full p-2 border rounded mt-1 outline-none focus:ring-2 focus:ring-orange-500">
+                        <option value="GASOHOL 90">GASOHOL 90</option>
+                        <option value="DIESEL B5 S50">DIESEL B5 S50</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase">Cantidad (Galones)</label>
+                    <input type="number" id="regCant" step="0.01" class="w-full p-2 border rounded mt-1 outline-none focus:ring-2 focus:ring-orange-500" placeholder="0.00">
+                </div>
+                <button onclick="guardarRegistroManual()" class="w-full bg-orange-600 text-white py-3 rounded-lg font-black hover:bg-orange-700 transition shadow-lg">
+                    ENVIAR REGISTRO <i class="fas fa-paper-plane ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div id="modalConfig" class="modal flex items-center justify-center">
         <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[850px] max-h-[90vh] flex flex-col overflow-hidden">
@@ -175,7 +200,6 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN CLOUD
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R40Vo84fo7PZtDg3DJMc5dwxIQua6SsHrrHFt0uvCF8jEOO0wdLA/exec';
         
         let ESTRUCTURA_FLOTA = JSON.parse(localStorage.getItem('config_flota_acp')) || [
@@ -241,24 +265,39 @@
 
         let datosActuales = {};
 
-        // --- SISTEMA DE SESIÓN Y ROLES (ADAPTACIÓN) ---
-        function verificarSesion() {
-            const user = JSON.parse(localStorage.getItem('session_user_acp'));
-            if (!user) {
-                alert("Debes iniciar sesión primero.");
-                window.location.href = "index.html";
-                return;
-            }
-            document.getElementById('userBadge').innerText = `USUARIO: ${user.name} | ${user.role}`;
-            
-            // Mostrar botones solo a ADMIN
-            if (user.role === 'ADMIN') {
-                document.getElementById('btnGestionar').classList.remove('hidden');
-                document.getElementById('btnCerrarSemana').classList.remove('hidden');
-            }
-        }
+        // --- REGISTRO MANUAL ---
+        function abrirModalRegistro() { document.getElementById('modalRegistro').style.display = 'flex'; }
+        function cerrarModalRegistro() { document.getElementById('modalRegistro').style.display = 'none'; }
 
-        function irDashboard() { window.location.href = "index.html"; }
+        async function guardarRegistroManual() {
+            const placa = document.getElementById('regPlaca').value.toUpperCase().trim();
+            const fecha = document.getElementById('regFecha').value;
+            const tipo = document.getElementById('regTipo').value;
+            const cant = parseFloat(document.getElementById('regCant').value);
+
+            if(!placa || !fecha || isNaN(cant)) return alert("Completa todos los campos correctamente.");
+
+            document.getElementById('indicadorCarga').classList.remove('hidden');
+            const payload = {
+                action: 'saveTemporal',
+                placa: placa,
+                fecha: fecha,
+                tipo: tipo,
+                cantidad: cant
+            };
+
+            try {
+                const res = await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', // Para evitar problemas de CORS simples
+                    body: JSON.stringify(payload) 
+                });
+                alert("✅ Registro enviado a la hoja temporal.");
+                cerrarModalRegistro();
+                sincronizarDesdeNube(); // Refrescar tabla
+            } catch (e) { alert("Error al conectar con la nube."); }
+            document.getElementById('indicadorCarga').classList.add('hidden');
+        }
 
         // --- LÓGICA DE TABLA ---
         function renderTabla(datosConsumo = {}, estructuraUsar = ESTRUCTURA_FLOTA) {
@@ -481,7 +520,7 @@
         function verificarPlacasNuevas(datos) {
             const registradas = new Set(ESTRUCTURA_FLOTA.flatMap(g => g.p));
             const nuevas = Object.keys(datos).filter(placa => !registradas.has(placa));
-            if (nuevas.length > 0) alert(`PLACAS NUEVAS DETECTADAS:\n${nuevas.join(', ')}`);
+            if (nuevas.length > 0) console.log(`PLACAS NUEVAS DETECTADAS: ${nuevas.join(', ')}`);
         }
 
         function filtrarTabla() {
@@ -492,7 +531,6 @@
         }
 
         window.onload = async () => {
-            verificarSesion();
             await actualizarSelectorSemanas();
             sincronizarDesdeNube().catch(() => renderTabla());
         };
