@@ -427,40 +427,66 @@
             });
         }
 
-        function leerExcel(input) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array', cellDates: true}); 
-                const sheet = workbook.Sheets['dat_comb'];
-                if(!sheet) return alert("Error: No existe la pestaña 'dat_comb' en el Excel.");
-                
-                const rows = XLSX.utils.sheet_to_json(sheet);
-                
-                // LÓGICA DE SEMANA ACTUAL (LUNES A DOMINGO)
-                const ahora = new Date();
-                const diaHoy = ahora.getDay(); 
-                const diferenciaLunes = (diaHoy === 0 ? -6 : 1) - diaHoy;
-                const lunesActual = new Date(ahora);
-                lunesActual.setDate(ahora.getDate() + diferenciaLunes);
-                lunesActual.setHours(0, 0, 0, 0);
-                const domingoActual = new Date(lunesActual);
-                domingoActual.setDate(lunesActual.getDate() + 6);
-                domingoActual.setHours(23, 59, 59, 999);
+       // --- MODIFICACIÓN EN LA FUNCIÓN leerExcel ---
+function leerExcel(input) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {type: 'array', cellDates: true}); 
+        const sheet = workbook.Sheets['dat_comb'];
+        if(!sheet) return alert("Error: No existe la pestaña 'dat_comb' en el Excel.");
+        
+        const rows = XLSX.utils.sheet_to_json(sheet);
+        
+        const ahora = new Date();
+        const diaHoy = ahora.getDay(); 
+        const diferenciaLunes = (diaHoy === 0 ? -6 : 1) - diaHoy;
+        const lunesActual = new Date(ahora);
+        lunesActual.setDate(ahora.getDate() + diferenciaLunes);
+        lunesActual.setHours(0, 0, 0, 0);
+        
+        const domingoActual = new Date(lunesActual);
+        domingoActual.setDate(lunesActual.getDate() + 6);
+        domingoActual.setHours(23, 59, 59, 999);
 
-                const procesado = {};
-                rows.forEach(row => {
-                    const placa = row['Placa'] ? row['Placa'].toString().trim().toUpperCase() : null;
-                    const cant = parseFloat(row['Ctd.en UM entrada']) || 0;
-                    let fRaw = row['Fecha contabiliz.'];
-                    let fecha = (fRaw instanceof Date) ? fRaw : new Date(fRaw);
+        // RESETEAR datosActuales para evitar sumas sobre datos viejos
+        const procesado = {}; 
+        
+        rows.forEach(row => {
+            const placa = row['Placa'] ? row['Placa'].toString().trim().toUpperCase() : null;
+            // Validar que la cantidad sea un número real y no nulo
+            let cant = parseFloat(row['Ctd.en UM entrada']) || 0;
+            let fRaw = row['Fecha contabiliz.'];
+            let fecha = (fRaw instanceof Date) ? fRaw : new Date(fRaw);
 
-                    if (placa && fecha >= lunesActual && fecha <= domingoActual) {
-                        if(!procesado[placa]) procesado[placa] = {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
-                        const mapaDias = {1:'L', 2:'M', 3:'Mi', 4:'J', 5:'V', 6:'S', 0:'D'};
-                        procesado[placa][mapaDias[fecha.getDay()]] += cant;
-                        procesado[placa].total += cant;
-                    }
+            if (placa && fecha >= lunesActual && fecha <= domingoActual) {
+                if(!procesado[placa]) {
+                    procesado[placa] = {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
+                }
+                const mapaDias = {1:'L', 2:'M', 3:'Mi', 4:'J', 5:'V', 6:'S', 0:'D'};
+                const diaLetra = mapaDias[fecha.getDay()];
+                
+                // Sumar con redondeo para evitar decimales infinitos (ej: 18.000000002)
+                procesado[placa][diaLetra] = parseFloat((procesado[placa][diaLetra] + cant).toFixed(2));
+                procesado[placa].total = parseFloat((procesado[placa].total + cant).toFixed(2));
+            }
+        });
+
+        datosActuales = procesado;
+        renderTabla(datosActuales);
+        verificarPlacasNuevas(procesado);
+        input.value = ""; // Limpiar el input para permitir cargar el mismo archivo si se desea
+    };
+    reader.readAsArrayBuffer(input.files[0]);
+}
+
+// --- MODIFICACIÓN EN WINDOW.ONLOAD ---
+window.onload = async () => {
+    // Primero intentamos cargar la lista de semanas guardadas
+    await actualizarSelectorSemanas();
+    // Luego intentamos sincronizar si hay conexión, si no, renderizamos vacío
+    sincronizarDesdeNube().catch(() => renderTabla());
+};
                 });
                 datosActuales = procesado;
                 renderTabla(datosActuales);
