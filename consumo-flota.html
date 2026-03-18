@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONSUMO FLOTA - ACP</title>
+    <title>ACP - CONTROL DE FLOTA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -12,7 +12,7 @@
         .table-container { max-height: 65vh; overflow-y: auto; }
         .group-row { background-color: #f0fdf4; }
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
-        /* Estilo para scrollbar */
+        /* Scrollbar personalizado ACP */
         .table-container::-webkit-scrollbar { width: 8px; }
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; }
         .table-container::-webkit-scrollbar-thumb { background: #007d32; border-radius: 4px; }
@@ -21,25 +21,33 @@
 <body class="bg-gray-100 font-sans text-gray-800">
 
     <header class="bg-acp text-white p-4 shadow-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
+                <button onclick="irDashboard()" class="bg-green-700 hover:bg-green-800 p-2 rounded-lg transition">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="h-8 w-[2px] bg-white/20 mx-1"></div>
                 <i class="fas fa-truck-moving text-2xl text-yellow-400"></i>
-                <h1 class="text-xl font-bold italic tracking-tight">CONTROL NUBE - FLOTA</h1>
+                <div>
+                    <h1 class="text-xl font-bold italic leading-none">FLOTA NUBE</h1>
+                    <span class="text-[10px] uppercase tracking-widest opacity-80">Agrícola Cerro Prieto</span>
+                </div>
             </div>
-            <div class="flex items-center gap-2">
+
+            <div class="flex flex-wrap items-center justify-center gap-2">
                 <select id="selectorSemanas" onchange="cargarSemanaGuardada()" class="bg-green-900 text-white text-xs p-2 rounded border border-white/30 outline-none focus:ring-2 focus:ring-yellow-400">
                     <option value="actual">-- SEMANA ACTUAL --</option>
                 </select>
 
-                <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition shadow-lg flex items-center">
+                <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-xs transition shadow-lg flex items-center">
                     <i class="fas fa-sync-alt mr-2"></i> SINCRONIZAR
                 </button>
 
-                <button onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-lg font-bold text-sm transition shadow-lg flex items-center">
+                <button id="btnGestionar" onclick="abrirModalConfig()" class="hidden bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-xs transition shadow-lg flex items-center">
                     <i class="fas fa-users-cog mr-2"></i> GESTIONAR
                 </button>
 
-                <button onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-4 py-2 rounded-lg font-bold text-sm transition shadow-lg flex items-center">
+                <button id="btnCerrarSemana" onclick="guardarSemanaCloud()" class="hidden bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-xs transition shadow-lg flex items-center">
                     <i class="fas fa-cloud-upload-alt mr-2"></i> CERRAR SEMANA
                 </button>
 
@@ -52,9 +60,15 @@
     </header>
 
     <main class="max-w-[1580px] mx-auto p-4">
+        <div class="mb-4 flex justify-end">
+            <span id="userBadge" class="text-[10px] bg-white px-3 py-1 rounded-full shadow-sm border border-gray-200 font-bold text-gray-500 uppercase">
+                Cargando usuario...
+            </span>
+        </div>
+
         <div id="contenedorAlertas" class="mb-4 space-y-2 hidden"></div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-600">
                 <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Gln Asignado Total</span>
                 <p id="resumenAsignado" class="text-2xl font-black text-blue-900">0.00 GLN</p>
@@ -74,8 +88,8 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-            <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
-                <div class="relative w-96">
+            <div class="p-4 border-b bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="relative w-full md:w-96">
                     <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                     <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa, responsable o área..." class="pl-10 pr-4 py-2 border rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-green-500 transition-all">
                 </div>
@@ -102,7 +116,7 @@
                             <th class="p-3 text-center bg-green-700">SALDO</th>
                         </tr>
                     </thead>
-                    <tbody id="cuerpoTabla" class="divide-y divide-gray-200">
+                    <tbody id="cuerpoTabla" class="divide-y divide-gray-200 text-gray-700">
                         </tbody>
                 </table>
             </div>
@@ -110,7 +124,7 @@
     </main>
 
     <div id="modalConfig" class="modal flex items-center justify-center">
-        <div class="bg-white rounded-xl shadow-2xl w-[850px] max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[850px] max-h-[90vh] flex flex-col overflow-hidden">
             <div class="p-4 bg-gray-800 text-white flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <i class="fas fa-edit"></i>
@@ -119,24 +133,24 @@
                 <button onclick="cerrarModalConfig()" class="text-white hover:text-red-400 text-3xl">&times;</button>
             </div>
             <div class="p-4 overflow-y-auto flex-1">
-                <div class="grid grid-cols-4 gap-2 mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200 shadow-inner">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200 shadow-inner">
                     <div class="flex flex-col gap-1">
-                        <label class="text-[10px] font-bold text-blue-800">PLACAS (SEPARAR POR COMA)</label>
-                        <input type="text" id="newPlacas" placeholder="Ej: ABC-123, XYZ-987" class="p-2 border rounded text-sm uppercase outline-none focus:border-blue-500">
+                        <label class="text-[10px] font-bold text-blue-800 uppercase">Placas (Separa por coma)</label>
+                        <input type="text" id="newPlacas" placeholder="Ej: ABC-123" class="p-2 border rounded text-sm uppercase outline-none focus:border-blue-500">
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-[10px] font-bold text-blue-800">NOMBRE RESPONSABLE</label>
-                        <input type="text" id="newResp" placeholder="Nombre completo" class="p-2 border rounded text-sm uppercase outline-none focus:border-blue-500">
+                        <label class="text-[10px] font-bold text-blue-800 uppercase">Responsable</label>
+                        <input type="text" id="newResp" placeholder="Nombre" class="p-2 border rounded text-sm uppercase outline-none focus:border-blue-500">
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-[10px] font-bold text-blue-800">ÁREA / FUNDO</label>
-                        <input type="text" id="newArea" placeholder="Ej: ARANDANO" class="p-2 border rounded text-sm uppercase outline-none focus:border-blue-500">
+                        <label class="text-[10px] font-bold text-blue-800 uppercase">Área / Fundo</label>
+                        <input type="text" id="newArea" placeholder="Área" class="p-2 border rounded text-sm uppercase outline-none focus:border-blue-500">
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-[10px] font-bold text-blue-800">GLN ASIGNADO</label>
+                        <label class="text-[10px] font-bold text-blue-800 uppercase">Gln Asignado</label>
                         <input type="number" id="newAsig" placeholder="0.00" class="p-2 border rounded text-sm outline-none focus:border-blue-500">
                     </div>
-                    <button onclick="agregarFlotaManual()" class="col-span-4 bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700 transition flex items-center justify-center gap-2">
+                    <button onclick="agregarFlotaManual()" class="md:col-span-4 bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700 transition flex items-center justify-center gap-2">
                         <i class="fas fa-plus-circle"></i> AGREGAR A LA ESTRUCTURA
                     </button>
                 </div>
@@ -154,14 +168,14 @@
                 </table>
             </div>
             <div class="p-4 border-t bg-gray-50 flex justify-between items-center">
-                <span class="text-xs text-gray-400 font-italic">* Los cambios se guardan localmente hasta que cierres la semana.</span>
-                <button onclick="cerrarModalConfig()" class="bg-gray-800 text-white px-6 py-2 rounded font-bold hover:bg-black transition">CERRAR Y APLICAR</button>
+                <span class="text-xs text-gray-400 italic">* Cambios locales hasta cerrar semana.</span>
+                <button onclick="cerrarModalConfig()" class="bg-gray-800 text-white px-6 py-2 rounded font-bold hover:bg-black transition uppercase text-xs">Cerrar y Aplicar</button>
             </div>
         </div>
     </div>
 
     <script>
-        // URL DE TU APP SCRIPT
+        // CONFIGURACIÓN CLOUD
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxbsOPKzgjO5ERY4R40Vo84fo7PZtDg3DJMc5dwxIQua6SsHrrHFt0uvCF8jEOO0wdLA/exec';
         
         let ESTRUCTURA_FLOTA = JSON.parse(localStorage.getItem('config_flota_acp')) || [
@@ -227,6 +241,26 @@
 
         let datosActuales = {};
 
+        // --- SISTEMA DE SESIÓN Y ROLES (ADAPTACIÓN) ---
+        function verificarSesion() {
+            const user = JSON.parse(localStorage.getItem('session_user_acp'));
+            if (!user) {
+                alert("Debes iniciar sesión primero.");
+                window.location.href = "index.html";
+                return;
+            }
+            document.getElementById('userBadge').innerText = `USUARIO: ${user.name} | ${user.role}`;
+            
+            // Mostrar botones solo a ADMIN
+            if (user.role === 'ADMIN') {
+                document.getElementById('btnGestionar').classList.remove('hidden');
+                document.getElementById('btnCerrarSemana').classList.remove('hidden');
+            }
+        }
+
+        function irDashboard() { window.location.href = "index.html"; }
+
+        // --- LÓGICA DE TABLA ---
         function renderTabla(datosConsumo = {}, estructuraUsar = ESTRUCTURA_FLOTA) {
             const cuerpo = document.getElementById('cuerpoTabla');
             cuerpo.innerHTML = "";
@@ -237,12 +271,11 @@
                 const totalGrupoConsumo = grupo.p.reduce((acc, pl) => acc + (datosConsumo[pl]?.total || 0), 0);
                 const saldoGrupo = grupo.a - totalGrupoConsumo;
 
-                // Alerta si el saldo es menor a 2 galones
                 if(saldoGrupo < 2) alertas.push({resp: grupo.r, saldo: saldoGrupo, placa: grupo.p.join('/')});
 
                 grupo.p.forEach((placa, index) => {
                     const diario = datosConsumo[placa] || {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
-                    const mostrarAsig = index === 0; // Solo mostramos los totales en la primera fila del grupo
+                    const mostrarAsig = index === 0;
                     if(mostrarAsig) { tA += grupo.a; tC += totalGrupoConsumo; }
 
                     cuerpo.innerHTML += `
@@ -272,7 +305,6 @@
             mostrarAlertas(alertas);
         }
 
-        // --- ALERTAS ---
         function mostrarAlertas(alertas) {
             const cont = document.getElementById('contenedorAlertas');
             if(alertas.length === 0) { cont.classList.add('hidden'); return; }
@@ -285,7 +317,7 @@
             `).join('');
         }
 
-        // --- CONFIGURACIÓN DE FLOTA ---
+        // --- GESTIÓN DE ESTRUCTURA ---
         function abrirModalConfig() {
             document.getElementById('modalConfig').style.display = 'flex';
             renderListaConfig();
@@ -326,7 +358,7 @@
         }
 
         function eliminarFilaFlota(i) {
-            if(confirm("¿Estás seguro de eliminar este registro de la estructura?")) {
+            if(confirm("¿Estás seguro de eliminar este registro?")) {
                 ESTRUCTURA_FLOTA.splice(i, 1);
                 localStorage.setItem('config_flota_acp', JSON.stringify(ESTRUCTURA_FLOTA));
                 renderListaConfig();
@@ -338,40 +370,19 @@
 
         // --- COMUNICACIÓN NUBE ---
         async function sincronizarDesdeNube() {
-            const indicador = document.getElementById('indicadorCarga');
-            indicador.classList.remove('hidden');
+            document.getElementById('indicadorCarga').classList.remove('hidden');
             try {
                 const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal`);
                 const data = await res.json();
                 datosActuales = data;
                 renderTabla(datosActuales);
                 verificarPlacasNuevas(data);
-            } catch (e) { 
-                console.error(e);
-                alert("Error de conexión: No se pudo traer la data de la nube."); 
-            }
-            indicador.classList.add('hidden');
-        }
-
-        async function cargarSemanaGuardada() {
-            const id = document.getElementById('selectorSemanas').value;
-            if(id === "actual") { renderTabla(datosActuales); return; }
-
-            document.getElementById('indicadorCarga').classList.remove('hidden');
-            try {
-                const res = await fetch(`${WEB_APP_URL}?action=getSnapshotDetail&id=${encodeURIComponent(id)}`);
-                const json = await res.json();
-                if (json.status === "OK") {
-                    const obj = JSON.parse(json.data);
-                    // IMPORTANTE: Al cargar histórica, usamos la estructura que se guardó en ese momento
-                    renderTabla(obj.consumos, obj.configFlota);
-                } else { alert("Snapshot no encontrado."); }
-            } catch (e) { alert("Error al recuperar el histórico."); }
+            } catch (e) { alert("Error de conexión con la nube."); }
             document.getElementById('indicadorCarga').classList.add('hidden');
         }
 
         async function guardarSemanaCloud() {
-            const nombre = prompt("Ingresa identificador de la semana (Ej: 2026_SEMANA_12):");
+            const nombre = prompt("Identificador de semana (Ej: 2026_S12):");
             if(!nombre) return;
             
             document.getElementById('indicadorCarga').classList.remove('hidden');
@@ -386,18 +397,59 @@
             };
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
-                alert("✅ Semana cerrada y respaldada en la nube con éxito.");
+                alert("✅ Semana cerrada con éxito.");
                 actualizarSelectorSemanas();
-            } catch (e) { alert("Error al intentar guardar en la nube."); }
+            } catch (e) { alert("Error al guardar."); }
             document.getElementById('indicadorCarga').classList.add('hidden');
         }
 
+        // --- EXCEL ---
+        function leerExcel(input) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array', cellDates: true}); 
+                const sheet = workbook.Sheets['dat_comb'];
+                if(!sheet) return alert("Error: No existe pestaña 'dat_comb'.");
+                
+                const rows = XLSX.utils.sheet_to_json(sheet);
+                const lunes = getLunesActual();
+                const domingo = new Date(lunes); domingo.setDate(lunes.getDate()+6); domingo.setHours(23,59,59);
+
+                const procesado = {}; 
+                rows.forEach(row => {
+                    const placa = row['Placa']?.toString().trim().toUpperCase();
+                    let cant = parseFloat(row['Ctd.en UM entrada']) || 0;
+                    let fRaw = row['Fecha contabiliz.'];
+                    let fecha = (fRaw instanceof Date) ? fRaw : new Date(fRaw);
+
+                    if (placa && fecha >= lunes && fecha <= domingo) {
+                        if(!procesado[placa]) procesado[placa] = {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
+                        const diaLetra = {1:'L', 2:'M', 3:'Mi', 4:'J', 5:'V', 6:'S', 0:'D'}[fecha.getDay()];
+                        procesado[placa][diaLetra] = parseFloat((procesado[placa][diaLetra] + cant).toFixed(2));
+                        procesado[placa].total = parseFloat((procesado[placa].total + cant).toFixed(2));
+                    }
+                });
+                datosActuales = procesado;
+                renderTabla(datosActuales);
+                verificarPlacasNuevas(procesado);
+                input.value = ""; 
+            };
+            reader.readAsArrayBuffer(input.files[0]);
+        }
+
         // --- AUXILIARES ---
+        function getLunesActual() {
+            const d = new Date(); d.setHours(0,0,0,0);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
         function actualizarResumen(tA, tC) {
             document.getElementById('resumenAsignado').innerText = tA.toFixed(2) + " GLN";
             document.getElementById('resumenConsumido').innerText = tC.toFixed(2) + " GLN";
-            const saldo = tA - tC;
-            document.getElementById('resumenSaldo').innerText = saldo.toFixed(2) + " GLN";
+            document.getElementById('resumenSaldo').innerText = (tA - tC).toFixed(2) + " GLN";
             document.getElementById('resumenEficiencia').innerText = tA > 0 ? ((tC/tA)*100).toFixed(1) + "%" : "0%";
         }
 
@@ -408,81 +460,40 @@
                 const sel = document.getElementById('selectorSemanas');
                 sel.innerHTML = '<option value="actual">-- SEMANA ACTUAL --</option>';
                 semanas.forEach(s => sel.innerHTML += `<option value="${s.id}">${s.id}</option>`);
-            } catch (e) { console.warn("No se pudo actualizar la lista de snapshots."); }
+            } catch (e) { console.warn("No se pudo cargar snapshots."); }
         }
 
-        function verificarPlacasNuevas(datosRecibidos) {
+        async function cargarSemanaGuardada() {
+            const id = document.getElementById('selectorSemanas').value;
+            if(id === "actual") { renderTabla(datosActuales); return; }
+            document.getElementById('indicadorCarga').classList.remove('hidden');
+            try {
+                const res = await fetch(`${WEB_APP_URL}?action=getSnapshotDetail&id=${encodeURIComponent(id)}`);
+                const json = await res.json();
+                if (json.status === "OK") {
+                    const obj = JSON.parse(json.data);
+                    renderTabla(obj.consumos, obj.configFlota);
+                }
+            } catch (e) { alert("Error al cargar histórico."); }
+            document.getElementById('indicadorCarga').classList.add('hidden');
+        }
+
+        function verificarPlacasNuevas(datos) {
             const registradas = new Set(ESTRUCTURA_FLOTA.flatMap(g => g.p));
-            const nuevas = Object.keys(datosRecibidos).filter(placa => !registradas.has(placa));
-            if (nuevas.length > 0) {
-                alert(`¡ALERTA!\nSe detectaron placas en el reporte que no están en tu estructura:\n\n${nuevas.join(', ')}\n\nAgrégalas en 'GESTIONAR' para ver su consumo.`);
-            }
+            const nuevas = Object.keys(datos).filter(placa => !registradas.has(placa));
+            if (nuevas.length > 0) alert(`PLACAS NUEVAS DETECTADAS:\n${nuevas.join(', ')}`);
         }
 
         function filtrarTabla() {
             const q = document.getElementById('buscador').value.toUpperCase();
-            const filas = document.querySelectorAll('#cuerpoTabla tr');
-            filas.forEach(f => {
+            document.querySelectorAll('#cuerpoTabla tr').forEach(f => {
                 f.style.display = f.innerText.toUpperCase().includes(q) ? "" : "none";
             });
         }
 
-// --- MODIFICACIÓN EN LA FUNCIÓN leerExcel ---
-        function leerExcel(input) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array', cellDates: true}); 
-                const sheet = workbook.Sheets['dat_comb'];
-                if(!sheet) return alert("Error: No existe la pestaña 'dat_comb' en el Excel.");
-                
-                const rows = XLSX.utils.sheet_to_json(sheet);
-                
-                const ahora = new Date();
-                const diaHoy = ahora.getDay(); 
-                const diferenciaLunes = (diaHoy === 0 ? -6 : 1) - diaHoy;
-                const lunesActual = new Date(ahora);
-                lunesActual.setDate(ahora.getDate() + diferenciaLunes);
-                lunesActual.setHours(0, 0, 0, 0);
-                
-                const domingoActual = new Date(lunesActual);
-                domingoActual.setDate(lunesActual.getDate() + 6);
-                domingoActual.setHours(23, 59, 59, 999);
-
-                // RESETEAR datosActuales para evitar sumas sobre datos viejos
-                const procesado = {}; 
-                
-                rows.forEach(row => {
-                    const placa = row['Placa'] ? row['Placa'].toString().trim().toUpperCase() : null;
-                    let cant = parseFloat(row['Ctd.en UM entrada']) || 0;
-                    let fRaw = row['Fecha contabiliz.'];
-                    let fecha = (fRaw instanceof Date) ? fRaw : new Date(fRaw);
-
-                    if (placa && fecha >= lunesActual && fecha <= domingoActual) {
-                        if(!procesado[placa]) {
-                            procesado[placa] = {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
-                        }
-                        const mapaDias = {1:'L', 2:'M', 3:'Mi', 4:'J', 5:'V', 6:'S', 0:'D'};
-                        const diaLetra = mapaDias[fecha.getDay()];
-                        
-                        procesado[placa][diaLetra] = parseFloat((procesado[placa][diaLetra] + cant).toFixed(2));
-                        procesado[placa].total = parseFloat((procesado[placa].total + cant).toFixed(2));
-                    }
-                });
-
-                datosActuales = procesado;
-                renderTabla(datosActuales);
-                verificarPlacasNuevas(procesado);
-                input.value = ""; 
-            };
-            reader.readAsArrayBuffer(input.files[0]);
-        }
-
-        // --- MODIFICACIÓN EN WINDOW.ONLOAD ---
         window.onload = async () => {
-            // Primero intentamos cargar la lista de semanas guardadas
+            verificarSesion();
             await actualizarSelectorSemanas();
-            // Luego intentamos sincronizar si hay conexión, si no, renderizamos vacío
             sincronizarDesdeNube().catch(() => renderTabla());
         };
     </script>
