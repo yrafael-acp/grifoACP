@@ -360,22 +360,50 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
+                // Usamos cellDates: true para que XLSX convierta las fechas de Excel a objetos Date de JS automáticamente
+                const workbook = XLSX.read(data, {type: 'array', cellDates: true}); 
                 const sheet = workbook.Sheets['dat_comb'];
                 if(!sheet) return alert("Pestaña 'dat_comb' no encontrada.");
+                
                 const rows = XLSX.utils.sheet_to_json(sheet);
+                
+                // --- LÓGICA DE FILTRADO POR SEMANA ACTUAL ---
+                const ahora = new Date();
+                const diaHoy = ahora.getDay(); // 0=Dom, 1=Lun...
+                const diferenciaLunes = (diaHoy === 0 ? -6 : 1) - diaHoy;
+                
+                const lunesActual = new Date(ahora);
+                lunesActual.setDate(ahora.getDate() + diferenciaLunes);
+                lunesActual.setHours(0, 0, 0, 0); // Inicio del lunes
+                
+                const domingoActual = new Date(lunesActual);
+                domingoActual.setDate(lunesActual.getDate() + 6);
+                domingoActual.setHours(23, 59, 59, 999); // Fin del domingo
+                // --------------------------------------------
+
                 const procesado = {};
                 rows.forEach(row => {
                     const placa = row['Placa'] ? row['Placa'].toString().trim().toUpperCase() : null;
                     const cant = parseFloat(row['Ctd.en UM entrada']) || 0;
                     if(!placa) return;
-                    const fecha = new Date(row['Fecha contabiliz.']);
-                    const diaSemana = fecha.getDay();
-                    if(!procesado[placa]) procesado[placa] = {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
-                    const mapaDias = {1:'L', 2:'M', 3:'Mi', 4:'J', 5:'V', 6:'S', 0:'D'};
-                    procesado[placa][mapaDias[diaSemana]] += cant;
-                    procesado[placa].total += cant;
+
+                    // Obtener y normalizar la fecha de la fila
+                    let fechaRaw = row['Fecha contabiliz.'];
+                    let fecha = (fechaRaw instanceof Date) ? fechaRaw : new Date(fechaRaw);
+
+                    // FILTRO CRÍTICO: Solo sumar si la fecha está dentro de la semana actual
+                    if (fecha >= lunesActual && fecha <= domingoActual) {
+                        const diaSemana = fecha.getDay();
+                        if(!procesado[placa]) procesado[placa] = {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
+                        
+                        const mapaDias = {1:'L', 2:'M', 3:'Mi', 4:'J', 5:'V', 6:'S', 0:'D'};
+                        const diaClave = mapaDias[diaSemana];
+                        
+                        procesado[placa][diaClave] += cant;
+                        procesado[placa].total += cant;
+                    }
                 });
+
                 datosActuales = procesado;
                 renderTabla(datosActuales);
                 verificarPlacasNuevas(procesado);
