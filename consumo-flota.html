@@ -289,12 +289,12 @@
             try {
                 const res = await fetch(WEB_APP_URL, { 
                     method: 'POST', 
-                    mode: 'no-cors', // Para evitar problemas de CORS simples
+                    mode: 'no-cors', 
                     body: JSON.stringify(payload) 
                 });
                 alert("✅ Registro enviado a la hoja temporal.");
                 cerrarModalRegistro();
-                sincronizarDesdeNube(); // Refrescar tabla
+                sincronizarDesdeNube();
             } catch (e) { alert("Error al conectar con la nube."); }
             document.getElementById('indicadorCarga').classList.add('hidden');
         }
@@ -425,18 +425,36 @@
             if(!nombre) return;
             
             document.getElementById('indicadorCarga').classList.remove('hidden');
+
+            // --- FILTRO DE OPTIMIZACIÓN ---
+            // Solo guardamos los consumos de las placas que están en nuestra ESTRUCTURA_FLOTA
+            const placasEnFlota = new Set(ESTRUCTURA_FLOTA.flatMap(g => g.p));
+            const consumosFiltrados = {};
+            
+            for (const placa in datosActuales) {
+                if (placasEnFlota.has(placa)) {
+                    consumosFiltrados[placa] = datosActuales[placa];
+                }
+            }
+
             const payload = { 
                 action: 'saveFlotaSnapshot', 
                 idSemana: nombre.toUpperCase(), 
                 data: JSON.stringify({
                     configFlota: ESTRUCTURA_FLOTA,
-                    consumos: datosActuales,
+                    consumos: consumosFiltrados, // Enviamos el objeto optimizado
                     fechaCierre: new Date().toLocaleString()
                 }) 
             };
+
             try {
-                await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
-                alert("✅ Semana cerrada con éxito.");
+                // Implementación de mode: no-cors para evitar interrupciones de sesión
+                await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify(payload) 
+                });
+                alert("✅ Semana cerrada con éxito y enviada a la nube.");
                 actualizarSelectorSemanas();
             } catch (e) { alert("Error al guardar."); }
             document.getElementById('indicadorCarga').classList.add('hidden');
