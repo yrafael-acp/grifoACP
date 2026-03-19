@@ -338,23 +338,21 @@
             document.getElementById('indicadorCarga').classList.add('hidden');
         }
 
-        // --- SINCRONIZACIÓN Y FILTRADO POR FECHA ---
-        async function sincronizarDesdeNube() {
-            const indicador = document.getElementById('indicadorCarga');
-            indicador.classList.remove('hidden');
-            try {
-                const fechaParam = `&fecha=${lunesReferencia.toISOString()}`;
-                const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal${fechaParam}`);
-                if (!res.ok) throw new Error("Error en respuesta");
-                
-                datosActuales = await res.json();
-                renderTabla(datosActuales);
-            } catch (e) { 
-                alert("Error de conexión con la nube. Asegúrate de haber actualizado el código en .gs"); 
-            } finally {
-                indicador.classList.add('hidden');
-            }
-        }
+       function sincronizarDesdeNube() {
+    const fechaSeleccionada = document.getElementById('fechaFiltro').value; // El input type="date"
+    
+    // Mostrar indicador de carga
+    document.getElementById('indicadorCarga').classList.remove('hidden');
+
+    // Llamada al servidor pasando la fecha
+    google.script.run
+        .withSuccessHandler(function(response) {
+            // Aquí procesas la respuesta y actualizas la tabla
+            renderTabla(response); 
+            document.getElementById('indicadorCarga').classList.add('hidden');
+        })
+        .obtenerDatosFlota(fechaSeleccionada); // Asegúrate que tu función principal reciba este parámetro
+}
 
         // --- LÓGICA DE TABLA ---
         function renderTabla(datosConsumo = {}, estructuraUsar = ESTRUCTURA_FLOTA) {
