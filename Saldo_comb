@@ -1,1 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Saldos - Combustible</title>
+    <style>
+        :root {
+            --acp-green: #2e8b57;
+            --acp-light-green: #e9f5ee;
+            --border-color: #333;
+        }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; border: 2px solid var(--border-color); }
+        
+        /* Encabezado */
+        .header { display: flex; border-bottom: 2px solid var(--border-color); }
+        .logo { width: 25%; padding: 10px; border-right: 2px solid var(--border-color); text-align: center; }
+        .title { width: 55%; background: var(--acp-green); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
+        .date-box { width: 20%; padding: 10px; text-align: center; }
 
+        /* Info Usuario */
+        .user-info { display: grid; grid-template-columns: 1fr 2fr 1fr; border-bottom: 2px solid var(--border-color); background: var(--acp-green); color: white; text-align: center; font-weight: bold; }
+        .user-info div { padding: 5px; border-right: 1px solid white; }
+        .user-data { display: grid; grid-template-columns: 1fr 2fr 1fr; border-bottom: 2px solid var(--border-color); text-align: center; }
+        .user-data div, .user-data input { padding: 10px; border-right: 1px solid var(--border-color); border-bottom: none; border-left: none; font-size: 16px; }
+
+        /* Tabla de Combustible */
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--acp-green); color: white; padding: 10px; border: 1px solid var(--border-color); }
+        td { border: 1px solid var(--border-color); text-align: center; padding: 8px; font-weight: bold; }
+        .gasolina-label { background: red; color: white; }
+        .petroleo-label { background: var(--acp-green); color: white; }
+        input[type="number"] { width: 80%; padding: 5px; text-align: center; border: 1px solid #ccc; }
+        .total-cell { background: #f9f9f9; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="logo"><strong>ACP</strong></div>
+        <div class="title">REPORTE DE SALDOS</div>
+        <div class="date-box">FECHA<br><strong id="currentDate"></strong></div>
+    </div>
+
+    <div class="user-info">
+        <div>DNI</div>
+        <div>NOMBRES Y APELLIDOS</div>
+        <div>TURNO</div>
+    </div>
+    <div class="user-data">
+        <div>76181486</div>
+        <div>LUIS ANGEL JUAREZ ELIAS</div>
+        <div>
+            <select style="width: 100%; border: none; font-weight: bold;">
+                <option>DIA</option>
+                <option>NOCHE</option>
+            </select>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>TIPO COMBUSTIBLE</th>
+                <th>VARILLA FINAL</th>
+                <th>SALDO FINAL</th>
+                <th>ISOTANQUES</th>
+                <th>TOTAL GALONES</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="gasolina-label">GASOLINA</td>
+                <td><input type="number" id="v_gasolina" step="0.1" placeholder="0.0" oninput="calcular()"></td>
+                <td id="s_gasolina">0.00</td>
+                <td><input type="number" id="i_gasolina" step="0.1" value="0.00" oninput="calcular()"></td>
+                <td id="t_gasolina" class="total-cell">0.00</td>
+            </tr>
+            <tr>
+                <td class="petroleo-label">PETROLEO</td>
+                <td><input type="number" id="v_petroleo" step="0.1" placeholder="0.0" oninput="calcular()"></td>
+                <td id="s_petroleo">0.00</td>
+                <td><input type="number" id="i_petroleo" step="0.1" value="0.00" oninput="calcular()"></td>
+                <td id="t_petroleo" class="total-cell">0.00</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Simulación de las tablas cub_gasohol y cub_diesel
+    // En una web real, esto se cargaría desde un JSON o Base de Datos
+    const tablaCubicacion = {
+        // Ejemplo simplificado: [cm][decimal 0-9]
+        "22": [56.53, 56.91, 57.30, 57.68, 58.06, 58.44, 58.82, 59.20, 59.58, 59.96],
+        "23": [60.35, 60.73, 61.12, 61.51, 61.90, 62.29, 62.68, 63.07, 63.46, 63.84]
+    };
+
+    function buscarEnTabla(valorVarilla) {
+        if (!valorVarilla) return 0;
+        let [entero, decimal] = valorVarilla.toString().split('.');
+        decimal = decimal ? decimal[0] : "0"; // Tomamos el primer decimal
+        
+        if (tablaCubicacion[entero]) {
+            return tablaCubicacion[entero][parseInt(decimal)] || 0;
+        }
+        return 0; // Si no encuentra el valor en la tabla
+    }
+
+    function calcular() {
+        // Gasolina
+        const vGas = document.getElementById('v_gasolina').value;
+        const saldoGas = buscarEnTabla(vGas);
+        const isoGas = parseFloat(document.getElementById('i_gasolina').value) || 0;
+        document.getElementById('s_gasolina').innerText = saldoGas.toFixed(2);
+        document.getElementById('t_gasolina').innerText = (saldoGas + isoGas).toFixed(2);
+
+        // Petróleo
+        const vPet = document.getElementById('v_petroleo').value;
+        const saldoPet = buscarEnTabla(vPet);
+        const isoPet = parseFloat(document.getElementById('i_petroleo').value) || 0;
+        document.getElementById('s_petroleo').innerText = saldoPet.toFixed(2);
+        document.getElementById('t_petroleo').innerText = (saldoPet + isoPet).toFixed(2);
+    }
+
+    document.getElementById('currentDate').innerText = new Date().toLocaleDateString();
+</script>
+
+</body>
+</html>
