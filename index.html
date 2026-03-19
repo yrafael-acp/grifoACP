@@ -27,6 +27,8 @@
         .btn-excel { background: #107c41; }
         .btn-logout { background: var(--danger); font-size: 0.8rem; padding: 8px 15px; margin-left: 10px; }
         .btn-flota { background: var(--acp-green); font-size: 0.85rem; padding: 8px 15px; margin-right: 10px; }
+        /* Estilo nuevo para botón calculadora */
+        .btn-calc { background: #6366f1; font-size: 0.85rem; padding: 8px 15px; margin-right: 10px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
@@ -64,6 +66,14 @@
         .isotanque-alert { background: #fffbeb; border: 1px solid #f59e0b; color: #92400e; padding: 8px; border-radius: 6px; font-size: 0.75rem; margin-top: 8px; font-weight: bold; text-align: left; }
         .sim-box { background: #fdfcfe; border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin-top: 20px; }
         .sim-res { font-weight: bold; color: var(--diesel); font-size: 1.1rem; }
+
+        /* ESTILOS MODAL CALCULADORA */
+        #calcModal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
+        .modal-content { background: white; margin: 10% auto; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .close-btn { float: right; font-size: 24px; cursor: pointer; color: #64748b; }
+        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .calc-res-box { background: #f1f5f9; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #e2e8f0; }
+        .calc-val { display: block; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
     </style>
 </head>
 <body>
@@ -97,6 +107,7 @@
                 </div>
             </div>
             <div style="display: flex; align-items: center;">
+                <button onclick="abrirCalc()" class="btn btn-calc">📏 Calculadora Varilla</button>
                 <a href="consumo-flota.html" class="btn btn-flota">🚛 Consumo Flota</a>
                 <button onclick="exportarExcel()" class="btn btn-excel">Exportar Excel</button>
                 <button onclick="logout()" class="btn btn-logout">Salir</button>
@@ -245,6 +256,35 @@
     </div>
 </div>
 
+<div id="calcModal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="cerrarCalc()">&times;</span>
+        <h2 style="color: var(--acp-green); margin-top: 0;">📏 Calculadora de Cubicaje</h2>
+        <p style="font-size: 0.8rem; color: #64748b;">Ingrese la medida en centímetros para obtener el galonaje según tabla.</p>
+        
+        <div class="calc-grid">
+            <div style="grid-column: span 2;">
+                <label class="group-label">Tipo de Combustible</label>
+                <select id="calcTipo" onchange="ejecutarCalculoVarilla()">
+                    <option value="GASOHOL">GASOHOL</option>
+                    <option value="DIESEL">DIESEL</option>
+                </select>
+            </div>
+            <div>
+                <label class="group-label">Medida Varilla (cm)</label>
+                <input type="number" id="calcCm" step="0.1" placeholder="Ej: 22.5" oninput="ejecutarCalculoVarilla()">
+            </div>
+            <div class="calc-res-box">
+                <label class="group-label">Saldo en Galones</label>
+                <span id="calcResultado" class="calc-val">0.00 gl</span>
+            </div>
+        </div>
+        <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+            * Los valores se consultan de las pestañas Maestras cub_gasohol y cub_diesel.
+        </p>
+    </div>
+</div>
+
 <script>
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec'; 
 
@@ -259,6 +299,40 @@ let datosCache = [];
 let miGrafico = null;
 let stockTotalDiesel = 0;
 let stockTotalGasohol = 0;
+
+// --- LÓGICA CALCULADORA AÑADIDA ---
+const TABLAS_CUBICACION = {
+    "DIESEL": {
+        "22": [56.53, 56.91, 57.30, 57.68, 58.06, 58.44, 58.82, 59.20, 59.58, 59.96],
+        "23": [60.35, 60.73, 61.12, 61.51, 61.90, 62.29, 62.68, 63.07, 63.46, 63.84]
+        // Se completa automáticamente al cargar datos si lo integras en el backend
+    },
+    "GASOHOL": {
+        "22": [56.53, 56.91, 57.30, 57.68, 58.06, 58.44, 58.82, 59.20, 59.58, 59.96],
+        "23": [60.35, 60.73, 61.12, 61.51, 61.90, 62.29, 62.68, 63.07, 63.46, 63.84]
+    }
+};
+
+function abrirCalc() { document.getElementById('calcModal').style.display = 'block'; }
+function cerrarCalc() { document.getElementById('calcModal').style.display = 'none'; }
+
+function ejecutarCalculoVarilla() {
+    const tipo = document.getElementById('calcTipo').value;
+    const val = document.getElementById('calcCm').value;
+    const resEl = document.getElementById('calcResultado');
+    
+    if(!val) { resEl.innerText = "0.00 gl"; return; }
+    
+    let [entero, decimal] = val.toString().split('.');
+    decimal = decimal ? decimal[0] : "0"; 
+
+    if (TABLAS_CUBICACION[tipo][entero]) {
+        const galones = TABLAS_CUBICACION[tipo][entero][parseInt(decimal)];
+        resEl.innerText = galones ? galones.toFixed(2) + " gl" : "Sin Datos";
+    } else {
+        resEl.innerText = "Fuera Rango";
+    }
+}
 
 // --- SEGURIDAD CENTRALIZADA ---
 
@@ -569,6 +643,12 @@ setInterval(() => {
         console.log("Sincronización automática realizada.");
     }
 }, 15000);
+
+// Cerrar modal al hacer clic fuera
+window.onclick = function(event) {
+    let modal = document.getElementById('calcModal');
+    if (event.target == modal) { modal.style.display = "none"; }
+}
 </script>
 </body>
 </html>
