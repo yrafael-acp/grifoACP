@@ -31,8 +31,7 @@
 
             <div class="flex flex-wrap items-center justify-center gap-2">
                 <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-xs p-2 rounded border border-white/30 outline-none focus:ring-2 focus:ring-yellow-400">
-                    <option value="actual">-- SEMANA ACTUAL --</option>
-                </select>
+                    </select>
 
                 <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-xs transition shadow-lg flex items-center">
                     <i class="fas fa-gas-pump mr-2"></i> REGISTRAR DESPACHO
@@ -264,86 +263,57 @@
         ];
 
         let datosActuales = {};
-        let lunesReferencia = getLunesActual(new Date()); // Fecha de control global
+        let lunesReferencia = getLunesActual(new Date());
 
- // --- NUEVA LÓGICA DE SELECTOR DINÁMICO ---
-function poblarSemanasDelAnio() {
-    const sel = document.getElementById('selectorSemanas');
-    sel.innerHTML = ''; // Limpiar opciones previas
-    
-    // Configuración del inicio: Septiembre 2025
-    let fechaIterador = new Date("2025-09-01T12:00:00");
-    const hoy = new Date();
-    
-    // Ajustar el iterador al primer lunes de esa fecha
-    let day = fechaIterador.getDay();
-    let diff = fechaIterador.getDate() - day + (day === 0 ? -6 : 1);
-    fechaIterador.setDate(diff);
+        // --- LÓGICA DE SELECTOR DINÁMICO (DESDE SEPTIEMBRE 2025) ---
+        function poblarSemanasDelAnio() {
+            const sel = document.getElementById('selectorSemanas');
+            sel.innerHTML = '';
+            
+            // Inicio: Septiembre 2025
+            let fechaIterador = new Date("2025-09-01T12:00:00");
+            const hoy = new Date();
+            
+            // Ajustar al lunes de esa semana inicial
+            let day = fechaIterador.getDay();
+            let diff = fechaIterador.getDate() - day + (day === 0 ? -6 : 1);
+            fechaIterador.setDate(diff);
 
-    let opciones = [];
+            let opciones = [];
 
-    while (fechaIterador <= hoy) {
-        let finSemana = new Date(fechaIterador);
-        finSemana.setDate(fechaIterador.getDate() + 6);
-        
-        const label = `Semana: ${fechaIterador.toLocaleDateString()} al ${finSemana.toLocaleDateString()}`;
-        const value = fechaIterador.toISOString();
-        
-        // Marcar la semana actual para ponerle una estrella
-        const lunesDeHoy = getLunesActual(new Date()).toDateString();
-        const textoLabel = (fechaIterador.toDateString() === lunesDeHoy) ? label + " ⭐" : label;
+            while (fechaIterador <= hoy) {
+                let finSemana = new Date(fechaIterador);
+                finSemana.setDate(fechaIterador.getDate() + 6);
+                
+                const label = `Semana: ${fechaIterador.toLocaleDateString()} al ${finSemana.toLocaleDateString()}`;
+                const value = fechaIterador.toISOString();
+                
+                const lunesDeHoy = getLunesActual(new Date()).toDateString();
+                const textoLabel = (fechaIterador.toDateString() === lunesDeHoy) ? label + " ⭐" : label;
 
-        opciones.push({ value: value, label: textoLabel });
-        
-        // Avanzar 7 días
-        fechaIterador.setDate(fechaIterador.getDate() + 7);
-    }
+                opciones.push({ value, label: textoLabel });
+                fechaIterador.setDate(fechaIterador.getDate() + 7);
+            }
 
-    // Invertir para que las semanas más recientes salgan primero
-    opciones.reverse().forEach(opt => {
-        const el = document.createElement('option');
-        el.value = opt.value;
-        el.text = opt.label;
-        sel.appendChild(el);
-    });
-}
+            opciones.reverse().forEach(opt => {
+                const el = document.createElement('option');
+                el.value = opt.value;
+                el.text = opt.label;
+                sel.appendChild(el);
+            });
+        }
 
-       function gestionarCambioSemana() {
-    const val = document.getElementById('selectorSemanas').value;
-    
-    // Si el valor es una fecha ISO (procedente del selector dinámico)
-    if (val.includes("T")) {
-        lunesReferencia = new Date(val);
-        // Sincronizamos automáticamente al cambiar la semana
-        sincronizarDesdeNube();
-    } else {
-        // Por si seleccionas un ID de historial antiguo en la nube
-        cargarSemanaGuardada(val);
-    }
-}
+        function gestionarCambioSemana() {
+            const val = document.getElementById('selectorSemanas').value;
+            
+            if (val.includes("T")) {
+                lunesReferencia = new Date(val);
+                sincronizarDesdeNube(); 
+            } else {
+                cargarSemanaGuardada(val);
+            }
+        }
 
-async function sincronizarDesdeNube() {
-    const indicador = document.getElementById('indicadorCarga');
-    indicador.classList.remove('hidden');
-    
-    try {
-        // CLAVE: Enviamos la fecha del lunes seleccionado como parámetro al Script de Google
-        const fechaParam = `&fecha=${lunesReferencia.toISOString()}`;
-        const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal${fechaParam}`);
-        
-        if (!res.ok) throw new Error("Error en respuesta");
-        
-        const data = await res.json();
-        datosActuales = data;
-        renderTabla(datosActuales);
-        
-    } catch (e) { 
-        console.error(e);
-        alert("Error de conexión con la nube. Verifique la implementación del Script."); 
-    } finally {
-        indicador.classList.add('hidden');
-    }
-}
         // --- REGISTRO MANUAL ---
         function abrirModalRegistro() { document.getElementById('modalRegistro').style.display = 'flex'; }
         function cerrarModalRegistro() { document.getElementById('modalRegistro').style.display = 'none'; }
@@ -357,25 +327,33 @@ async function sincronizarDesdeNube() {
             if(!placa || !fecha || isNaN(cant)) return alert("Completa todos los campos correctamente.");
 
             document.getElementById('indicadorCarga').classList.remove('hidden');
-            const payload = {
-                action: 'saveTemporal',
-                placa: placa,
-                fecha: fecha,
-                tipo: tipo,
-                cantidad: cant
-            };
+            const payload = { action: 'saveTemporal', placa, fecha, tipo, cantidad: cant };
 
             try {
-                await fetch(WEB_APP_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify(payload) 
-                });
+                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
                 alert("✅ Registro enviado a la hoja temporal.");
                 cerrarModalRegistro();
                 sincronizarDesdeNube();
             } catch (e) { alert("Error al conectar con la nube."); }
             document.getElementById('indicadorCarga').classList.add('hidden');
+        }
+
+        // --- SINCRONIZACIÓN Y FILTRADO POR FECHA ---
+        async function sincronizarDesdeNube() {
+            const indicador = document.getElementById('indicadorCarga');
+            indicador.classList.remove('hidden');
+            try {
+                const fechaParam = `&fecha=${lunesReferencia.toISOString()}`;
+                const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal${fechaParam}`);
+                if (!res.ok) throw new Error("Error en respuesta");
+                
+                datosActuales = await res.json();
+                renderTabla(datosActuales);
+            } catch (e) { 
+                alert("Error de conexión con la nube. Asegúrate de haber actualizado el código en .gs"); 
+            } finally {
+                indicador.classList.add('hidden');
+            }
         }
 
         // --- LÓGICA DE TABLA ---
@@ -423,7 +401,7 @@ async function sincronizarDesdeNube() {
             mostrarAlertas(alertas);
         }
 
-        // --- EXCEL (USANDO LA FECHA SELECCIONADA) ---
+        // --- EXCEL (CARGA LOCAL ADICIONAL) ---
         function leerExcel(input) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -433,8 +411,6 @@ async function sincronizarDesdeNube() {
                 if(!sheet) return alert("Error: No existe pestaña 'dat_comb'.");
                 
                 const rows = XLSX.utils.sheet_to_json(sheet);
-                
-                // Usamos el lunes de referencia (seleccionado en el combo)
                 const lunes = new Date(lunesReferencia);
                 const domingo = new Date(lunes); 
                 domingo.setDate(lunes.getDate() + 6); 
@@ -467,7 +443,7 @@ async function sincronizarDesdeNube() {
         // --- AUXILIARES ---
         function getLunesActual(fechaBase) {
             const d = new Date(fechaBase);
-            d.setHours(0,0,0,0);
+            d.setHours(12,0,0,0);
             const day = d.getDay();
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
             return new Date(d.setDate(diff));
@@ -486,10 +462,8 @@ async function sincronizarDesdeNube() {
                 const semanasCloud = await res.json();
                 const sel = document.getElementById('selectorSemanas');
                 
-                // Primero las semanas del calendario
                 poblarSemanasDelAnio();
                 
-                // Luego agregamos los cierres históricos de la nube al final
                 if(semanasCloud.length > 0) {
                     const optGroup = document.createElement('optgroup');
                     optGroup.label = "── HISTORIAL EN NUBE ──";
@@ -502,7 +476,6 @@ async function sincronizarDesdeNube() {
                     sel.appendChild(optGroup);
                 }
             } catch (e) { 
-                console.warn("No se pudo cargar snapshots, usando solo calendario local.");
                 poblarSemanasDelAnio();
             }
         }
@@ -520,37 +493,16 @@ async function sincronizarDesdeNube() {
             document.getElementById('indicadorCarga').classList.add('hidden');
         }
 
-        // ... (Resto de funciones: sincronizarDesdeNube, guardarSemanaCloud, etc. se mantienen igual) ...
-       async function sincronizarDesdeNube() {
-    document.getElementById('indicadorCarga').classList.remove('hidden');
-    try {
-        // Enviamos el lunes de referencia al script de Google
-        const fechaParam = lunesReferencia ? `&fecha=${lunesReferencia.toISOString()}` : '';
-        const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal${fechaParam}`);
-        const data = await res.json();
-        datosActuales = data;
-        renderTabla(datosActuales);
-    } catch (e) { 
-        alert("Error de conexión con la nube."); 
-    }
-    document.getElementById('indicadorCarga').classList.add('hidden');
-}
-
         async function guardarSemanaCloud() {
             const nombre = prompt("Identificador de semana (Ej: 2026_S12):");
             if(!nombre) return;
             document.getElementById('indicadorCarga').classList.remove('hidden');
-            const placasEnFlota = new Set(ESTRUCTURA_FLOTA.flatMap(g => g.p));
-            const consumosFiltrados = {};
-            for (const placa in datosActuales) {
-                if (placasEnFlota.has(placa)) consumosFiltrados[placa] = datosActuales[placa];
-            }
             const payload = { 
                 action: 'saveFlotaSnapshot', 
                 idSemana: nombre.toUpperCase(), 
                 data: JSON.stringify({
                     configFlota: ESTRUCTURA_FLOTA,
-                    consumos: consumosFiltrados,
+                    consumos: datosActuales,
                     fechaCierre: new Date().toLocaleString()
                 }) 
             };
@@ -568,7 +520,7 @@ async function sincronizarDesdeNube() {
             cont.classList.remove('hidden');
             cont.innerHTML = alertas.map(a => `
                 <div class="bg-red-600 text-white p-2 rounded shadow-md flex justify-between items-center border-l-4 border-yellow-400">
-                    <span class="text-xs uppercase"><i class="fas fa-exclamation-triangle mr-2"></i> <b>LÍMITE ALCANZADO:</b> ${a.resp} (${a.placa}) tiene <b>${a.saldo.toFixed(2)} GLN</b></span>
+                    <span class="text-xs uppercase"><i class="fas fa-exclamation-triangle mr-2"></i> <b>LÍMITE ALCANZADO:</b> ${a.resp} tiene <b>${a.saldo.toFixed(2)} GLN</b></span>
                 </div>
             `).join('');
         }
@@ -580,23 +532,16 @@ async function sincronizarDesdeNube() {
             });
         }
 
+        // --- INICIO AL CARGAR ---
         window.onload = async () => {
-    // 1. Generamos el selector con el historial desde 2025
-    poblarSemanasDelAnio();
-    
-    // 2. Establecemos la semana actual como referencia inicial
-    lunesReferencia = getLunesActual(new Date());
-    document.getElementById('selectorSemanas').value = lunesReferencia.toISOString();
-    
-    // 3. Traemos los datos de la nube
-    await sincronizarDesdeNube();
-    
-    // 4. Cargamos snapshots históricos si existen (opcional)
-    actualizarSelectorSemanas(); 
-};
+            poblarSemanasDelAnio();
+            lunesReferencia = getLunesActual(new Date());
+            document.getElementById('selectorSemanas').value = lunesReferencia.toISOString();
+            
+            await sincronizarDesdeNube();
+            await actualizarSelectorSemanas();
         };
 
-        // --- GESTIÓN CONFIG (IGUAL) ---
         function abrirModalConfig() { document.getElementById('modalConfig').style.display = 'flex'; renderListaConfig(); }
         function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
         function renderListaConfig() {
