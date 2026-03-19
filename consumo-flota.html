@@ -266,57 +266,84 @@
         let datosActuales = {};
         let lunesReferencia = getLunesActual(new Date()); // Fecha de control global
 
-        // --- NUEVA LÓGICA DE SELECTOR ---
-        function poblarSemanasDelAnio() {
-            const sel = document.getElementById('selectorSemanas');
-            const hoy = new Date();
-            const anioActual = hoy.getFullYear();
-            
-            // Opción base
-            sel.innerHTML = '<option value="actual">-- SEMANA ACTUAL --</option>';
-            
-            // Generar semanas desde la 1 hasta la 52 (o 53)
-            let fecha = new Date(anioActual, 0, 1);
-            // Ajustar al primer lunes
-            while (fecha.getDay() !== 1) fecha.setDate(fecha.getDate() + 1);
+ // --- NUEVA LÓGICA DE SELECTOR DINÁMICO ---
+function poblarSemanasDelAnio() {
+    const sel = document.getElementById('selectorSemanas');
+    sel.innerHTML = ''; // Limpiar opciones previas
+    
+    // Configuración del inicio: Septiembre 2025
+    let fechaIterador = new Date("2025-09-01T12:00:00");
+    const hoy = new Date();
+    
+    // Ajustar el iterador al primer lunes de esa fecha
+    let day = fechaIterador.getDay();
+    let diff = fechaIterador.getDate() - day + (day === 0 ? -6 : 1);
+    fechaIterador.setDate(diff);
 
-            for (let i = 1; i <= 52; i++) {
-                let finSemana = new Date(fecha);
-                finSemana.setDate(fecha.getDate() + 6);
-                
-                const label = `Semana ${i} (${fecha.getDate()}/${fecha.getMonth()+1} al ${finSemana.getDate()}/${finSemana.getMonth()+1})`;
-                const opt = document.createElement('option');
-                opt.value = fecha.toISOString(); // Guardamos el lunes de esa semana
-                opt.text = label;
-                
-                // Marcar si es la semana que estamos viviendo
-                const lunesDeHoy = getLunesActual(new Date()).toDateString();
-                if (fecha.toDateString() === lunesDeHoy) {
-                    opt.text += " ⭐";
-                }
+    let opciones = [];
 
-                sel.appendChild(opt);
-            }
-        }
+    while (fechaIterador <= hoy) {
+        let finSemana = new Date(fechaIterador);
+        finSemana.setDate(fechaIterador.getDate() + 6);
+        
+        const label = `Semana: ${fechaIterador.toLocaleDateString()} al ${finSemana.toLocaleDateString()}`;
+        const value = fechaIterador.toISOString();
+        
+        // Marcar la semana actual para ponerle una estrella
+        const lunesDeHoy = getLunesActual(new Date()).toDateString();
+        const textoLabel = (fechaIterador.toDateString() === lunesDeHoy) ? label + " ⭐" : label;
 
-        function gestionarCambioSemana() {
-            const val = document.getElementById('selectorSemanas').value;
-            
-            if (val === "actual") {
-                lunesReferencia = getLunesActual(new Date());
-                sincronizarDesdeNube(); // Volver a datos reales
-            } else if (val.includes("T") || !isNaN(Date.parse(val))) {
-                // Es una fecha de calendario
-                lunesReferencia = new Date(val);
-                datosActuales = {}; // Limpiamos para forzar carga nueva o aviso
-                renderTabla({});
-                alert("Has seleccionado una semana específica. Ahora puedes subir el Excel de esa fecha.");
-            } else {
-                // Es un ID de Snapshot de la nube (lógica antigua que mantenemos)
-                cargarSemanaGuardada(val);
-            }
-        }
+        opciones.push({ value: value, label: textoLabel });
+        
+        // Avanzar 7 días
+        fechaIterador.setDate(fechaIterador.getDate() + 7);
+    }
 
+    // Invertir para que las semanas más recientes salgan primero
+    opciones.reverse().forEach(opt => {
+        const el = document.createElement('option');
+        el.value = opt.value;
+        el.text = opt.label;
+        sel.appendChild(el);
+    });
+}
+
+       function gestionarCambioSemana() {
+    const val = document.getElementById('selectorSemanas').value;
+    
+    // Si el valor es una fecha ISO (procedente del selector dinámico)
+    if (val.includes("T")) {
+        lunesReferencia = new Date(val);
+        // Sincronizamos automáticamente al cambiar la semana
+        sincronizarDesdeNube();
+    } else {
+        // Por si seleccionas un ID de historial antiguo en la nube
+        cargarSemanaGuardada(val);
+    }
+}
+
+async function sincronizarDesdeNube() {
+    const indicador = document.getElementById('indicadorCarga');
+    indicador.classList.remove('hidden');
+    
+    try {
+        // CLAVE: Enviamos la fecha del lunes seleccionado como parámetro al Script de Google
+        const fechaParam = `&fecha=${lunesReferencia.toISOString()}`;
+        const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal${fechaParam}`);
+        
+        if (!res.ok) throw new Error("Error en respuesta");
+        
+        const data = await res.json();
+        datosActuales = data;
+        renderTabla(datosActuales);
+        
+    } catch (e) { 
+        console.error(e);
+        alert("Error de conexión con la nube. Verifique la implementación del Script."); 
+    } finally {
+        indicador.classList.add('hidden');
+    }
+}
         // --- REGISTRO MANUAL ---
         function abrirModalRegistro() { document.getElementById('modalRegistro').style.display = 'flex'; }
         function cerrarModalRegistro() { document.getElementById('modalRegistro').style.display = 'none'; }
@@ -554,8 +581,19 @@
         }
 
         window.onload = async () => {
-            await actualizarSelectorSemanas();
-            sincronizarDesdeNube().catch(() => renderTabla());
+    // 1. Generamos el selector con el historial desde 2025
+    poblarSemanasDelAnio();
+    
+    // 2. Establecemos la semana actual como referencia inicial
+    lunesReferencia = getLunesActual(new Date());
+    document.getElementById('selectorSemanas').value = lunesReferencia.toISOString();
+    
+    // 3. Traemos los datos de la nube
+    await sincronizarDesdeNube();
+    
+    // 4. Cargamos snapshots históricos si existen (opcional)
+    actualizarSelectorSemanas(); 
+};
         };
 
         // --- GESTIÓN CONFIG (IGUAL) ---
