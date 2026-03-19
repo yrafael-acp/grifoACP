@@ -494,16 +494,20 @@
         }
 
         // ... (Resto de funciones: sincronizarDesdeNube, guardarSemanaCloud, etc. se mantienen igual) ...
-        async function sincronizarDesdeNube() {
-            document.getElementById('indicadorCarga').classList.remove('hidden');
-            try {
-                const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal`);
-                const data = await res.json();
-                datosActuales = data;
-                renderTabla(datosActuales);
-            } catch (e) { alert("Error de conexión con la nube."); }
-            document.getElementById('indicadorCarga').classList.add('hidden');
-        }
+       async function sincronizarDesdeNube() {
+    document.getElementById('indicadorCarga').classList.remove('hidden');
+    try {
+        // Enviamos el lunes de referencia al script de Google
+        const fechaParam = lunesReferencia ? `&fecha=${lunesReferencia.toISOString()}` : '';
+        const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal${fechaParam}`);
+        const data = await res.json();
+        datosActuales = data;
+        renderTabla(datosActuales);
+    } catch (e) { 
+        alert("Error de conexión con la nube."); 
+    }
+    document.getElementById('indicadorCarga').classList.add('hidden');
+}
 
         async function guardarSemanaCloud() {
             const nombre = prompt("Identificador de semana (Ej: 2026_S12):");
