@@ -27,6 +27,12 @@
         
         .date-section { text-align: right; margin-bottom: 10px; font-weight: bold; }
         #fechaReporte { width: auto; font-family: inherit; }
+
+        .btn-guardar { 
+            background-color: var(--acp-green); color: white; border: none; padding: 15px 30px; 
+            border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; width: 100%; margin-top: 10px;
+        }
+        .btn-guardar:hover { background-color: #005e26; }
     </style>
 </head>
 <body>
@@ -66,7 +72,7 @@
                     </select>
                 </td>
                 <td>
-                    <select id="turnoSelect">
+                    <select id="turnoSelect" onchange="guardarEnNube()">
                         <option value="DIA">DIA</option>
                         <option value="NOCHE">NOCHE</option>
                     </select>
@@ -102,47 +108,74 @@
             </tr>
         </tbody>
     </table>
+
+    <button class="btn-guardar" onclick="enviarReporteFinal()">ENVIAR REPORTE FINAL</button>
 </div>
 
 <script>
     const scriptUrl = "https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec";
 
-    // 1. Al cargar la página
+    // 1. CARGA INICIAL (SINCRONIZADA CON LA NUBE)
     document.addEventListener('DOMContentLoaded', async function() {
         try {
-            // Obtener última fecha registrada
+            // Cargar Fecha
             const resFecha = await fetch(`${scriptUrl}?action=getUltimaFecha`);
             const dataFecha = await resFecha.json();
-            if (dataFecha.fecha) {
-                document.getElementById('fechaReporte').value = dataFecha.fecha;
-            }
+            if (dataFecha.fecha) document.getElementById('fechaReporte').value = dataFecha.fecha;
 
-            // Cargar Isotanques (Reservas) desde el sistema
+            // Cargar Isotanques
             const resSist = await fetch(`${scriptUrl}?action=read`);
             const dataSist = await resSist.json();
-            
             if (dataSist.reservas) {
                 document.getElementById('iGasolina').value = dataSist.reservas.gasohol || 0;
                 document.getElementById('iPetroleo').value = dataSist.reservas.diesel || 0;
             }
-            
+
+            // RECUPERAR DATOS DEL BORRADOR COMPARTIDO
+            const resBorrador = await fetch(`${scriptUrl}?action=getEstadoBorrador`);
+            const borrador = await resBorrador.json();
+            if (borrador) {
+                document.getElementById('vGasolina').value = borrador.vGas;
+                document.getElementById('vPetroleo').value = borrador.vPet;
+                document.getElementById('operarioSelect').value = borrador.operario;
+                document.getElementById('turnoSelect').value = borrador.turno;
+                vincularDNI();
+            }
+
             calcularTotales();
-        } catch (e) {
-            console.error("Error inicializando datos:", e);
-        }
+        } catch (e) { console.error("Error inicializando:", e); }
     });
+
+    // 2. FUNCIÓN PARA GUARDAR PROGRESO EN LA NUBE (PERSISTENCIA)
+    async function guardarEnNube() {
+        const datos = {
+            action: 'guardarEstadoBorrador',
+            vGas: document.getElementById('vGasolina').value,
+            vPet: document.getElementById('vPetroleo').value,
+            operario: document.getElementById('operarioSelect').value,
+            turno: document.getElementById('turnoSelect').value
+        };
+
+        await fetch(scriptUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(datos)
+        });
+    }
 
     function vincularDNI() {
         const select = document.getElementById('operarioSelect');
-        const dniField = document.getElementById('dniInput');
-        dniField.value = select.value;
+        document.getElementById('dniInput').value = select.value;
+        guardarEnNube();
     }
 
     async function calcularTotales() {
         const vGas = document.getElementById('vGasolina').value;
         const vPet = document.getElementById('vPetroleo').value;
         
-        // Llamadas independientes para evitar bloqueos
+        // Cada vez que cambia un valor, guardamos el borrador en la nube
+        guardarEnNube();
+
         actualizarSaldoCombustible('GASOLINA', vGas, 'sGasolina', 'iGasolina', 'tGasolina');
         actualizarSaldoCombustible('PETROLEO', vPet, 'sPetroleo', 'iPetroleo', 'tPetroleo');
     }
@@ -156,13 +189,52 @@
                 if (data.saldo !== undefined) {
                     const saldoFinal = parseFloat(data.saldo);
                     document.getElementById(idSaldo).innerText = saldoFinal.toFixed(2);
-                    
                     const iso = parseFloat(document.getElementById(idIso).value) || 0;
                     document.getElementById(idTotal).innerText = (saldoFinal + iso).toFixed(2);
                 }
-            } catch (e) {
-                console.error(`Error en ${tipo}:`, e);
-            }
+            } catch (e) { console.error(`Error en ${tipo}:`, e); }
+        }
+    }
+
+    // 3. ENVÍO FINAL DEL REPORTE
+    async function enviarReporteFinal() {
+        if (!document.getElementById('operarioSelect').value) {
+            alert("Por favor seleccione un operario");
+            return;
+        }
+
+        const data = {
+            action: 'saveReporteSaldos',
+            fecha: document.getElementById('fechaReporte').value,
+            dni: document.getElementById('dniInput').value,
+            operario: document.getElementById('operarioSelect').options[document.getElementById('operarioSelect').selectedIndex].text,
+            turno: document.getElementById('turnoSelect').value,
+            gasVarilla: document.getElementById('vGasolina').value,
+            gasSaldo: document.getElementById('sGasolina').innerText,
+            gasIso: document.getElementById('iGasolina').value,
+            gasTotal: document.getElementById('tGasolina').innerText,
+            petVarilla: document.getElementById('vPetroleo').value,
+            petSaldo: document.getElementById('sPetroleo').innerText,
+            petIso: document.getElementById('iPetroleo').value,
+            petTotal: document.getElementById('tPetroleo').innerText
+        };
+
+        const btn = document.querySelector('.btn-guardar');
+        btn.disabled = true;
+        btn.innerText = "ENVIANDO...";
+
+        try {
+            await fetch(scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(data)
+            });
+            alert("Reporte guardado con éxito.");
+        } catch (e) {
+            alert("Error al guardar.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "ENVIAR REPORTE FINAL";
         }
     }
 </script>
