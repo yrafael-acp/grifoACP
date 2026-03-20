@@ -9,6 +9,7 @@
             --acp-green: #007d32;
             --acp-light: #f1f5f9;
             --danger: #ef4444;
+            --secondary: #64748b;
         }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--acp-light); margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -28,16 +29,26 @@
         .date-section { text-align: right; margin-bottom: 10px; font-weight: bold; }
         #fechaReporte { width: auto; font-family: inherit; }
 
+        .button-group { display: flex; gap: 10px; margin-top: 20px; }
+        
         .btn-guardar { 
-            background-color: var(--acp-green); color: white; border: none; padding: 15px 30px; 
-            border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; width: 100%; margin-top: 10px;
+            background-color: var(--acp-green); color: white; border: none; padding: 15px 20px; 
+            border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; flex: 1;
+        }
+        .btn-descargar {
+            background-color: var(--secondary); color: white; border: none; padding: 15px 20px; 
+            border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; flex: 1;
         }
         .btn-guardar:hover { background-color: #005e26; }
+        .btn-descargar:hover { background-color: #475569; }
+        
+        /* Estilo para que el botón se oculte durante la captura si fuera necesario */
+        .no-export { display: none !important; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="captureArea">
     <div class="date-section">
         FECHA: <input type="date" id="fechaReporte">
     </div>
@@ -109,21 +120,23 @@
         </tbody>
     </table>
 
-    <button class="btn-guardar" onclick="enviarReporteFinal()">ENVIAR REPORTE FINAL</button>
+    <div class="button-group">
+        <button class="btn-guardar" onclick="enviarReporteFinal()">ENVIAR REPORTE FINAL</button>
+        <button id="btnImg" class="btn-descargar" onclick="descargarComoImagen()">DESCARGAR COMO IMAGEN</button>
+    </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
     const scriptUrl = "https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec";
 
-    // 1. CARGA INICIAL (SINCRONIZADA CON LA NUBE)
     document.addEventListener('DOMContentLoaded', async function() {
         try {
-            // Cargar Fecha
             const resFecha = await fetch(`${scriptUrl}?action=getUltimaFecha`);
             const dataFecha = await resFecha.json();
             if (dataFecha.fecha) document.getElementById('fechaReporte').value = dataFecha.fecha;
 
-            // Cargar Isotanques
             const resSist = await fetch(`${scriptUrl}?action=read`);
             const dataSist = await resSist.json();
             if (dataSist.reservas) {
@@ -131,7 +144,6 @@
                 document.getElementById('iPetroleo').value = dataSist.reservas.diesel || 0;
             }
 
-            // RECUPERAR DATOS DEL BORRADOR COMPARTIDO
             const resBorrador = await fetch(`${scriptUrl}?action=getEstadoBorrador`);
             const borrador = await resBorrador.json();
             if (borrador) {
@@ -146,7 +158,6 @@
         } catch (e) { console.error("Error inicializando:", e); }
     });
 
-    // 2. FUNCIÓN PARA GUARDAR PROGRESO EN LA NUBE (PERSISTENCIA)
     async function guardarEnNube() {
         const datos = {
             action: 'guardarEstadoBorrador',
@@ -155,12 +166,7 @@
             operario: document.getElementById('operarioSelect').value,
             turno: document.getElementById('turnoSelect').value
         };
-
-        await fetch(scriptUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(datos)
-        });
+        await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
     }
 
     function vincularDNI() {
@@ -172,10 +178,7 @@
     async function calcularTotales() {
         const vGas = document.getElementById('vGasolina').value;
         const vPet = document.getElementById('vPetroleo').value;
-        
-        // Cada vez que cambia un valor, guardamos el borrador en la nube
         guardarEnNube();
-
         actualizarSaldoCombustible('GASOLINA', vGas, 'sGasolina', 'iGasolina', 'tGasolina');
         actualizarSaldoCombustible('PETROLEO', vPet, 'sPetroleo', 'iPetroleo', 'tPetroleo');
     }
@@ -185,7 +188,6 @@
             try {
                 const response = await fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=${tipo}&valor=${valorVarilla}`);
                 const data = await response.json();
-                
                 if (data.saldo !== undefined) {
                     const saldoFinal = parseFloat(data.saldo);
                     document.getElementById(idSaldo).innerText = saldoFinal.toFixed(2);
@@ -196,7 +198,6 @@
         }
     }
 
-    // 3. ENVÍO FINAL DEL REPORTE
     async function enviarReporteFinal() {
         if (!document.getElementById('operarioSelect').value) {
             alert("Por favor seleccione un operario");
@@ -224,11 +225,7 @@
         btn.innerText = "ENVIANDO...";
 
         try {
-            await fetch(scriptUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(data)
-            });
+            await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
             alert("Reporte guardado con éxito.");
         } catch (e) {
             alert("Error al guardar.");
@@ -236,6 +233,33 @@
             btn.disabled = false;
             btn.innerText = "ENVIAR REPORTE FINAL";
         }
+    }
+
+    // --- NUEVA FUNCIÓN DE EXPORTACIÓN ---
+    function descargarComoImagen() {
+        const area = document.getElementById('captureArea');
+        const btnGrupo = document.querySelector('.button-group');
+        const btnImg = document.getElementById('btnImg');
+
+        // 1. Ocultamos los botones temporalmente para que no salgan en la foto
+        btnGrupo.style.visibility = 'hidden';
+        btnImg.innerText = "GENERANDO...";
+
+        html2canvas(area, {
+            scale: 2, // Mejora la calidad de la imagen
+            useCORS: true, // Permite cargar el logo si viene de URL externa
+            backgroundColor: "#f1f5f9" // Color de fondo del reporte
+        }).then(canvas => {
+            const link = document.createElement('a');
+            const fecha = document.getElementById('fechaReporte').value || 'reporte';
+            link.download = `Saldo_ACP_${fecha}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+
+            // 2. Restauramos los botones
+            btnGrupo.style.visibility = 'visible';
+            btnImg.innerText = "DESCARGAR COMO IMAGEN";
+        });
     }
 </script>
 
