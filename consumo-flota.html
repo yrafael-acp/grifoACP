@@ -359,13 +359,11 @@
             const cuerpo = document.getElementById('cuerpoTabla');
             cuerpo.innerHTML = "";
             let tA = 0, tC = 0;
-            let alertas = [];
 
             estructuraUsar.forEach(grupo => {
                 const totalGrupoConsumo = grupo.p.reduce((acc, pl) => acc + (datosConsumo[pl]?.total || 0), 0);
                 const saldoGrupo = grupo.a - totalGrupoConsumo;
-
-                if(saldoGrupo < 2) alertas.push({resp: grupo.r, saldo: saldoGrupo, placa: grupo.p.join('/')});
+                const esAlerta = saldoGrupo < 2; // Definición de límite bajo
 
                 grupo.p.forEach((placa, index) => {
                     const diario = datosConsumo[placa] || {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
@@ -374,7 +372,12 @@
 
                     cuerpo.innerHTML += `
                         <tr class="${grupo.p.length > 1 ? 'group-row' : ''} hover:bg-yellow-50 transition-colors text-[11px]">
-                            <td class="p-2 font-bold border-r border-gray-200 text-blue-800">${placa}</td>
+                            <td class="p-2 font-bold border-r border-gray-200 ${esAlerta ? 'text-red-600' : 'text-blue-800'}">
+                                <div class="flex items-center gap-1">
+                                    ${esAlerta ? '<i class="fas fa-exclamation-triangle animate-pulse"></i>' : ''}
+                                    ${placa}
+                                </div>
+                            </td>
                             <td class="p-2 border-r border-gray-200">
                                 <span class="font-bold block text-gray-700">${grupo.r}</span>
                                 <span class="text-[9px] text-gray-400 uppercase font-medium tracking-tighter">${grupo.area}</span>
@@ -389,16 +392,15 @@
                             ${mostrarAsig ? `
                                 <td class="p-2 text-center font-black bg-gray-50 border-l border-gray-300 text-gray-700" rowspan="${grupo.p.length}">${grupo.a.toFixed(2)}</td>
                                 <td class="p-2 text-center font-black bg-orange-50 text-orange-700 border-l border-orange-100" rowspan="${grupo.p.length}">${totalGrupoConsumo.toFixed(2)}</td>
-                                <td class="p-2 text-center font-black ${saldoGrupo < 2 ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'} border-l border-green-200" rowspan="${grupo.p.length}">${saldoGrupo.toFixed(2)}</td>
+                                <td class="p-2 text-center font-black ${esAlerta ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'} border-l border-green-200" rowspan="${grupo.p.length}">${saldoGrupo.toFixed(2)}</td>
                             ` : ''}
                         </tr>`;
                 });
             });
 
             actualizarResumen(tA, tC);
-            mostrarAlertas(alertas);
+            // La llamada a mostrarAlertas(alertas) se elimina ya que ahora es visual en la fila
         }
-
         // --- EXCEL (CARGA LOCAL ADICIONAL) ---
         function leerExcel(input) {
             const reader = new FileReader();
@@ -512,16 +514,16 @@
             document.getElementById('indicadorCarga').classList.add('hidden');
         }
 
-        function mostrarAlertas(alertas) {
-            const cont = document.getElementById('contenedorAlertas');
-            if(alertas.length === 0) { cont.classList.add('hidden'); return; }
-            cont.classList.remove('hidden');
-            cont.innerHTML = alertas.map(a => `
-                <div class="bg-red-600 text-white p-2 rounded shadow-md flex justify-between items-center border-l-4 border-yellow-400">
-                    <span class="text-xs uppercase"><i class="fas fa-exclamation-triangle mr-2"></i> <b>LÍMITE ALCANZADO:</b> ${a.resp} tiene <b>${a.saldo.toFixed(2)} GLN</b></span>
-                </div>
-            `).join('');
-        }
+       // function mostrarAlertas(alertas) {
+            //const cont = document.getElementById('contenedorAlertas');
+            //if(alertas.length === 0) { cont.classList.add('hidden'); return; }
+            //cont.classList.remove('hidden');
+            //cont.innerHTML = alertas.map(a => `
+                //<div class="bg-red-600 text-white p-2 rounded shadow-md flex justify-between items-center border-l-4 border-yellow-400">
+                  //  <span class="text-xs uppercase"><i class="fas fa-exclamation-triangle mr-2"></i> <b>LÍMITE ALCANZADO:</b> ${a.resp} tiene <b>${a.saldo.toFixed(2)} GLN</b></span>
+                //</div>
+            //`).join('');
+        //}
 
         function filtrarTabla() {
             const q = document.getElementById('buscador').value.toUpperCase();
