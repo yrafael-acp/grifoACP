@@ -78,9 +78,9 @@
                     <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
                     </button>
-                    <button onclick="consultarOrdenesAvanzado()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-search mr-1"></i> CONSULTA ÓRDENES
-                    </button>
+                    <button onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+    <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
+</button>
                     <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
                     </button>
@@ -617,43 +617,6 @@ function exportarConsultaExcel() {
             // Al terminar, renderTabla se ejecutará, pero ya aseguramos los modales
             await sincronizarDesdeNube();
         };
-
-        // --- PEGAR ESTO ANTES DEL CIERRE DE sript correcion para la busqueda de ordenes 
-
-async function consultarOrdenesAvanzado() {
-    const ordenesInput = prompt("Ingrese la(s) orden(es) separadas por coma\n(Ejemplo: 101, 102, 103):");
-    if (!ordenesInput) return;
-
-    const fechaDesde = prompt("Fecha Inicio (Opcional: YYYY-MM-DD):", "");
-    const fechaHasta = prompt("Fecha Fin (Opcional: YYYY-MM-DD):", "");
-    
-    const indicador = document.getElementById('indicadorCarga');
-    if(indicador) indicador.classList.remove('hidden');
-
-    try {
-        let url = `${WEB_APP_URL}?action=getDetalleOrden&orden=${encodeURIComponent(ordenesInput)}`;
-        if(fechaDesde) url += `&desde=${fechaDesde}`;
-        if(fechaHasta) url += `&hasta=${fechaHasta}`;
-        
-        const resp = await fetch(url);
-        const data = await resp.json();
-        
-        if (data.status === "OK") {
-            let resumen = `RESUMEN DE CONSULTA:\nTotal Consumido: ${data.total} GLN\n\n`;
-            data.items.forEach(item => {
-                resumen += `Orden: ${item.orden} | ${item.fecha} | ${item.placa}: ${item.cantidad} GLN\n`;
-            });
-            alert(resumen);
-        } else {
-            alert("Resultado: " + (data.msg || "No se encontraron datos."));
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Error al conectar con el servidor.");
-    } finally {
-        if(indicador) indicador.classList.add('hidden');
-    }
-}
         
     </script>
     
