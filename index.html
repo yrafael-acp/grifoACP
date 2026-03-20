@@ -233,7 +233,7 @@
         <div class="card" id="monitorCard">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="margin:0">Monitor y Analisis</h2>
-                <select id="selectAnioFiscal" class="year-select" onchange="calcularConsumoAnual()">
+                <select id="selectAnioFiscal" class="year-select" onchange="calcularConsumoAnual(); if(vistaGrafico === 'anual') procesarGrafico();">
                     <option value="2026" selected>Año 2026</option>
                     <option value="2025">Año 2025</option>
                 </select>
@@ -287,10 +287,12 @@
             </div>
             
             <div style="margin-top:15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <b>Consumo vs Mes Anterior</b>
-                    <select id="filtroMesGrafico" onchange="procesarGrafico()" style="width: auto; margin:0; padding:5px;">
-                    </select>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px;">
+                    <b id="tituloGrafico">Consumo vs Mes Anterior</b>
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        <select id="filtroMesGrafico" onchange="procesarGrafico()" style="width: auto; margin:0; padding:5px;"></select>
+                        <button id="btnToggleGrafico" onclick="toggleGrafico()" class="btn btn-blue" style="padding: 5px 10px; font-size: 0.7rem; min-width: 100px;">Ver Tendencia Anual</button>
+                    </div>
                 </div>
                 <canvas id="consumoChart"></canvas>
             </div>
@@ -374,6 +376,7 @@ let datosCache = [];
 let miGrafico = null;
 let stockTotalDiesel = 0;
 let stockTotalGasohol = 0;
+let vistaGrafico = 'mensual'; // Variable de control para el toggle
 
 // --- LÓGICA CALCULADORA AÑADIDA ---
 const TABLAS_CUBICACION = {
@@ -626,26 +629,86 @@ function obtenerConsumoMes(lista, mesAnio) {
     return { diesel: d, gasohol: g };
 }
 
-function procesarGrafico() {
+// NUEVA FUNCION TOGGLE
+function toggleGrafico() {
+    vistaGrafico = (vistaGrafico === 'mensual') ? 'anual' : 'mensual';
+    const btn = document.getElementById('btnToggleGrafico');
     const sel = document.getElementById('filtroMesGrafico');
-    if(!sel.value) return;
-    const mesActual = sel.value;
-    const dataActual = obtenerConsumoMes(datosCache, mesActual);
-    const index = sel.selectedIndex;
-    const dataPrev = index > 0 ? obtenerConsumoMes(datosCache, sel.options[index-1].value) : { diesel: 0, gasohol: 0 };
+    const titulo = document.getElementById('tituloGrafico');
 
+    if (vistaGrafico === 'anual') {
+        btn.innerText = "Ver Mensual";
+        sel.style.display = 'none';
+        titulo.innerText = "Tendencia de Consumo Anual";
+    } else {
+        btn.innerText = "Ver Anual";
+        sel.style.display = 'inline-block';
+        titulo.innerText = "Consumo vs Mes Anterior";
+    }
+    procesarGrafico();
+}
+
+function procesarGrafico() {
     const ctx = document.getElementById('consumoChart').getContext('2d');
     if (miGrafico) miGrafico.destroy();
-    miGrafico = new Chart(ctx, {
-        data: {
-            labels: ['Diesel', 'Gasohol'],
-            datasets: [
-                { type: 'bar', label: mesActual, data: [dataActual.diesel, dataActual.gasohol], backgroundColor: ['#2563eb', '#10b981'], borderRadius: 5, order: 2 },
-                { type: 'line', label: 'Mes Anterior', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', borderWidth: 3, pointBackgroundColor: '#f59e0b', fill: false, tension: 0.1, order: 1 }
-            ]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-    });
+
+    if (vistaGrafico === 'mensual') {
+        const sel = document.getElementById('filtroMesGrafico');
+        if(!sel.value) return;
+        const mesActual = sel.value;
+        const dataActual = obtenerConsumoMes(datosCache, mesActual);
+        const index = sel.selectedIndex;
+        const dataPrev = index > 0 ? obtenerConsumoMes(datosCache, sel.options[index-1].value) : { diesel: 0, gasohol: 0 };
+
+        miGrafico = new Chart(ctx, {
+            data: {
+                labels: ['Diesel', 'Gasohol'],
+                datasets: [
+                    { type: 'bar', label: mesActual, data: [dataActual.diesel, dataActual.gasohol], backgroundColor: ['#2563eb', '#10b981'], borderRadius: 5, order: 2 },
+                    { type: 'line', label: 'Mes Anterior', data: [dataPrev.diesel, dataPrev.gasohol], borderColor: '#f59e0b', borderWidth: 3, pointBackgroundColor: '#f59e0b', fill: false, tension: 0.1, order: 1 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+    } else {
+        // VISTA TENDENCIA ANUAL
+        const anio = document.getElementById('selectAnioFiscal').value;
+        const mesesLabels = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+        let dieselAnual = new Array(12).fill(0);
+        let gasoholAnual = new Array(12).fill(0);
+
+        datosCache.forEach(h => {
+            const fecha = parseFechaBase(h.fecha);
+            if(!fecha) return;
+            if (fecha.getFullYear().toString() === anio && h.mov.toUpperCase().includes('SALIDA')) {
+                const mes = fecha.getMonth();
+                if (h.prod.toUpperCase().includes('DIESEL')) dieselAnual[mes] += parseFloat(h.cant);
+                if (h.prod.toUpperCase().includes('GASOHOL')) gasoholAnual[mes] += parseFloat(h.cant);
+            }
+        });
+
+        miGrafico = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: mesesLabels,
+                datasets: [
+                    { label: 'Diesel', data: dieselAnual, borderColor: '#2563eb', backgroundColor: '#2563eb', tension: 0.3, fill: false, borderWidth: 3, pointRadius: 4 },
+                    { label: 'Gasohol', data: gasoholAnual, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, fill: false, borderWidth: 3, pointRadius: 4 }
+                ]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { position: 'bottom' } },
+                scales: { 
+                    y: { 
+                        beginAtZero: true,
+                        title: { display: true, text: 'Galones (gl)', font: { weight: 'bold' } }
+                    }
+                }
+            }
+        });
+    }
 }
 
 async function procesarMovimiento() {
