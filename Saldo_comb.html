@@ -122,18 +122,47 @@
     }
 
     // Función básica para cálculos (puedes expandirla con tus tablas de cubicación)
-    function calcularTotales() {
-        // Aquí iría la lógica para convertir Varilla -> Saldo Final
-        // Por ahora hace la suma simple de Saldo + Isotanques
-        
-        const saldoG = parseFloat(document.getElementById('sGasolina').innerText) || 0;
-        const isoG = parseFloat(document.getElementById('iGasolina').value) || 0;
-        document.getElementById('tGasolina').innerText = (saldoG + isoG).toFixed(2);
+    async function calcularTotales() {
+    const vGas = document.getElementById('vGasolina').value;
+    const vPet = document.getElementById('vPetroleo').value;
+    
+    // IMPORTANTE: Cambia esta URL por la de tu implementación actual de Apps Script
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec";
 
-        const saldoP = parseFloat(document.getElementById('sPetroleo').innerText) || 0;
-        const isoP = parseFloat(document.getElementById('iPetroleo').value) || 0;
-        document.getElementById('tPetroleo').innerText = (saldoP + isoP).toFixed(2);
+    const promesas = [];
+
+    if (parseFloat(vGas) >= 0) {
+        promesas.push(
+            fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=GASOLINA&valor=${vGas}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('sGasolina').innerText = parseFloat(data.saldo).toFixed(2);
+                })
+        );
     }
+
+    if (parseFloat(vPet) >= 0) {
+        promesas.push(
+            fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=PETROLEO&valor=${vPet}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('sPetroleo').innerText = parseFloat(data.saldo).toFixed(2);
+                })
+        );
+    }
+
+    // Esperamos a que ambas consultas terminen para sumar los totales
+    await Promise.all(promesas);
+
+    // Cálculo de galones totales (Saldo + Isotanques)
+    const isoG = parseFloat(document.getElementById('iGasolina').value) || 0;
+    const saldoG = parseFloat(document.getElementById('sGasolina').innerText) || 0;
+    document.getElementById('tGasolina').innerText = (saldoG + isoG).toFixed(2);
+
+    const isoP = parseFloat(document.getElementById('iPetroleo').value) || 0;
+    const saldoP = parseFloat(document.getElementById('sPetroleo').innerText) || 0;
+    document.getElementById('tPetroleo').innerText = (saldoP + isoP).toFixed(2);
+}
 </script>
 
 </body>
