@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>REPORTE DE SALDOS - ACP</title>
     <style>
         :root {
@@ -11,67 +11,94 @@
             --danger: #ef4444;
             --secondary: #64748b;
         }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--acp-light); margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #333; padding: 10px; text-align: center; }
-        th { background-color: var(--acp-green); color: white; text-transform: uppercase; font-size: 0.9em; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--acp-light); margin: 0; padding: 10px; }
         
-        .header-logo { width: 150px; }
-        .title-bg { background-color: var(--acp-green); color: white; font-size: 1.5rem; font-weight: bold; }
+        .main-wrapper { max-width: 900px; margin: auto; }
+        .container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; overflow: hidden; }
         
-        input, select { width: 90%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-size: 1rem; }
-        .readonly-field { background-color: #eee; font-weight: bold; }
-        .gasolina-label { background-color: red; color: white; font-weight: bold; }
-        .petroleo-label { background-color: var(--acp-green); color: white; font-weight: bold; }
-        
-        .date-section { text-align: right; margin-bottom: 10px; font-weight: bold; }
-        #fechaReporte { width: auto; font-family: inherit; }
+        /* Encabezado Principal */
+        .header-section { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 15px; }
+        .date-section { text-align: right; font-weight: bold; font-size: 0.9em; }
+        #fechaReporte { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; font-size: 1em; }
+        .header-logo { width: 120px; }
+        .title-bg { background-color: var(--acp-green); color: white; font-size: 1.3rem; font-weight: bold; text-align: center; padding: 10px; flex: 1; border-radius: 4px; text-transform: uppercase; }
 
-        .button-group { display: flex; gap: 10px; margin-top: 20px; }
+        /* Sección de Usuario (Responsive) */
+        .user-cards-section { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .user-card { flex: 1; min-width: calc(33.333% - 10px); background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; }
+        .user-card-header { background-color: var(--acp-green); color: white; font-size: 0.85em; font-weight: bold; padding: 5px; text-align: center; text-transform: uppercase; }
+        .user-card-body { padding: 10px; text-align: center; }
         
-        .btn-guardar { 
-            background-color: var(--acp-green); color: white; border: none; padding: 15px 20px; 
-            border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; flex: 1;
-        }
-        .btn-descargar {
-            background-color: var(--secondary); color: white; border: none; padding: 15px 20px; 
-            border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; flex: 1;
-        }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-size: 1rem; }
+        .readonly-field { background-color: #eee; font-weight: bold; color: #333; }
+
+        /* Tabla de Combustible (Responsive) */
+        .fuel-table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table.fuel-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: auto; }
+        .fuel-table th, .fuel-table td { border: 1px solid #333; padding: 8px 4px; text-align: center; font-size: 0.85em; }
+        .fuel-table th { background-color: var(--acp-green); color: white; text-transform: uppercase; }
+        .fuel-table td { font-weight: bold; }
+        
+        .gasolina-label { background-color: red; color: white; }
+        .petroleo-label { background-color: var(--acp-green); color: white; }
+        .cell-total { font-size: 1.1em; font-weight: bold; color: #333; }
+
+        /* Botones Finales */
+        .button-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .btn { border: none; padding: 15px 20px; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; flex: 1; min-width: 200px; text-transform: uppercase; }
+        .btn-guardar { background-color: var(--acp-green); color: white; }
+        .btn-descargar { background-color: var(--secondary); color: white; }
         .btn-guardar:hover { background-color: #005e26; }
         .btn-descargar:hover { background-color: #475569; }
-        
-        /* Estilo para que el botón se oculte durante la captura si fuera necesario */
-        .no-export { display: none !important; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Media Queries para Pantallas Pequeñas */
+        @media screen and (max-width: 600px) {
+            body { padding: 5px; }
+            .container { padding: 10px; }
+            .header-section { flex-direction: column; text-align: center; }
+            .date-section { text-align: center; }
+            .header-logo { width: 100px; }
+            .title-bg { width: 100%; font-size: 1.1rem; }
+            
+            .user-card { min-width: 100%; }
+            .user-card-header { font-size: 0.9em; }
+            
+            /* Abreviar encabezados largos de la tabla */
+            .fuel-table th.varilla::after { content: " V. FINAL"; display: block; font-size: 0.7em; }
+            .fuel-table th.total::after { content: " TOT. GLS"; display: block; font-size: 0.7em; }
+            .th-long { display: none; }
+            
+            .gasolina-label, .petroleo-label { font-size: 0.8em; }
+            .fuel-table td input { font-size: 0.9em; padding: 6px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container" id="captureArea">
-    <div class="date-section">
-        FECHA: <input type="date" id="fechaReporte">
-    </div>
+<div class="main-wrapper">
+    <div class="container" id="captureArea">
+        <div class="date-section no-export">
+            FECHA: <input type="date" id="fechaReporte">
+        </div>
 
-    <table>
-        <tr>
-            <td rowspan="2" style="width: 20%;"><img src="logo.png" alt="ACP" class="header-logo"></td>
-            <td class="title-bg">REPORTE DE SALDOS</td>
-        </tr>
-    </table>
+        <div class="header-section">
+            <img src="logo.png" alt="ACP" class="header-logo">
+            <div class="title-bg">REPORTE DE SALDOS</div>
+        </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 20%;">DNI</th>
-                <th>NOMBRES Y APELLIDOS</th>
-                <th style="width: 20%;">TURNO</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><input type="text" id="dniInput" class="readonly-field" readonly placeholder="--------"></td>
-                <td>
+        <div class="user-cards-section">
+            <div class="user-card">
+                <div class="user-card-header">DNI</div>
+                <div class="user-card-body">
+                    <input type="text" id="dniInput" class="readonly-field" readonly placeholder="--------">
+                </div>
+            </div>
+            <div class="user-card">
+                <div class="user-card-header">NOMBRES Y APELLIDOS</div>
+                <div class="user-card-body">
                     <select id="operarioSelect" onchange="vincularDNI()">
                         <option value="">-- Seleccione Operario --</option>
                         <option value="77103804">WILDER NEYRA PAICO</option>
@@ -82,47 +109,53 @@
                         <option value="16454237">FELIPE FERNANDEZ TERRONES</option>
                     </select>
                 </td>
-                <td>
+                </div>
+            </div>
+            <div class="user-card">
+                <div class="user-card-header">TURNO</div>
+                <div class="user-card-body">
                     <select id="turnoSelect" onchange="guardarEnNube()">
                         <option value="DIA">DIA</option>
                         <option value="NOCHE">NOCHE</option>
                     </select>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                </div>
+            </div>
+        </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>TIPO COMBUSTIBLE</th>
-                <th>VARILLA FINAL</th>
-                <th>SALDO FINAL</th>
-                <th>ISOTANQUES</th>
-                <th>TOTAL GALONES</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="gasolina-label">GASOLINA</td>
-                <td><input type="number" id="vGasolina" step="0.1" value="0.0" oninput="calcularTotales()"></td>
-                <td id="sGasolina" class="readonly-field">0.00</td>
-                <td><input type="number" id="iGasolina" class="readonly-field" readonly step="0.01" value="0.00"></td>
-                <td id="tGasolina" style="font-weight: bold;">0.00</td>
-            </tr>
-            <tr>
-                <td class="petroleo-label">PETROLEO</td>
-                <td><input type="number" id="vPetroleo" step="0.1" value="0.0" oninput="calcularTotales()"></td>
-                <td id="sPetroleo" class="readonly-field">0.00</td>
-                <td><input type="number" id="iPetroleo" class="readonly-field" readonly step="0.01" value="0.00"></td>
-                <td id="tPetroleo" style="font-weight: bold;">0.00</td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="fuel-table-wrapper">
+            <table class="fuel-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">PRODUCTO</th>
+                        <th style="width: 20%;">V. FINAL</th>
+                        <th style="width: 20%;">SALDO</th>
+                        <th style="width: 20%;">ISOT.</th>
+                        <th style="width: 20%;">TOT. GLS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="gasolina-label">GASOLINA</td>
+                        <td><input type="number" id="vGasolina" step="0.1" value="0.0" oninput="calcularTotales()"></td>
+                        <td id="sGasolina">0.00</td>
+                        <td><input type="number" id="iGasolina" class="readonly-field" readonly step="0.01" value="0.00"></td>
+                        <td id="tGasolina" class="cell-total">0.00</td>
+                    </tr>
+                    <tr>
+                        <td class="petroleo-label">PETROLEO</td>
+                        <td><input type="number" id="vPetroleo" step="0.1" value="0.0" oninput="calcularTotales()"></td>
+                        <td id="sPetroleo">0.00</td>
+                        <td><input type="number" id="iPetroleo" class="readonly-field" readonly step="0.01" value="0.00"></td>
+                        <td id="tPetroleo" class="cell-total">0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <div class="button-group">
-        <button class="btn-guardar" onclick="enviarReporteFinal()">ENVIAR REPORTE FINAL</button>
-        <button id="btnImg" class="btn-descargar" onclick="descargarComoImagen()">DESCARGAR COMO IMAGEN</button>
+        <button class="btn btn-guardar" onclick="enviarReporteFinal()">ENVIAR REPORTE FINAL</button>
+        <button id="btnImg" class="btn btn-descargar" onclick="descargarComoImagen()">DESCARGAR COMO IMAGEN</button>
     </div>
 </div>
 
@@ -235,20 +268,30 @@
         }
     }
 
-    // --- NUEVA FUNCIÓN DE EXPORTACIÓN ---
+    // --- FUNCIÓN DE EXPORTACIÓN (AJUSTADA PARA RESPONSIVE) ---
     function descargarComoImagen() {
         const area = document.getElementById('captureArea');
-        const btnGrupo = document.querySelector('.button-group');
         const btnImg = document.getElementById('btnImg');
 
-        // 1. Ocultamos los botones temporalmente para que no salgan en la foto
-        btnGrupo.style.visibility = 'hidden';
         btnImg.innerText = "GENERANDO...";
+        btnImg.disabled = true;
+
+        // Forzamos un ancho de captura mayor para asegurar la renderización
+        const width = 800;
 
         html2canvas(area, {
-            scale: 2, // Mejora la calidad de la imagen
-            useCORS: true, // Permite cargar el logo si viene de URL externa
-            backgroundColor: "#f1f5f9" // Color de fondo del reporte
+            scale: 2, // Mejora la calidad
+            useCORS: true,
+            width: width, // Ancho fijo para la captura
+            onclone: (clonedDoc) => {
+                // Modificamos el clon para que el diseño se renderice perfecto en la imagen
+                clonedDoc.getElementById('captureArea').style.width = `${width}px`;
+                clonedDoc.getElementById('captureArea').style.padding = '20px';
+                
+                // Ocultamos la sección de fecha durante la exportación (solo la imagen)
+                const dateSec = clonedDoc.querySelector('.date-section');
+                if (dateSec) dateSec.style.display = 'none';
+            }
         }).then(canvas => {
             const link = document.createElement('a');
             const fecha = document.getElementById('fechaReporte').value || 'reporte';
@@ -256,9 +299,8 @@
             link.href = canvas.toDataURL("image/png");
             link.click();
 
-            // 2. Restauramos los botones
-            btnGrupo.style.visibility = 'visible';
             btnImg.innerText = "DESCARGAR COMO IMAGEN";
+            btnImg.disabled = false;
         });
     }
 </script>
