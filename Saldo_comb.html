@@ -22,7 +22,6 @@
         .header-logo { width: 120px; flex-shrink: 0; }
         .title-bg { background-color: var(--acp-green); color: white; font-size: 1.3rem; font-weight: bold; text-align: center; padding: 15px; flex: 1; border-radius: 4px; text-transform: uppercase; min-width: 200px; }
         
-        /* Ajuste visual de la fecha */
         .date-box { background: #f8fafc; border: 1px solid var(--acp-green); padding: 5px; border-radius: 4px; text-align: center; min-width: 140px; flex-shrink: 0; }
         .date-label { display: block; font-size: 0.7em; font-weight: bold; color: var(--acp-green); margin-bottom: 2px; }
         #fechaReporte { border: none; background: transparent; font-family: inherit; font-weight: bold; font-size: 0.9em; color: #333; cursor: pointer; text-align: center; width: 100%; outline: none; }
@@ -49,6 +48,39 @@
         .btn-guardar { background-color: var(--acp-green); color: white; }
         .btn-descargar { background-color: var(--secondary); color: white; }
 
+        /* --- NUEVOS ESTILOS PARA EL CARGADOR --- */
+        .loader-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            display: none; /* Oculto por defecto */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--acp-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .loader-text {
+            margin-top: 15px;
+            font-family: sans-serif;
+            font-weight: bold;
+            color: var(--acp-green);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media screen and (max-width: 600px) {
             .header-section { flex-direction: column; }
             .user-card { min-width: 100%; }
@@ -56,6 +88,11 @@
     </style>
 </head>
 <body>
+
+<div id="loader" class="loader-overlay">
+    <div class="spinner"></div>
+    <div class="loader-text" id="loaderText">Cargando datos...</div>
+</div>
 
 <div class="main-wrapper">
     <div class="container" id="captureArea">
@@ -139,8 +176,21 @@
 
 <script>
     const scriptUrl = "https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec";
+    const loader = document.getElementById('loader');
+    const loaderText = document.getElementById('loaderText');
+
+    // Función para gestionar el estado visual de carga
+    function showLoading(text) {
+        loaderText.innerText = text || "Procesando...";
+        loader.style.display = 'flex';
+    }
+
+    function hideLoading() {
+        loader.style.display = 'none';
+    }
 
     document.addEventListener('DOMContentLoaded', async function() {
+        showLoading("Sincronizando con la nube...");
         try {
             // 1. Cargar fecha
             const resFecha = await fetch(`${scriptUrl}?action=getUltimaFecha`);
@@ -155,7 +205,7 @@
                 document.getElementById('iPetroleo').value = dataSist.reservas.diesel || 0;
             }
             
-            // 3. RECUPERAR EL BORRADOR DE LA NUBE (Lo que faltaba)
+            // 3. RECUPERAR EL BORRADOR DE LA NUBE
             const resBorrador = await fetch(`${scriptUrl}?action=getEstadoBorrador`);
             const borrador = await resBorrador.json();
             if (borrador) {
@@ -167,20 +217,30 @@
             }
             
             // 4. Calcular una vez cargado todo
-            calcularTotales();
-        } catch (e) { console.error("Error en carga inicial:", e); }
+            await calcularTotales();
+        } catch (e) { 
+            console.error("Error en carga inicial:", e); 
+        } finally {
+            hideLoading();
+        }
     });
 
     async function calcularTotales() {
         const vGas = document.getElementById('vGasolina').value;
         const vPet = document.getElementById('vPetroleo').value;
         
-        await Promise.all([
-            actualizarSaldo('GASOLINA', vGas, 'sGasolina', 'iGasolina', 'tGasolina'),
-            actualizarSaldo('PETROLEO', vPet, 'sPetroleo', 'iPetroleo', 'tPetroleo')
-        ]);
-        
-        guardarEnNube(); // Sincroniza con el Excel
+        // Solo mostrar carga si realmente hay algo que calcular
+        if(vGas || vPet) showLoading("Calculando saldos...");
+
+        try {
+            await Promise.all([
+                actualizarSaldo('GASOLINA', vGas, 'sGasolina', 'iGasolina', 'tGasolina'),
+                actualizarSaldo('PETROLEO', vPet, 'sPetroleo', 'iPetroleo', 'tPetroleo')
+            ]);
+            guardarEnNube(); 
+        } finally {
+            hideLoading();
+        }
     }
 
     async function actualizarSaldo(tipo, valor, idSaldo, idIso, idTotal) {
@@ -206,7 +266,6 @@
             operario: document.getElementById('operarioSelect').value,
             turno: document.getElementById('turnoSelect').value
         };
-        // Usamos fetch modo no-cors para el POST al script de Google
         fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
     }
 
@@ -218,15 +277,21 @@
     async function enviarReporteFinal() {
         const btn = document.querySelector('.btn-guardar');
         btn.innerText = "ENVIANDO...";
-        // Lógica de envío final aquí...
-        alert("Reporte guardado con éxito.");
-        btn.innerText = "ENVIAR REPORTE FINAL";
+        showLoading("Guardando reporte final...");
+        
+        // Simulación de envío (aquí va tu lógica de envío final)
+        setTimeout(() => {
+            alert("Reporte guardado con éxito.");
+            btn.innerText = "ENVIAR REPORTE FINAL";
+            hideLoading();
+        }, 1500);
     }
 
     function descargarComoImagen() {
         const area = document.getElementById('captureArea');
         const btnImg = document.getElementById('btnImg');
         btnImg.innerText = "GENERANDO...";
+        showLoading("Generando imagen...");
 
         html2canvas(area, {
             scale: 2,
@@ -238,6 +303,7 @@
             link.href = canvas.toDataURL("image/png");
             link.click();
             btnImg.innerText = "DESCARGAR COMO IMAGEN";
+            hideLoading();
         });
     }
 </script>
