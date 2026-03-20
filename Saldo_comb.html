@@ -90,14 +90,14 @@
                 <td class="gasolina-label">GASOLINA</td>
                 <td><input type="number" id="vGasolina" step="0.1" value="0.0" oninput="calcularTotales()"></td>
                 <td id="sGasolina" class="readonly-field">0.00</td>
-                <td><input type="number" id="iGasolina" step="0.01" value="0.00" oninput="calcularTotales()"></td>
+                <td><input type="number" id="iGasolina" class="readonly-field" readonly step="0.01" value="0.00"></td>
                 <td id="tGasolina" style="font-weight: bold;">0.00</td>
             </tr>
             <tr>
                 <td class="petroleo-label">PETROLEO</td>
                 <td><input type="number" id="vPetroleo" step="0.1" value="0.0" oninput="calcularTotales()"></td>
                 <td id="sPetroleo" class="readonly-field">0.00</td>
-                <td><input type="number" id="iPetroleo" step="0.01" value="0.00" oninput="calcularTotales()"></td>
+                <td><input type="number" id="iPetroleo" class="readonly-field" readonly step="0.01" value="0.00"></td>
                 <td id="tPetroleo" style="font-weight: bold;">0.00</td>
             </tr>
         </tbody>
@@ -105,64 +105,85 @@
 </div>
 
 <script>
-    // Al cargar la página
-    document.addEventListener('DOMContentLoaded', function() {
-        // Establecer fecha de hoy por defecto
-        const hoy = new Date();
-        const offset = hoy.getTimezoneOffset();
-        const fechaLocal = new Date(hoy.getTime() - (offset*60*1000)).toISOString().split('T')[0];
-        document.getElementById('fechaReporte').value = fechaLocal;
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec";
+
+    // Al cargar la página, recuperamos la última fecha ingresada desde el sistema
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            const response = await fetch(`${scriptUrl}?action=getUltimaFecha`);
+            const data = await response.json();
+            
+            if (data.fecha) {
+                const inputFecha = document.getElementById('fechaReporte');
+                inputFecha.value = data.fecha;
+                // Disparamos el cambio para cargar los isotanques automáticamente
+                inputFecha.dispatchEvent(new Event('change'));
+            }
+        } catch (e) {
+            console.error("Error al obtener la última fecha registrada:", e);
+        }
     });
 
-    // Función para poner el DNI automáticamente al seleccionar nombre
+    // Al cambiar la fecha (o cargarse la inicial), se traen los isotanques de la data principal
+    document.getElementById('fechaReporte').addEventListener('change', async function() {
+        const fechaSelected = this.value;
+        if (!fechaSelected) return;
+
+        try {
+            const response = await fetch(`${scriptUrl}?action=read`);
+            const data = await response.json();
+
+            // Asignamos Isotanques desde la data principal (reservas)
+            document.getElementById('iGasolina').value = data.reservas.gasohol || 0;
+            document.getElementById('iPetroleo').value = data.reservas.diesel || 0;
+
+            calcularTotales();
+        } catch (e) {
+            console.error("Error al sincronizar isotanques:", e);
+        }
+    });
+
     function vincularDNI() {
         const select = document.getElementById('operarioSelect');
         const dniField = document.getElementById('dniInput');
         dniField.value = select.value;
     }
 
-    // Función básica para cálculos (puedes expandirla con tus tablas de cubicación)
     async function calcularTotales() {
-    const vGas = document.getElementById('vGasolina').value;
-    const vPet = document.getElementById('vPetroleo').value;
-    
-    // IMPORTANTE: Cambia esta URL por la de tu implementación actual de Apps Script
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec";
+        const vGas = document.getElementById('vGasolina').value;
+        const vPet = document.getElementById('vPetroleo').value;
+        const promesas = [];
 
-    const promesas = [];
+        if (parseFloat(vGas) >= 0) {
+            promesas.push(
+                fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=GASOLINA&valor=${vGas}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('sGasolina').innerText = parseFloat(data.saldo).toFixed(2);
+                    })
+            );
+        }
 
-    if (parseFloat(vGas) >= 0) {
-        promesas.push(
-            fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=GASOLINA&valor=${vGas}`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('sGasolina').innerText = parseFloat(data.saldo).toFixed(2);
-                })
-        );
+        if (parseFloat(vPet) >= 0) {
+            promesas.push(
+                fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=PETROLEO&valor=${vPet}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('sPetroleo').innerText = parseFloat(data.saldo).toFixed(2);
+                    })
+            );
+        }
+
+        await Promise.all(promesas);
+
+        const isoG = parseFloat(document.getElementById('iGasolina').value) || 0;
+        const saldoG = parseFloat(document.getElementById('sGasolina').innerText) || 0;
+        document.getElementById('tGasolina').innerText = (saldoG + isoG).toFixed(2);
+
+        const isoP = parseFloat(document.getElementById('iPetroleo').value) || 0;
+        const saldoP = parseFloat(document.getElementById('sPetroleo').innerText) || 0;
+        document.getElementById('tPetroleo').innerText = (saldoP + isoP).toFixed(2);
     }
-
-    if (parseFloat(vPet) >= 0) {
-        promesas.push(
-            fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=PETROLEO&valor=${vPet}`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('sPetroleo').innerText = parseFloat(data.saldo).toFixed(2);
-                })
-        );
-    }
-
-    // Esperamos a que ambas consultas terminen para sumar los totales
-    await Promise.all(promesas);
-
-    // Cálculo de galones totales (Saldo + Isotanques)
-    const isoG = parseFloat(document.getElementById('iGasolina').value) || 0;
-    const saldoG = parseFloat(document.getElementById('sGasolina').innerText) || 0;
-    document.getElementById('tGasolina').innerText = (saldoG + isoG).toFixed(2);
-
-    const isoP = parseFloat(document.getElementById('iPetroleo').value) || 0;
-    const saldoP = parseFloat(document.getElementById('sPetroleo').innerText) || 0;
-    document.getElementById('tPetroleo').innerText = (saldoP + isoP).toFixed(2);
-}
 </script>
 
 </body>
