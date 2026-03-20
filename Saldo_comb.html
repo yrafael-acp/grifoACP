@@ -9,55 +9,49 @@
             --acp-green: #007d32;
             --acp-light: #f1f5f9;
             --danger: #ef4444;
-            --secondary: #475569;
+            --secondary: #64748b;
         }
         
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--acp-light); margin: 0; padding: 10px; color: #333; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--acp-light); margin: 0; padding: 10px; }
         
-        .main-wrapper { max-width: 600px; margin: auto; }
-        .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 100%; border: 1px solid #e2e8f0; }
+        .main-wrapper { max-width: 900px; margin: auto; }
+        .container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; overflow: hidden; }
         
-        /* Encabezado */
-        .header-section { text-align: center; margin-bottom: 20px; }
-        .header-logo { width: 130px; margin-bottom: 10px; }
-        .title-bg { background-color: var(--acp-green); color: white; font-size: 1.4rem; font-weight: bold; padding: 12px; border-radius: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .header-section { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .header-logo { width: 120px; flex-shrink: 0; }
+        .title-bg { background-color: var(--acp-green); color: white; font-size: 1.3rem; font-weight: bold; text-align: center; padding: 15px; flex: 1; border-radius: 4px; text-transform: uppercase; min-width: 200px; }
         
-        /* Ajuste Impecable de Fecha */
-        .date-container { margin: 15px 0; width: 100%; }
-        .date-box { border: 2px solid var(--acp-green); border-radius: 8px; overflow: hidden; }
-        .date-label { background-color: #fff; color: var(--acp-green); font-size: 0.75rem; font-weight: bold; padding: 4px 0; display: block; text-transform: uppercase; border-bottom: 1px solid #eee; }
-        #fechaReporte { border: none; padding: 10px; font-weight: bold; font-size: 1.1rem; color: #1e293b; width: 100%; text-align: center; cursor: pointer; outline: none; background: white; }
+        /* Ajuste visual de la fecha */
+        .date-box { background: #f8fafc; border: 1px solid var(--acp-green); padding: 5px; border-radius: 4px; text-align: center; min-width: 140px; flex-shrink: 0; }
+        .date-label { display: block; font-size: 0.7em; font-weight: bold; color: var(--acp-green); margin-bottom: 2px; }
+        #fechaReporte { border: none; background: transparent; font-family: inherit; font-weight: bold; font-size: 0.9em; color: #333; cursor: pointer; text-align: center; width: 100%; outline: none; }
 
-        /* Tarjetas de Datos de Usuario */
-        .user-info { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-        .info-card { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #f8fafc; }
-        .card-label { background-color: var(--acp-green); color: white; font-size: 0.8rem; font-weight: bold; padding: 6px; text-align: center; text-transform: uppercase; }
-        .card-content { padding: 8px; }
+        .user-cards-section { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .user-card { flex: 1; min-width: calc(33.333% - 10px); background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; }
+        .user-card-header { background-color: var(--acp-green); color: white; font-size: 0.85em; font-weight: bold; padding: 5px; text-align: center; text-transform: uppercase; }
+        .user-card-body { padding: 10px; text-align: center; }
         
-        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center; font-size: 1rem; color: #334155; }
-        .readonly-field { background-color: #f1f5f9; font-weight: bold; border-color: #e2e8f0; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-size: 1rem; }
+        .readonly-field { background-color: #eee; font-weight: bold; color: #333; }
 
-        /* Tabla Profesional */
-        .table-wrapper { width: 100%; margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid #333; }
-        table { width: 100%; border-collapse: collapse; background: white; }
-        th, td { border: 1px solid #333; padding: 10px 5px; text-align: center; font-size: 0.85rem; }
-        th { background-color: var(--acp-green); color: white; font-weight: 600; text-transform: uppercase; }
+        .fuel-table-wrapper { width: 100%; overflow-x: auto; }
+        table.fuel-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .fuel-table th, .fuel-table td { border: 1px solid #333; padding: 8px 4px; text-align: center; font-size: 0.85em; }
+        .fuel-table th { background-color: var(--acp-green); color: white; text-transform: uppercase; }
         
-        .gasolina-label { background-color: #ff0000; color: white; font-weight: bold; }
+        .gasolina-label { background-color: red; color: white; font-weight: bold; }
         .petroleo-label { background-color: var(--acp-green); color: white; font-weight: bold; }
-        .cell-bold { font-weight: bold; color: #0f172a; font-size: 1rem; }
+        .cell-total { font-size: 1.1em; font-weight: bold; color: #333; }
 
-        /* Botones */
-        .button-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .btn { border: none; padding: 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; text-transform: uppercase; transition: all 0.2s; }
-        .btn-guardar { background-color: var(--acp-green); color: white; box-shadow: 0 4px 6px -1px rgba(0, 125, 50, 0.3); }
-        .btn-descargar { background-color: #334155; color: white; }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
+        .button-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .btn { border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; flex: 1; min-width: 200px; }
+        .btn-guardar { background-color: var(--acp-green); color: white; }
+        .btn-descargar { background-color: var(--secondary); color: white; }
 
-        @media screen and (max-width: 480px) {
-            .title-bg { font-size: 1.2rem; }
-            th, td { font-size: 0.75rem; padding: 8px 3px; }
+        @media screen and (max-width: 600px) {
+            .header-section { flex-direction: column; }
+            .user-card { min-width: 100%; }
         }
     </style>
 </head>
@@ -66,29 +60,24 @@
 <div class="main-wrapper">
     <div class="container" id="captureArea">
         <div class="header-section">
-            <img src="logo.png" alt="Logo ACP" class="header-logo">
-            <div class="title-bg">Reporte de Saldos</div>
-        </div>
-
-        <div class="date-container">
+            <img src="logo.png" alt="ACP" class="header-logo">
+            <div class="title-bg">REPORTE DE SALDOS</div>
             <div class="date-box">
-                <span class="date-label">Fecha de Reporte</span>
+                <span class="date-label">FECHA DE REPORTE</span>
                 <input type="date" id="fechaReporte">
             </div>
         </div>
 
-        <div class="user-info">
-            <div class="info-card">
-                <div class="card-label">DNI</div>
-                <div class="card-content">
-                    <input type="text" id="dniInput" class="readonly-field" readonly placeholder="Seleccione operario">
-                </div>
+        <div class="user-cards-section">
+            <div class="user-card">
+                <div class="user-card-header">DNI</div>
+                <div class="user-card-body"><input type="text" id="dniInput" class="readonly-field" readonly></div>
             </div>
-            <div class="info-card">
-                <div class="card-label">Operario</div>
-                <div class="card-content">
+            <div class="user-card">
+                <div class="user-card-header">OPERARIO</div>
+                <div class="user-card-body">
                     <select id="operarioSelect" onchange="vincularDNI()">
-                        <option value="">-- Seleccionar --</option>
+                        <option value="">-- Seleccione --</option>
                         <option value="77103804">WILDER NEYRA PAICO</option>
                         <option value="76181486">LUIS ANGEL JUAREZ ELIAS</option>
                         <option value="74308732">CARLOS ORRILLO CRUZADO</option>
@@ -98,9 +87,9 @@
                     </select>
                 </div>
             </div>
-            <div class="info-card">
-                <div class="card-label">Turno</div>
-                <div class="card-content">
+            <div class="user-card">
+                <div class="user-card-header">TURNO</div>
+                <div class="user-card-body">
                     <select id="turnoSelect" onchange="guardarEnNube()">
                         <option value="DIA">DIA</option>
                         <option value="NOCHE">NOCHE</option>
@@ -109,11 +98,11 @@
             </div>
         </div>
 
-        <div class="table-wrapper">
-            <table>
+        <div class="fuel-table-wrapper">
+            <table class="fuel-table">
                 <thead>
                     <tr>
-                        <th style="width: 25%;">PRODUCTO</th>
+                        <th>PRODUCTO</th>
                         <th>V. FINAL</th>
                         <th>SALDO</th>
                         <th>ISOT.</th>
@@ -126,14 +115,14 @@
                         <td><input type="number" id="vGasolina" step="0.1" oninput="calcularTotales()"></td>
                         <td id="sGasolina" class="readonly-field">0.00</td>
                         <td><input type="number" id="iGasolina" class="readonly-field" readonly></td>
-                        <td id="tGasolina" class="cell-bold">0.00</td>
+                        <td id="tGasolina" class="cell-total">0.00</td>
                     </tr>
                     <tr>
                         <td class="petroleo-label">PETROLEO</td>
                         <td><input type="number" id="vPetroleo" step="0.1" oninput="calcularTotales()"></td>
                         <td id="sPetroleo" class="readonly-field">0.00</td>
                         <td><input type="number" id="iPetroleo" class="readonly-field" readonly></td>
-                        <td id="tPetroleo" class="cell-bold">0.00</td>
+                        <td id="tPetroleo" class="cell-total">0.00</td>
                     </tr>
                 </tbody>
             </table>
@@ -141,8 +130,8 @@
     </div>
 
     <div class="button-group">
-        <button class="btn btn-guardar" onclick="enviarReporteFinal()">Enviar Reporte Final</button>
-        <button id="btnImg" class="btn btn-descargar" onclick="descargarComoImagen()">Descargar como Imagen</button>
+        <button class="btn btn-guardar" onclick="enviarReporteFinal()">ENVIAR REPORTE FINAL</button>
+        <button id="btnImg" class="btn btn-descargar" onclick="descargarComoImagen()">DESCARGAR COMO IMAGEN</button>
     </div>
 </div>
 
@@ -151,77 +140,106 @@
 <script>
     const scriptUrl = "https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec";
 
-    // Lógica de carga y cálculos (se mantiene tu estructura funcional)
     document.addEventListener('DOMContentLoaded', async function() {
         try {
+            // 1. Cargar fecha
             const resFecha = await fetch(`${scriptUrl}?action=getUltimaFecha`);
             const dataFecha = await resFecha.json();
             if (dataFecha.fecha) document.getElementById('fechaReporte').value = dataFecha.fecha;
 
+            // 2. Cargar Isotanque
             const resSist = await fetch(`${scriptUrl}?action=read`);
             const dataSist = await resSist.json();
             if (dataSist.reservas) {
                 document.getElementById('iGasolina').value = dataSist.reservas.gasohol || 0;
                 document.getElementById('iPetroleo').value = dataSist.reservas.diesel || 0;
             }
+            
+            // 3. RECUPERAR EL BORRADOR DE LA NUBE (Lo que faltaba)
+            const resBorrador = await fetch(`${scriptUrl}?action=getEstadoBorrador`);
+            const borrador = await resBorrador.json();
+            if (borrador) {
+                document.getElementById('vGasolina').value = borrador.vGas || "";
+                document.getElementById('vPetroleo').value = borrador.vPet || "";
+                document.getElementById('operarioSelect').value = borrador.operario || "";
+                document.getElementById('turnoSelect').value = borrador.turno || "DIA";
+                vincularDNI();
+            }
+            
+            // 4. Calcular una vez cargado todo
             calcularTotales();
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Error en carga inicial:", e); }
     });
 
     async function calcularTotales() {
         const vGas = document.getElementById('vGasolina').value;
         const vPet = document.getElementById('vPetroleo').value;
-        actualizarSaldo('GASOLINA', vGas, 'sGasolina', 'iGasolina', 'tGasolina');
-        actualizarSaldo('PETROLEO', vPet, 'sPetroleo', 'iPetroleo', 'tPetroleo');
+        
+        await Promise.all([
+            actualizarSaldo('GASOLINA', vGas, 'sGasolina', 'iGasolina', 'tGasolina'),
+            actualizarSaldo('PETROLEO', vPet, 'sPetroleo', 'iPetroleo', 'tPetroleo')
+        ]);
+        
+        guardarEnNube(); // Sincroniza con el Excel
     }
 
     async function actualizarSaldo(tipo, valor, idSaldo, idIso, idTotal) {
-        if (valor >= 0) {
-            const res = await fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=${tipo}&valor=${valor}`);
-            const data = await res.json();
-            if (data.saldo !== undefined) {
-                const s = parseFloat(data.saldo);
-                document.getElementById(idSaldo).innerText = s.toFixed(2);
-                const iso = parseFloat(document.getElementById(idIso).value) || 0;
-                document.getElementById(idTotal).innerText = (s + iso).toFixed(2);
-            }
+        if (valor && valor >= 0) {
+            try {
+                const res = await fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=${tipo}&valor=${valor}`);
+                const data = await res.json();
+                if (data.saldo !== undefined) {
+                    const s = parseFloat(data.saldo);
+                    document.getElementById(idSaldo).innerText = s.toFixed(2);
+                    const iso = parseFloat(document.getElementById(idIso).value) || 0;
+                    document.getElementById(idTotal).innerText = (s + iso).toFixed(2);
+                }
+            } catch (e) { console.error("Error saldo:", e); }
         }
+    }
+
+    async function guardarEnNube() {
+        const datos = {
+            action: 'guardarEstadoBorrador',
+            vGas: document.getElementById('vGasolina').value,
+            vPet: document.getElementById('vPetroleo').value,
+            operario: document.getElementById('operarioSelect').value,
+            turno: document.getElementById('turnoSelect').value
+        };
+        // Usamos fetch modo no-cors para el POST al script de Google
+        fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
     }
 
     function vincularDNI() {
         document.getElementById('dniInput').value = document.getElementById('operarioSelect').value;
+        guardarEnNube();
     }
 
-    // DESCARGA DE IMAGEN MEJORADA PARA JEFATURA
+    async function enviarReporteFinal() {
+        const btn = document.querySelector('.btn-guardar');
+        btn.innerText = "ENVIANDO...";
+        // Lógica de envío final aquí...
+        alert("Reporte guardado con éxito.");
+        btn.innerText = "ENVIAR REPORTE FINAL";
+    }
+
     function descargarComoImagen() {
         const area = document.getElementById('captureArea');
         const btnImg = document.getElementById('btnImg');
-        btnImg.innerText = "Procesando...";
+        btnImg.innerText = "GENERANDO...";
 
         html2canvas(area, {
-            scale: 3, // Máxima calidad
+            scale: 2,
             useCORS: true,
             backgroundColor: "#ffffff",
-            borderRadius: 12,
-            onclone: (clonedDoc) => {
-                // Aseguramos que el recuadro de fecha no se mueva en el clon
-                clonedDoc.getElementById('captureArea').style.boxShadow = "none";
-                clonedDoc.getElementById('captureArea').style.border = "none";
-            }
         }).then(canvas => {
             const link = document.createElement('a');
-            const fechaVal = document.getElementById('fechaReporte').value;
-            link.download = `REPORTE_SALDOS_ACP_${fechaVal}.png`;
+            link.download = `Saldo_ACP_${document.getElementById('fechaReporte').value}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
-            btnImg.innerText = "Descargar como Imagen";
+            btnImg.innerText = "DESCARGAR COMO IMAGEN";
         });
     }
-
-    function enviarReporteFinal() {
-        alert("Reporte enviado con éxito al servidor.");
-    }
 </script>
-
 </body>
 </html>
