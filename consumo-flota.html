@@ -78,6 +78,9 @@
                     <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
                     </button>
+                    <button onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+    <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
+</button>
                     <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
                     </button>
@@ -489,6 +492,111 @@
                 alert("Semana cerrada exitosamente.");
             } catch (e) { alert("Error al cerrar semana."); }
         }
+//CODIGO AGREGADO 
+        let cacheConsultaOrden = [];
+
+function abrirModalConsulta() { document.getElementById('modalConsulta').style.display = 'flex'; }
+function cerrarModalConsulta() { document.getElementById('modalConsulta').style.display = 'none'; }
+
+async function ejecutarConsultaOrden() {
+    const input = document.getElementById('inputOrdenes').value;
+    const fDesde = document.getElementById('fechaDesde').value;
+    const fHasta = document.getElementById('fechaHasta').value;
+
+    if (!input) return alert("Por favor, ingresa al menos una orden.");
+    
+    const listaBusqueda = input.split(',').map(o => o.trim().toUpperCase());
+    const tbody = document.querySelector('#tablaResultadoOrden tbody');
+    const estado = document.getElementById('estadoConsulta');
+    const container = document.getElementById('tablaConsultaContainer');
+    const btnExp = document.getElementById('btnExportarOrden');
+    const resumen = document.getElementById('resumenEstadistico');
+
+    estado.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Procesando historial...';
+    estado.classList.remove('hidden');
+    container.classList.add('hidden');
+    btnExp.classList.add('hidden');
+    resumen.classList.add('hidden');
+
+    try {
+        // Obtenemos toda la base de datos (independiente de la semana actual)
+        const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal&fecha=ALL`); 
+        const data = await res.json();
+        
+        cacheConsultaOrden = [];
+        tbody.innerHTML = "";
+        let sumaGalones = 0;
+        let sumaImporte = 0;
+
+        const dInicio = fDesde ? new Date(fDesde + "T00:00:00") : null;
+        const dFin = fHasta ? new Date(fHasta + "T23:59:59") : null;
+
+        Object.keys(data).forEach(placa => {
+            if (data[placa].registros) {
+                data[placa].registros.forEach(reg => {
+                    const fechaReg = new Date(reg.fecha + "T12:00:00");
+                    const cumpleOrden = listaBusqueda.includes(reg.orden?.toString().trim());
+                    
+                    let cumpleFecha = true;
+                    if (dInicio && fechaReg < dInicio) cumpleFecha = false;
+                    if (dFin && fechaReg > dFin) cumpleFecha = false;
+
+                    if (cumpleOrden && cumpleFecha) {
+                        const gal = parseFloat(reg.cantidad || 0);
+                        const imp = parseFloat(reg.importe || 0);
+                        sumaGalones += gal;
+                        sumaImporte += imp;
+
+                        const item = {
+                            "Fecha contabiliz.": reg.fecha,
+                            "Descripción material": reg.tipo,
+                            "Placa": placa,
+                            "Documento material": reg.doc || "N/A",
+                            "Ctd.en UM entrada": gal,
+                            "Impte.mon.local": imp,
+                            "Orden": reg.orden
+                        };
+                        cacheConsultaOrden.push(item);
+                        
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-blue-50 border-b">
+                                <td class="p-2">${item["Fecha contabiliz."]}</td>
+                                <td class="p-2">${item["Descripción material"]}</td>
+                                <td class="p-2 font-bold">${item["Placa"]}</td>
+                                <td class="p-2">${item["Documento material"]}</td>
+                                <td class="p-2 font-bold text-blue-700">${item["Ctd.en UM entrada"].toFixed(2)}</td>
+                                <td class="p-2 font-bold text-green-700">${item["Impte.mon.local"].toFixed(2)}</td>
+                                <td class="p-2 font-black text-indigo-600 bg-indigo-50">${item["Orden"]}</td>
+                            </tr>`;
+                    }
+                });
+            }
+        });
+
+        if (cacheConsultaOrden.length > 0) {
+            estado.classList.add('hidden');
+            container.classList.remove('hidden');
+            btnExp.classList.remove('hidden');
+            resumen.classList.remove('hidden');
+            document.getElementById('totalGalonesConsulta').innerHTML = `<i class="fas fa-gas-pump mr-1"></i> ${sumaGalones.toFixed(2)} GLN`;
+            document.getElementById('totalImporteConsulta').innerHTML = `<i class="fas fa-money-bill-wave mr-1"></i> S/ ${sumaImporte.toFixed(2)}`;
+        } else {
+            estado.innerHTML = "No se encontraron resultados para los criterios ingresados.";
+        }
+    } catch (e) {
+        estado.innerHTML = "Error al conectar con la base de datos.";
+    }
+}
+
+function exportarConsultaExcel() {
+    if (cacheConsultaOrden.length === 0) return;
+    const ws = XLSX.utils.json_to_sheet(cacheConsultaOrden);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Consulta_Filtrada");
+    XLSX.writeFile(wb, `Reporte_Ordenes_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+        //CODIGO AGREGADO
+        
 // ... (Mantén todo el código anterior idéntico)
 
         window.onload = async () => {
@@ -509,6 +617,74 @@
             // Al terminar, renderTabla se ejecutará, pero ya aseguramos los modales
             await sincronizarDesdeNube();
         };
+
+        //CODIGO AGREGADO
+        <div id="modalConsulta" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+    <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[1000px] max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="p-4 bg-indigo-800 text-white flex justify-between items-center text-sm font-bold">
+            <span><i class="fas fa-database mr-2"></i> CONSULTA POR ORDEN Y RANGO DE FECHAS</span>
+            <button onclick="cerrarModalConsulta()" class="text-2xl">&times;</button>
+        </div>
+        
+        <div class="p-4 bg-gray-50 border-b flex flex-col gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Órdenes Estadísticas (separadas por coma)</label>
+                    <input type="text" id="inputOrdenes" placeholder="Ej: 100456, 100789" class="w-full p-2 border rounded text-xs outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Desde</label>
+                        <input type="date" id="fechaDesde" class="w-full p-2 border rounded text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Hasta</label>
+                        <input type="date" id="fechaHasta" class="w-full p-2 border rounded text-xs">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between items-center">
+                <div id="resumenEstadistico" class="hidden flex gap-4 text-[11px]">
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold" id="totalGalonesConsulta"></span>
+                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold" id="totalImporteConsulta"></span>
+                </div>
+                <div class="flex gap-2 ml-auto">
+                    <button onclick="ejecutarConsultaOrden()" class="bg-indigo-600 text-white px-6 py-2 rounded text-xs font-bold uppercase hover:bg-indigo-700 transition shadow">
+                        <i class="fas fa-search mr-1"></i> Consultar
+                    </button>
+                    <button onclick="exportarConsultaExcel()" id="btnExportarOrden" class="hidden bg-green-600 text-white px-6 py-2 rounded text-xs font-bold uppercase hover:bg-green-700 transition shadow">
+                        <i class="fas fa-file-excel mr-1"></i> Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 overflow-y-auto flex-1 bg-white">
+            <div id="tablaConsultaContainer" class="hidden">
+                <table class="w-full text-[10px] border-collapse" id="tablaResultadoOrden">
+                    <thead class="bg-gray-100 sticky top-0 border-b">
+                        <tr class="text-left text-gray-600">
+                            <th class="p-2">FECHA CONTAB.</th>
+                            <th class="p-2">DESCRIPCIÓN MATERIAL</th>
+                            <th class="p-2">PLACA</th>
+                            <th class="p-2">DOC. MATERIAL</th>
+                            <th class="p-2">CTD. UM</th>
+                            <th class="p-2">IMPTE. LOCAL</th>
+                            <th class="p-2">ORDEN</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y text-gray-700"></tbody>
+                </table>
+            </div>
+            <div id="estadoConsulta" class="text-center py-10 text-gray-400 italic text-sm">
+                Ingresa los datos para filtrar el historial...
+            </div>
+        </div>
+    </div>
+</div>
+        //CODIGO AGREGADO
+        
     </script>
+    
 </body>
 </html>
