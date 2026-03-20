@@ -74,6 +74,81 @@
         .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
         .calc-res-box { background: #f1f5f9; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #e2e8f0; }
         .calc-val { display: block; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+
+        /* --- NUEVO CÓDIGO RESPONSIVE (MÓVILES) --- */
+        @media (max-width: 768px) {
+            /* Forzar una sola columna en el dashboard */
+            .dashboard { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+            
+            /* Ajustar la cabecera (logo, titulo) */
+            .card.full-width[style*="background: var(--primary)"] {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 15px;
+                text-align: center;
+            }
+            .header-content {
+                flex-direction: column;
+            }
+            .app-header-logo {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            
+            /* Envolver y acomodar los botones superiores en grilla para que no se superpongan */
+            .card.full-width[style*="background: var(--primary)"] > div:last-child {
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 10px;
+            }
+            .btn-calc, .btn-flota, .btn-logout, .btn-excel {
+                margin: 0 !important;
+                flex: 1 1 calc(50% - 10px); /* Ocupan mitad de pantalla */
+                box-sizing: border-box;
+                font-size: 0.8rem;
+                padding: 10px 5px;
+            }
+
+            /* Apilar tarjetas de stock central (Diesel y Gasohol) */
+            #monitorCard > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* Apilar resumen anual */
+            .annual-summary {
+                flex-direction: column;
+            }
+            
+            /* Apilar filtros del historial (fechas) */
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-bar > div {
+                width: 100%;
+            }
+            
+            /* Darle scroll horizontal a las tablas para evitar que se aplasten */
+            .table-container, .card > table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            /* Ajustar modal de calculadora a una columna */
+            .calc-grid {
+                grid-template-columns: 1fr;
+            }
+            .calc-grid > div {
+                grid-column: span 1 !important;
+            }
+
+            /* Apilar botones de registro de stock de filtros */
+            #registroCard > div[style*="display:flex; gap:10px;"] {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
