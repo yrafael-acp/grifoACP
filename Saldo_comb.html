@@ -152,27 +152,44 @@
     async function calcularTotales() {
         const vGas = document.getElementById('vGasolina').value;
         const vPet = document.getElementById('vPetroleo').value;
-        const promesas = [];
+        
+        // Ejecutamos ambos cálculos de forma independiente para evitar que uno borre al otro
+        actualizarSaldoCombustible('GASOLINA', vGas, 'sGasolina', 'iGasolina', 'tGasolina');
+        actualizarSaldoCombustible('PETROLEO', vPet, 'sPetroleo', 'iPetroleo', 'tPetroleo');
+    }
 
-        if (parseFloat(vGas) >= 0) {
-            promesas.push(
-                fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=GASOLINA&valor=${vGas}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        document.getElementById('sGasolina').innerText = parseFloat(data.saldo).toFixed(2);
-                    })
-            );
+    async function actualizarSaldoCombustible(tipo, valorVarilla, idSaldo, idIso, idTotal) {
+        if (parseFloat(valorVarilla) >= 0) {
+            try {
+                const response = await fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=${tipo}&valor=${valorVarilla}`);
+                const data = await response.json();
+                
+                if (data.saldo !== undefined) {
+                    const saldoFinal = parseFloat(data.saldo);
+                    document.getElementById(idSaldo).innerText = saldoFinal.toFixed(2);
+                    
+                    // Cálculo de total una vez obtenido el saldo
+                    const iso = parseFloat(document.getElementById(idIso).value) || 0;
+                    document.getElementById(idTotal).innerText = (saldoFinal + iso).toFixed(2);
+                }
+            } catch (e) {
+                console.error(`Error calculando saldo de ${tipo}:`, e);
+            }
         }
+    }
 
-        if (parseFloat(vPet) >= 0) {
-            promesas.push(
-                fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=PETROLEO&valor=${vPet}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        document.getElementById('sPetroleo').innerText = parseFloat(data.saldo).toFixed(2);
-                    })
-            );
-        }
+    // Listener para actualizar totales cuando cambian los isotanques manualmente
+    document.getElementById('iGasolina').addEventListener('input', () => {
+        const saldo = parseFloat(document.getElementById('sGasolina').innerText) || 0;
+        const iso = parseFloat(document.getElementById('iGasolina').value) || 0;
+        document.getElementById('tGasolina').innerText = (saldo + iso).toFixed(2);
+    });
+
+    document.getElementById('iPetroleo').addEventListener('input', () => {
+        const saldo = parseFloat(document.getElementById('sPetroleo').innerText) || 0;
+        const iso = parseFloat(document.getElementById('iPetroleo').value) || 0;
+        document.getElementById('tPetroleo').innerText = (saldo + iso).toFixed(2);
+    });
 
         await Promise.all(promesas);
 
