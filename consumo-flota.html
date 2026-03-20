@@ -489,28 +489,25 @@
                 alert("Semana cerrada exitosamente.");
             } catch (e) { alert("Error al cerrar semana."); }
         }
-
- // ... (Mantén todo el código anterior idéntico)
+// ... (Mantén todo el código anterior idéntico)
 
         window.onload = async () => {
-            // 1. Configuramos el estado inicial de las semanas
+            // 1. Forzamos el cierre visual de seguridad antes de cualquier carga
+            document.getElementById('modalRegistro').style.display = 'none';
+            document.getElementById('modalConfig').style.display = 'none';
+
+            // 2. Configuramos el estado de las semanas
             poblarSemanasDelAnio();
             lunesReferencia = getLunesActual(new Date());
             
-            // 2. Establecemos el valor del selector sin disparar eventos visuales
             const selector = document.getElementById('selectorSemanas');
             if (selector) {
                 selector.value = lunesReferencia.toISOString();
             }
 
-            // 3. Cargamos los datos de la nube en segundo plano 
-            // Esto llenará la tabla sin necesidad de abrir ninguna ventana modal
+            // 3. Ejecutamos la sincronización
+            // Al terminar, renderTabla se ejecutará, pero ya aseguramos los modales
             await sincronizarDesdeNube();
-
-            // 4. Aseguramos que los modales estén ocultos al arrancar
-            // (Refuerzo por si algún estilo CSS tardara en cargar)
-            document.getElementById('modalRegistro').style.display = 'none';
-            document.getElementById('modalConfig').style.display = 'none';
         };
     </script>
 </body>
