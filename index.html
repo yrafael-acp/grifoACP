@@ -586,9 +586,17 @@ function parseFechaBase(str) {
 function renderHistorial(lista) {
     const desdeRaw = document.getElementById('filtroDesde').value;
     const hastaRaw = document.getElementById('filtroHasta').value;
-    let filtrada = [...lista];
+    
+    // 1. Crear copia y ORDENAR por fecha (más reciente arriba)
+    let filtrada = [...lista].sort((a, b) => {
+        const fechaA = parseFechaBase(a.fecha);
+        const fechaB = parseFechaBase(b.fecha);
+        return (fechaB ? fechaB.getTime() : 0) - (fechaA ? fechaA.getTime() : 0);
+    });
+
+    // 2. Aplicar filtros de fecha si existen sobre la lista ya ordenada
     if(desdeRaw || hastaRaw) {
-        filtrada = lista.filter(h => {
+        filtrada = filtrada.filter(h => {
             const fechaH = parseFechaBase(h.fecha);
             if(!fechaH) return false;
             fechaH.setHours(0,0,0,0);
@@ -599,6 +607,8 @@ function renderHistorial(lista) {
             return okDesde && okHasta;
         });
     }
+
+    // 3. Dibujar la tabla
     document.getElementById('historialBody').innerHTML = filtrada.map(h => `
         <tr><td>${h.fecha.replace('T',' ').substring(0,16)}</td><td style="color:${h.mov.toUpperCase().includes('INGRESO')?'green':'red'}"><b>${h.mov}</b></td>
         <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>`).join('');
