@@ -255,55 +255,45 @@
             tA += unidad.dotacion;
             tC += d.total;
 
-        function renderTabla(datosConsumo = {}, estructuraUsar = ESTRUCTURA_FLOTA) {
-            const cuerpo = document.getElementById('cuerpoTabla');
-            cuerpo.innerHTML = "";
-            let tA = 0, tC = 0;
+        function renderTabla(flota = []) {
+    const cuerpo = document.getElementById('cuerpoTabla');
+    cuerpo.innerHTML = "";
 
-            estructuraUsar.forEach(grupo => {
-                const totalGrupoConsumo = grupo.p.reduce((acc, pl) => acc + (datosConsumo[pl]?.total || 0), 0);
-                const saldoGrupo = grupo.a - totalGrupoConsumo;
-                const esAlerta = saldoGrupo < 2;
+    let tA = 0, tC = 0;
 
-                grupo.p.forEach((placa, index) => {
-                    const diario = datosConsumo[placa] || {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
-                    const mostrarAsig = index === 0;
-                    if(mostrarAsig) { tA += grupo.a; tC += totalGrupoConsumo; }
+    flota.forEach(unidad => {
+        const d = unidad.consumo;
+        const esAlerta = unidad.saldo < 2;
 
-          cuerpo.innerHTML += `
-                <tr class="hover:bg-yellow-50 transition-colors border-b">
-                    <td data-label="Placa" class="p-2 font-bold border-r border-gray-200 ${esAlerta ? 'text-red-600' : 'text-blue-800'}">
-                        <div class="flex flex-col">
-                            <span class="text-sm font-black">${unidad.placa}</span>
-                            ${unidad.idVinculo ? '<span class="text-[8px] text-orange-500"><i class="fas fa-link"></i> VINCULADO</span>' : ''}
-                        </div>
-                    </td>
-                    <td data-label="Responsable / Área" class="p-2 border-r border-gray-200">
-                        <span class="font-bold block text-gray-700">${unidad.responsable || 'SIN ASIGNAR'}</span>
-                        <span class="text-[9px] text-green-700 font-bold uppercase bg-green-50 px-1 rounded">${unidad.area || 'GENERAL'}</span>
-                    </td>
-                    <td data-label="L" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.L || '-'}</td>
-                    <td data-label="M" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.M || '-'}</td>
-                    <td data-label="M" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.Mi || '-'}</td>
-                    <td data-label="J" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.J || '-'}</td>
-                    <td data-label="V" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.V || '-'}</td>
-                    <td data-label="S" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.S || '-'}</td>
-                    <td data-label="D" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.D || '-'}</td>
-                    
-                    <td data-label="Asig." class="p-2 text-center font-black bg-gray-50 border-l border-gray-300">
-                        ${unidad.dotacion.toFixed(2)}
-                    </td>
-                    <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">
-                        ${d.total.toFixed(2)}
-                    </td>
-                    <td data-label="Saldo" class="p-2 text-center font-black ${esAlerta ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'} border-l border-green-200">
-                        ${unidad.saldo.toFixed(2)}
-                    </td>
-                </tr>`;
-        });          
+        tA += unidad.dotacion;
+        tC += d.total;
 
-            actualizarResumen(tA, tC);
-        }
+        cuerpo.innerHTML += `
+        <tr class="hover:bg-yellow-50 border-b">
+            <td class="p-2 font-bold ${esAlerta ? 'text-red-600' : 'text-blue-800'}">
+                ${unidad.placa}
+            </td>
+            <td class="p-2">
+                ${unidad.responsable}<br>
+                <span class="text-[10px] text-green-700">${unidad.area}</span>
+            </td>
+            <td class="text-center">${d.L || '-'}</td>
+            <td class="text-center">${d.M || '-'}</td>
+            <td class="text-center">${d.Mi || '-'}</td>
+            <td class="text-center">${d.J || '-'}</td>
+            <td class="text-center">${d.V || '-'}</td>
+            <td class="text-center">${d.S || '-'}</td>
+            <td class="text-center">${d.D || '-'}</td>
+            <td class="text-center font-bold">${unidad.dotacion.toFixed(2)}</td>
+            <td class="text-center text-orange-600 font-bold">${d.total.toFixed(2)}</td>
+            <td class="text-center font-bold ${esAlerta ? 'bg-red-500 text-white' : 'bg-green-100'}">
+                ${unidad.saldo.toFixed(2)}
+            </td>
+        </tr>`;
+    });
+
+    actualizarResumen(tA, tC);
+}
 
     // --- SINCRONIZACIÓN ACTUALIZADA ---
     async function sincronizarDesdeNube() {
@@ -311,9 +301,9 @@
         indicador.classList.remove('hidden');
         try {
             // Ahora llamamos a la acción principal que trae Maestro + Consumos
-            const res = await fetch(`${WEB_APP_URL}?action=getTodo&fecha=${lunesReferencia.toISOString()}`);
+            const res = await fetch(`${WEB_APP_URL}?fecha=&fecha=${lunesReferencia.toISOString()}`);
             const data = await res.json();
-            renderTabla(data);
+            renderTabla(data.flota);
         } catch (e) { 
             console.error("Error de sincronización:", e);
             alert("No se pudo conectar con la base de datos.");
@@ -354,17 +344,6 @@
         return new Date(d.setDate(diff));
     }
 
-        async function sincronizarDesdeNube() {
-            const indicador = document.getElementById('indicadorCarga');
-            indicador.classList.remove('hidden');
-            try {
-                const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal&fecha=${lunesReferencia.toISOString()}`);
-                datosActuales = await res.json();
-                renderTabla(datosActuales);
-            } catch (e) { console.error(e); }
-            indicador.classList.add('hidden');
-        }
-
         function leerExcel(input) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -398,13 +377,6 @@
                 datosActuales = procesado; renderTabla(datosActuales);
             };
             reader.readAsArrayBuffer(input.files[0]);
-        }
-
-        function getLunesActual(fechaBase) {
-            const d = new Date(fechaBase); d.setHours(12,0,0,0);
-            const day = d.getDay();
-            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-            return new Date(d.setDate(diff));
         }
 
         function actualizarResumen(tA, tC) {
