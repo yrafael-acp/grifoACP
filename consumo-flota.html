@@ -598,25 +598,21 @@ function exportarConsultaExcel() {
         //CODIGO AGREGADO
         
 // ... (Mantén todo el código anterior idéntico)
+window.onload = async () => {
+    // 1. Cargamos las semanas en el selector
+    poblarSemanasDelAnio();
+    
+    // 2. Establecemos la fecha de hoy
+    lunesReferencia = getLunesActual(new Date());
+    
+    const selector = document.getElementById('selectorSemanas');
+    if (selector) {
+        selector.value = lunesReferencia.toISOString();
+    }
 
-        window.onload = async () => {
-            // 1. Forzamos el cierre visual de seguridad antes de cualquier carga
-            document.getElementById('modalRegistro').style.display = 'none';
-            document.getElementById('modalConfig').style.display = 'none';
-
-            // 2. Configuramos el estado de las semanas
-            poblarSemanasDelAnio();
-            lunesReferencia = getLunesActual(new Date());
-            
-            const selector = document.getElementById('selectorSemanas');
-            if (selector) {
-                selector.value = lunesReferencia.toISOString();
-            }
-
-            // 3. Ejecutamos la sincronización
-            // Al terminar, renderTabla se ejecutará, pero ya aseguramos los modales
-            await sincronizarDesdeNube();
-        };
+    // 3. Sincronizamos los datos sin abrir ninguna ventana
+    await sincronizarDesdeNube();
+};
         
     </script>
     
