@@ -553,8 +553,10 @@ async function ejecutarConsultaOrden() {
 
     try {
         // Obtenemos toda la base de datos (independiente de la semana actual)
-        const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal&fecha=ALL`); 
-        const data = await res.json();
+        const res = await fetch(
+    `${WEB_APP_URL}?action=getDetalleOrden&orden=${encodeURIComponent(input)}&desde=${fDesde}&hasta=${fHasta}`
+);
+const result = await res.json();
         
         cacheConsultaOrden = [];
         tbody.innerHTML = "";
@@ -564,47 +566,37 @@ async function ejecutarConsultaOrden() {
         const dInicio = fDesde ? new Date(fDesde + "T00:00:00") : null;
         const dFin = fHasta ? new Date(fHasta + "T23:59:59") : null;
 
-        Object.keys(data).forEach(placa => {
-            if (data[placa].registros) {
-                data[placa].registros.forEach(reg => {
-                    const fechaReg = new Date(reg.fecha + "T12:00:00");
-                    const cumpleOrden = listaBusqueda.includes(reg.orden?.toString().trim());
-                    
-                    let cumpleFecha = true;
-                    if (dInicio && fechaReg < dInicio) cumpleFecha = false;
-                    if (dFin && fechaReg > dFin) cumpleFecha = false;
+        if (result.status === "OK") {
+    result.items.forEach(item => {
 
-                    if (cumpleOrden && cumpleFecha) {
-                        const gal = parseFloat(reg.cantidad || 0);
-                        const imp = parseFloat(reg.importe || 0);
-                        sumaGalones += gal;
-                        sumaImporte += imp;
+        const gal = parseFloat(item.cantidad || 0);
+        const imp = parseFloat(item.importe || 0);
 
-                        const item = {
-                            "Fecha contabiliz.": reg.fecha,
-                            "Descripción material": reg.tipo,
-                            "Placa": placa,
-                            "Documento material": reg.doc || "N/A",
-                            "Ctd.en UM entrada": gal,
-                            "Impte.mon.local": imp,
-                            "Orden": reg.orden
-                        };
-                        cacheConsultaOrden.push(item);
-                        
-                        tbody.innerHTML += `
-                            <tr class="hover:bg-blue-50 border-b">
-                                <td class="p-2">${item["Fecha contabiliz."]}</td>
-                                <td class="p-2">${item["Descripción material"]}</td>
-                                <td class="p-2 font-bold">${item["Placa"]}</td>
-                                <td class="p-2">${item["Documento material"]}</td>
-                                <td class="p-2 font-bold text-blue-700">${item["Ctd.en UM entrada"].toFixed(2)}</td>
-                                <td class="p-2 font-bold text-green-700">${item["Impte.mon.local"].toFixed(2)}</td>
-                                <td class="p-2 font-black text-indigo-600 bg-indigo-50">${item["Orden"]}</td>
-                            </tr>`;
-                    }
-                });
-            }
+        sumaGalones += gal;
+        sumaImporte += imp;
+
+        cacheConsultaOrden.push({
+            "Fecha contabiliz.": item.fecha,
+            "Descripción material": item.tipo,
+            "Placa": item.placa,
+            "Documento material": item.documento,
+            "Ctd.en UM entrada": gal,
+            "Impte.mon.local": imp,
+            "Orden": item.orden
         });
+
+        tbody.innerHTML += `
+            <tr class="hover:bg-blue-50 border-b">
+                <td class="p-2">${item.fecha}</td>
+                <td class="p-2">${item.tipo}</td>
+                <td class="p-2 font-bold">${item.placa}</td>
+                <td class="p-2">${item.documento}</td>
+                <td class="p-2 font-bold text-blue-700">${gal.toFixed(2)}</td>
+                <td class="p-2 font-bold text-green-700">${imp.toFixed(2)}</td>
+                <td class="p-2 font-black text-indigo-600 bg-indigo-50">${item.orden}</td>
+            </tr>`;
+    });
+}
 
         if (cacheConsultaOrden.length > 0) {
             estado.classList.add('hidden');
