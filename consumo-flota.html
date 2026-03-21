@@ -52,7 +52,19 @@
             .group-row { background-color: white !important; }
         }
 
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+        .modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(2px);
+    align-items: center;
+    justify-content: center;
+}
         .table-container::-webkit-scrollbar { width: 8px; }
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; }
         .table-container::-webkit-scrollbar-thumb { background: #007d32; border-radius: 4px; }
@@ -157,7 +169,8 @@
         </div>
     </main>
 
-    <div id="modalRegistro" class="modal flex items-center justify-center">
+   <!--<div id="modalRegistro" class="modal flex items-center justify-center"> editado por chat gpt-->
+        <div id="modalRegistro" class="modal">
         <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[450px] overflow-hidden">
             <div class="p-4 bg-orange-600 text-white flex justify-between items-center">
                 <h2 class="font-bold uppercase text-sm"><i class="fas fa-edit mr-2"></i> Registrar Despacho</h2>
@@ -176,7 +189,8 @@
         </div>
     </div>
 
-    <div id="modalConfig" class="modal flex items-center justify-center">
+    <!--<div id="modalConfig" class="modal flex items-center justify-center"> adjuste agregado por chat gpt-->
+        <div id="modalConfig" class="modal">
         <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[850px] max-h-[90vh] flex flex-col overflow-hidden">
             <div class="p-4 bg-gray-800 text-white flex justify-between items-center text-sm font-bold">
                 <span>CONFIGURAR ESTRUCTURA DE FLOTA</span>
@@ -616,7 +630,8 @@ window.onload = async () => {
         
     </script>
     
-        <div id="modalConsulta" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+        <!--ajuste agregado por chat gpt<div id="modalConsulta" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">-->
+            <div id="modalConsulta" class="modal">
     <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[1000px] max-h-[90vh] flex flex-col overflow-hidden">
         <div class="p-4 bg-indigo-800 text-white flex justify-between items-center text-sm font-bold">
             <span><i class="fas fa-database mr-2"></i> CONSULTA POR ORDEN Y RANGO DE FECHAS</span>
