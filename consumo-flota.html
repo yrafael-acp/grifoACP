@@ -99,8 +99,21 @@
                     <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
                     </button>
-                    <button id="btnGestionar" onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-cog mr-1"></i>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4 p-3 bg-blue-50 rounded border border-blue-100">
+    <input type="text" id="newPlacas" placeholder="PLACA" class="p-2 border rounded text-xs uppercase font-bold">
+    <input type="text" id="newResp" placeholder="RESPONSABLE" class="p-2 border rounded text-xs uppercase">
+    <input type="text" id="newArea" placeholder="ÁREA" class="p-2 border rounded text-xs uppercase">
+    <input type="number" id="newAsig" placeholder="DOTACIÓN SEMANAL" class="p-2 border rounded text-xs">
+    <input type="text" id="newVinculo" placeholder="ID VÍNCULO (Opcional)" class="p-2 border rounded text-xs uppercase">
+    <select id="newEstado" class="p-2 border rounded text-xs font-bold">
+        <option value="ACTIVO">ACTIVO</option>
+        <option value="TALLER">TALLER</option>
+        <option value="BAJA">BAJA</option>
+    </select>
+    <button onclick="agregarFlotaManual()" class="md:col-span-3 bg-green-600 hover:bg-green-700 text-white py-2 rounded text-xs font-bold uppercase transition">
+        <i class="fas fa-plus-circle mr-1"></i> GUARDAR UNIDAD EN MAESTRO
+    </button>
+</div>
                     </button>
                     <button id="btnCerrarSemana" onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
@@ -459,19 +472,43 @@ function cerrarModalConfig() {
             `).join('');
         }
 
-        function agregarFlotaManual() {
-            const pInput = document.getElementById('newPlacas').value;
-            const r = document.getElementById('newResp').value.toUpperCase();
-            const area = document.getElementById('newArea').value.toUpperCase();
-            const a = parseFloat(document.getElementById('newAsig').value);
-            if(pInput && r && !isNaN(a)) {
-                const p = pInput.toUpperCase().split(',').map(x => x.trim());
-                ESTRUCTURA_FLOTA.push({ p, r, area, a });
-                localStorage.setItem('config_flota_acp', JSON.stringify(ESTRUCTURA_FLOTA));
-                renderListaConfig();
-                renderTabla(datosActuales);
-            }
-        }
+        async function agregarFlotaManual() {
+    const placa = document.getElementById('newPlacas').value.toUpperCase().trim();
+    const resp = document.getElementById('newResp').value.toUpperCase().trim();
+    const area = document.getElementById('newArea').value.toUpperCase().trim();
+    const asig = parseFloat(document.getElementById('newAsig').value) || 0;
+    const vinculo = document.getElementById('newVinculo').value.toUpperCase().trim();
+    const estado = document.getElementById('newEstado').value;
+
+    if(!placa || !resp) return alert("La Placa y el Responsable son obligatorios.");
+
+    const btn = event.currentTarget;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> GUARDANDO...';
+
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                action: 'addMaestro',
+                placa, resp, area, asig, vinculo, estado
+            })
+        });
+        
+        alert("Unidad registrada correctamente.");
+        // Limpiar campos
+        ['newPlacas', 'newResp', 'newArea', 'newAsig', 'newVinculo'].forEach(id => document.getElementById(id).value = "");
+        
+        await sincronizarDesdeNube(); // Actualiza la tabla principal
+        renderListaConfig(); // Actualiza la lista del modal
+    } catch (e) {
+        alert("Error de conexión con la nube.");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus-circle mr-1"></i> GUARDAR UNIDAD EN MAESTRO';
+    }
+}
 
         function eliminarFilaFlota(i) {
             if(confirm("¿Eliminar?")) {
