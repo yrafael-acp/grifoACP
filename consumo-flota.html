@@ -228,70 +228,19 @@
 
     <script>
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec';
-        
-        let ESTRUCTURA_FLOTA = JSON.parse(localStorage.getItem('config_flota_acp')) || [
-            { p: ["BRI090"], r: "WENDY CHILCON", area: "CERRO LA PATA", a: 15.00 },
-            { p: ["BRI612"], r: "LUIS MACHER", area: "MANTENIMIENTO FUNDO", a: 15.00 },
-            { p: ["BRI635"], r: "JAVIER CALLIRGOS", area: "ARANDANO", a: 15.00 },
-            { p: ["AZO588"], r: "KARINA VASQUEZ", area: "SEGURIDAD INDUSTRIAL", a: 15.00 },
-            { p: ["AZO431"], r: "GISEL TIXE", area: "ARANDANO", a: 15.00 },
-            { p: ["M6K436"], r: "PLANILLAS", area: "PLANILLAS", a: 12.00 },
-            { p: ["CCM367"], r: "T.I GASOHOL", area: "T.I GASOHOL", a: 35.00 },
-            { p: ["BYN781"], r: "LILIANA CHAFLOC", area: "CALIDAD PACKING", a: 25.00 },
-            { p: ["BYN705"], r: "OSCAR HERNANDEZ", area: "SANIDAD", a: 35.00 },
-            { p: ["BYN755"], r: "MARITA CCOLLCA", area: "SEGURIDAD PATRIMONIAL", a: 50.00 },
-            { p: ["BYM949"], r: "LUIS REAÑO", area: "RECLUTAMIENTO", a: 48.00 },
-            { p: ["BXM905"], r: "MANUEL MARENGO", area: "TRANSPORTE", a: 48.00 },
-            { p: ["BYM944"], r: "LUIS REAÑO", area: "RECLUTAMIENTO", a: 53.00 },
-            { p: ["BZT777"], r: "LUIS REAÑO", area: "RECLUTAMIENTO", a: 38.00 },
-            { p: ["BYN730"], r: "VICTOR YEMHENG", area: "ARANDANO", a: 25.00 },
-            { p: ["BYN729"], r: "LUIS QUIROZ", area: "PROYECCION AGRICOLA", a: 25.00 },
-            { p: ["BYN731"], r: "EDUARDO DIAZ", area: "SERVICIOS GENERALES", a: 25.00 },
-            { p: ["CDR941"], r: "ABRAHAM ZAPATA", area: "PROYECTO SAP", a: 30.00 },
-            { p: ["W4V068"], r: "PROYECTO SAP", area: "PROYECTO SAP", a: 16.00 },
-            { p: ["VCG910"], r: "LUIS REAÑO", area: "RECLUTAMIENTO", a: 30.00 },
-            { p: ["BUP776"], r: "LUIS MACHER", area: "PACKING - PLANTA", a: 30.00 },
-            { p: ["BUL903"], r: "CRISTIAN TESEN", area: "MAQUINARIA", a: 30.00 },
-            { p: ["BUN930"], r: "LUIS DIEZ", area: "LEGAL", a: 40.00 },
-            { p: ["CDS745"], r: "WENDY CHILCON", area: "CAMPAMENTO", a: 30.00 },
-            { p: ["BUN746"], r: "JENIFER AGURTO", area: "PROYECTOS", a: 30.00 },
-            { p: ["BUO942"], r: "ARTURO CERRUTTI", area: "ALMACEN", a: 30.00 },
-            { p: ["BXN705"], r: "ROLI PALMA", area: "ICP", a: 30.00 },
-            { p: ["BUO749"], r: "ROLI PALMA", area: "ICP", a: 30.00 },
-            { p: ["BUO792"], r: "JAVIER PASAPERA", area: "RIEGO", a: 30.00 },
-            { p: ["BUO808"], r: "RONALD RUIZ", area: "ICP", a: 30.00 },
-            { p: ["BRG897","BXQ839"], r: "MANUEL MARENGO", area: "FLOTA - RETEN (seg. pat. provisional)", a: 50.00 },
-            { p: ["CDR887"], r: "JULIO YIANCCE", area: "APICULTURA", a: 30.00 },
-            { p: ["BRI725","BXP724"], r: "JULIO YIANCCE", area: "FLOTA - RETEN", a: 50.00 },
-            { p: ["CKW496"], r: "MANUEL MARENGO", area: "FLOTA", a: 30.00 },
-            { p: ["BWV868"], r: "ALBERTO CIEZA", area: "SEGURIDAD PATRIMONIAL", a: 25.00 },
-            { p: ["BUD924"], r: "YENNI ROJAS", area: "ARANDANO", a: 30.00 },
-            { p: ["BUF786", "BSH717"], r: "MANUEL MARENGO", area: "TRANSPORTE", a: 35.00, shared: true },
-            { p: ["BUF836"], r: "MANUEL MARENGO", area: "TRANSPORTE", a: 35.00 },
-            { p: ["CTH457"], r: "MANUEL MARENGO", area: "TRANSPORTE", a: 40.00 },
-            { p: ["BUE757"], r: "HARRY BERNAOLA", area: "ESPARRAGO", a: 30.00 },
-            { p: ["BUE802"], r: "JOSE MANRIQUE", area: "PALTO", a: 25.00 },
-            { p: ["BRS810", "CHJ914"], r: "LUIS MACHER", area: "MANTENIMIENTO FUNDO", a: 30.00, shared: true },
-            { p: ["CEU722"], r: "KARINA VASQUEZ", area: "SALUD OCUPACIONAL", a: 47.00 },
-            { p: ["CEU820"], r: "LUIS MACHER", area: "MANTENIMIENTO FUNDO", a: 30.00 },
-            { p: ["CDS745"], r: "KARINA VASQUEZ", area: "SEGURIDAD INDUSTRIAL", a: 30.00 },
-            { p: ["EUG932"], r: "ISABEL SOTOMAYOR", area: "SALUD OCUPACIONAL", a: 50.00 },
-            { p: ["EUJ542", "EUJ551", "EUI752"], r: "ISABEL SOTOMAYOR", area: "SALUD OCUPACIONAL", a: 50.00, shared: true },
-            { p: ["TOYO01"], r: "CRISTIAN TESEN (PLACA: BLO-928) EUC888", area: "MAQUINARIA", a: 20.00 },
-            { p: ["H3K913"], r: "EDGARH SANTIESTEBAN", area: "AUDITORIA", a: 20.00 },
-            { p: ["CLF333"], r: "ALFREDO CHAN WAY", area: "GERENCIA AGRICOLA", a: 42.00 },
-            { p: ["CLF287", "BVD408"], r: "PERCY MUENTE", area: "GERENCIA GENERAL", a: 20.00, shared: true },
-            { p: ["CLD318", "CPH672"], r: "CASE VIP (GASOHOL)", area: "CASE VIP", a: 36.00, shared: true },
-            { p: ["CDL730", "CBA760"], r: "CASE VIP", area: "CASE VIP", a: 76.00, shared: true },
-            { p: ["CDM720"], r: "CASE VIP", area: "CASE VIP", a: 50.00 },
-            { p: ["C7Y818"], r: "RAFAEL PITA", area: "COMPRAS", a: 40.00 },
-            { p: ["ACI748"], r: "OSCAR HERNANDEZ", area: "SANIDAD", a: 20.00 },
-            { p: ["AUA855"], r: "CRISTIAN TESEN", area: "MAQUINARIA", a: 25.00 },
-            { p: ["CFX846"], r: "PAMELA GOMEZ", area: "SOSTENIBILIDAD", a: 30.00 }
-        ];
-
-        let datosActuales = {};
-        let lunesReferencia = getLunesActual(new Date());
+    let datosFlotaNube = []; 
+    let lunesReferencia = getLunesActual(new Date());
+        // Verificamos si la data viene del nuevo formato del servidor
+        if (!data.flota) return;
+        let tA = 0, tC = 0;
+        datosFlotaNube = data.flota; // Guardamos para búsquedas/filtros
+        datosFlotaNube.forEach(unidad => {
+            const d = unidad.consumo;
+            const esAlerta = unidad.saldo < 2;
+            
+            // Sumamos totales para el resumen superior
+            tA += unidad.dotacion;
+            tC += d.total;
 
         function renderTabla(datosConsumo = {}, estructuraUsar = ESTRUCTURA_FLOTA) {
             const cuerpo = document.getElementById('cuerpoTabla');
@@ -308,41 +257,56 @@
                     const mostrarAsig = index === 0;
                     if(mostrarAsig) { tA += grupo.a; tC += totalGrupoConsumo; }
 
-                    cuerpo.innerHTML += `
-                        <tr class="${grupo.p.length > 1 ? 'group-row' : ''} hover:bg-yellow-50 transition-colors">
-                            <td data-label="Placa" class="p-2 font-bold border-r border-gray-200 ${esAlerta ? 'text-red-600' : 'text-blue-800'}">
-                                <div class="flex items-center gap-1">
-                                    ${esAlerta ? '<i class="fas fa-exclamation-triangle animate-pulse"></i>' : ''}
-                                    ${placa}
-                                </div>
-                            </td>
-                            <td data-label="Responsable" class="p-2 border-r border-gray-200">
-                                <span class="font-bold block">${grupo.r}</span>
-                                <span class="text-[9px] text-gray-400 font-bold uppercase">${grupo.area}</span>
-                            </td>
-                            <td data-label="L" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${diario.L || '-'}</td>
-                            <td data-label="M" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${diario.M || '-'}</td>
-                            <td data-label="M" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${diario.Mi || '-'}</td>
-                            <td data-label="J" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${diario.J || '-'}</td>
-                            <td data-label="V" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${diario.V || '-'}</td>
-                            <td data-label="S" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${diario.S || '-'}</td>
-                            <td data-label="D" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${diario.D || '-'}</td>
-                            
-                            <td data-label="Asig." class="p-2 text-center font-black bg-gray-50 border-l border-gray-300">
-                                ${mostrarAsig ? grupo.a.toFixed(2) : '<span class="text-gray-200 md:block hidden">-</span>'}
-                            </td>
-                            <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">
-                                ${mostrarAsig ? totalGrupoConsumo.toFixed(2) : '<span class="text-gray-200 md:block hidden">-</span>'}
-                            </td>
-                            <td data-label="Saldo" class="p-2 text-center font-black ${esAlerta ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'} border-l border-green-200">
-                                ${mostrarAsig ? saldoGrupo.toFixed(2) : '<span class="text-gray-200 md:block hidden">-</span>'}
-                            </td>
-                        </tr>`;
-                });
-            });
+          cuerpo.innerHTML += `
+                <tr class="hover:bg-yellow-50 transition-colors border-b">
+                    <td data-label="Placa" class="p-2 font-bold border-r border-gray-200 ${esAlerta ? 'text-red-600' : 'text-blue-800'}">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-black">${unidad.placa}</span>
+                            ${unidad.idVinculo ? '<span class="text-[8px] text-orange-500"><i class="fas fa-link"></i> VINCULADO</span>' : ''}
+                        </div>
+                    </td>
+                    <td data-label="Responsable / Área" class="p-2 border-r border-gray-200">
+                        <span class="font-bold block text-gray-700">${unidad.responsable || 'SIN ASIGNAR'}</span>
+                        <span class="text-[9px] text-green-700 font-bold uppercase bg-green-50 px-1 rounded">${unidad.area || 'GENERAL'}</span>
+                    </td>
+                    <td data-label="L" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.L || '-'}</td>
+                    <td data-label="M" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.M || '-'}</td>
+                    <td data-label="M" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.Mi || '-'}</td>
+                    <td data-label="J" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.J || '-'}</td>
+                    <td data-label="V" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.V || '-'}</td>
+                    <td data-label="S" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.S || '-'}</td>
+                    <td data-label="D" class="p-1 text-center font-mono text-gray-500 border-r border-gray-100">${d.D || '-'}</td>
+                    
+                    <td data-label="Asig." class="p-2 text-center font-black bg-gray-50 border-l border-gray-300">
+                        ${unidad.dotacion.toFixed(2)}
+                    </td>
+                    <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">
+                        ${d.total.toFixed(2)}
+                    </td>
+                    <td data-label="Saldo" class="p-2 text-center font-black ${esAlerta ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'} border-l border-green-200">
+                        ${unidad.saldo.toFixed(2)}
+                    </td>
+                </tr>`;
+        });          
 
             actualizarResumen(tA, tC);
         }
+
+    // --- SINCRONIZACIÓN ACTUALIZADA ---
+    async function sincronizarDesdeNube() {
+        const indicador = document.getElementById('indicadorCarga');
+        indicador.classList.remove('hidden');
+        try {
+            // Ahora llamamos a la acción principal que trae Maestro + Consumos
+            const res = await fetch(`${WEB_APP_URL}?action=getTodo&fecha=${lunesReferencia.toISOString()}`);
+            const data = await res.json();
+            renderTabla(data);
+        } catch (e) { 
+            console.error("Error de sincronización:", e);
+            alert("No se pudo conectar con la base de datos.");
+        }
+        indicador.classList.add('hidden');
+    }
 
         function poblarSemanasDelAnio() {
             const sel = document.getElementById('selectorSemanas');
@@ -370,6 +334,12 @@
                 el.value = opt.value; el.text = opt.label; sel.appendChild(el);
             });
         }
+            function getLunesActual(fechaBase) {
+        const d = new Date(fechaBase); d.setHours(12,0,0,0);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        return new Date(d.setDate(diff));
+    }
 
         async function sincronizarDesdeNube() {
             const indicador = document.getElementById('indicadorCarga');
