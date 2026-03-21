@@ -51,7 +51,7 @@
 
             .group-row { background-color: white !important; }
         }
-
+    
         .modal {
     display: none;
     position: fixed;
@@ -441,10 +441,21 @@
             });
         }
 
-        function abrirModalRegistro() { document.getElementById('modalRegistro').style.display = 'flex'; }
-        function cerrarModalRegistro() { document.getElementById('modalRegistro').style.display = 'none'; }
-        function abrirModalConfig() { document.getElementById('modalConfig').style.display = 'flex'; renderListaConfig(); }
-        function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
+        function abrirModalRegistro() {
+    const m = document.getElementById('modalRegistro');
+    m.style.display = 'flex';
+}
+function cerrarModalRegistro() {
+    document.getElementById('modalRegistro').style.display = 'none';
+}
+        function abrirModalConfig() {
+    const m = document.getElementById('modalConfig');
+    m.style.display = 'flex';
+    renderListaConfig();
+}
+function cerrarModalConfig() {
+    document.getElementById('modalConfig').style.display = 'none';
+}
 
         async function guardarRegistroManual() {
             const placa = document.getElementById('regPlaca').value.toUpperCase().trim();
@@ -509,8 +520,13 @@
 //CODIGO AGREGADO 
         let cacheConsultaOrden = [];
 
-function abrirModalConsulta() { document.getElementById('modalConsulta').style.display = 'flex'; }
-function cerrarModalConsulta() { document.getElementById('modalConsulta').style.display = 'none'; }
+function abrirModalConsulta() {
+    const m = document.getElementById('modalConsulta');
+    m.style.display = 'flex';
+}
+function cerrarModalConsulta() {
+    document.getElementById('modalConsulta').style.display = 'none';
+}
 
 async function ejecutarConsultaOrden() {
     const input = document.getElementById('inputOrdenes').value;
