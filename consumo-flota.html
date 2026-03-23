@@ -3,20 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ACP - CONTROL DE FLOTA NUBE</title>
+    <title>ACP - CONTROL DE FLOTA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .bg-acp { background-color: #007d32; }
         .table-container { max-height: 65vh; overflow-y: auto; }
+        
         @media (max-width: 768px) {
             .table-container { max-height: none; overflow: visible; }
             thead { display: none; }
             tr { display: block; margin-bottom: 1.5rem; border: 2px solid #e5e7eb; border-radius: 1rem; background: white; padding: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
             td { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0 !important; border: none !important; border-bottom: 1px solid #f3f4f6 !important; text-align: right; }
+            td:last-child { border-bottom: none !important; }
             td::before { content: attr(data-label); font-weight: 800; text-transform: uppercase; font-size: 0.7rem; color: #6b7280; text-align: left; margin-right: 10px; }
         }
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); align-items: center; justify-content: center; }
+        .modal > div { max-height: 90vh; overflow-y: auto; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
@@ -30,33 +34,31 @@
                     <span class="text-[10px] uppercase tracking-widest opacity-80">Agrícola Cerro Prieto</span>
                 </div>
             </div>
-            <select id="selectorAnio" onchange="cambiarAnio()" 
-class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
-</select>
-            <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
-                <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30 outline-none focus:ring-2 focus:ring-yellow-400 w-full sm:w-auto">
-                </select>
 
-                <div class="flex flex-wrap justify-center gap-2">
-                    <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
-                    </button>
-                    <button onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-    <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
-</button>
-                    <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
-                    </button>
-                    <button id="btnGestionar" onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-cog mr-1"></i>
-                    </button>
-                    <button id="btnCerrarSemana" onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
-                    </button>
-                    <button onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
-                        <i class="fas fa-file-excel"></i>
-                    </button>
-                </div>
+            <div class="flex flex-wrap items-center justify-center gap-2">
+                <select id="selectorAnio" onchange="cambiarAnio()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30"></select>
+                <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30 outline-none w-full sm:w-auto"></select>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-2 w-full lg:w-auto">
+                <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
+                </button>
+                <button onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
+                </button>
+                <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
+                </button>
+                <button onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
+                </button>
+                <button onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
+                    <i class="fas fa-file-excel"></i>
+                </button>
                 <input type="file" id="uploadExcel" accept=".xlsx, .xls" class="hidden" onchange="leerExcel(this)">
             </div>
         </div>
@@ -64,19 +66,19 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
 
     <main class="max-w-[1580px] mx-auto p-3">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-blue-600">
+            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-blue-600 text-center">
                 <span class="text-[9px] font-bold text-gray-400 uppercase">Gln Asignado</span>
                 <p id="resumenAsignado" class="text-lg font-black text-blue-900">0.00</p>
             </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-orange-500">
+            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-orange-500 text-center">
                 <span class="text-[9px] font-bold text-gray-400 uppercase">Gln Consumido</span>
                 <p id="resumenConsumido" class="text-lg font-black text-orange-600">0.00</p>
             </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-green-600">
+            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-green-600 text-center">
                 <span class="text-[9px] font-bold text-gray-400 uppercase">Saldo Disp.</span>
                 <p id="resumenSaldo" class="text-lg font-black text-green-700">0.00</p>
             </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-purple-600">
+            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-purple-600 text-center">
                 <span class="text-[9px] font-bold text-gray-400 uppercase">% Eficiencia</span>
                 <p id="resumenEficiencia" class="text-lg font-black text-purple-800">0%</p>
             </div>
@@ -86,10 +88,10 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
             <div class="p-3 border-b bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-3">
                 <div class="relative w-full md:w-96">
                     <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                    <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa..." class="pl-9 pr-4 py-2 border rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-green-500">
+                    <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa, responsable o área..." class="pl-9 pr-4 py-2 border rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-green-500">
                 </div>
                 <div id="indicadorCarga" class="hidden text-green-600 font-bold animate-pulse text-[10px]">
-                    <i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO...
+                    <i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO DATOS...
                 </div>
             </div>
             
@@ -118,14 +120,14 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
     </main>
 
     <script>
-        // REEMPLAZA CON TU URL REAL
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec';
         
+        let ESTRUCTURA_FLOTA = [];
+        let datosActuales = {};
         let lunesReferencia = new Date();
 
         function getLunesActual(fechaBase) {
-            const d = new Date(fechaBase);
-            d.setHours(12, 0, 0, 0);
+            const d = new Date(fechaBase); d.setHours(12, 0, 0, 0);
             const day = d.getDay();
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
             return new Date(d.setDate(diff));
@@ -136,8 +138,7 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
             sel.innerHTML = '';
             const anioActual = new Date().getFullYear();
             for (let y = 2025; y <= anioActual; y++) {
-                const opt = new Option(y, y);
-                if (y === anioActual) opt.selected = true;
+                const opt = new Option(y, y, y === anioActual, y === anioActual);
                 sel.add(opt);
             }
         }
@@ -146,30 +147,92 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
             const sel = document.getElementById('selectorSemanas');
             sel.innerHTML = '';
             let f = getLunesActual(new Date(`${anio}-01-01T12:00:00`));
-            const hoyLunes = getLunesActual(new Date()).toISOString().split('T')[0];
+            const hoy = new Date();
+            const lunesActualStr = getLunesActual(hoy).toISOString().split('T')[0];
             let opciones = [];
 
             while (f.getFullYear() <= anio) {
-                let fin = new Date(f); 
-                fin.setDate(f.getDate() + 6);
-                opciones.push({ 
-                    val: f.toISOString().split('T')[0], 
-                    text: `Sem: ${f.toLocaleDateString()} al ${fin.toLocaleDateString()}` 
-                });
+                let fin = new Date(f); fin.setDate(f.getDate() + 6);
+                opciones.push({ val: f.toISOString().split('T')[0], text: `Semana: ${f.toLocaleDateString()} al ${fin.toLocaleDateString()}` });
                 f.setDate(f.getDate() + 7);
             }
 
             opciones.reverse().forEach(op => {
                 const opt = new Option(op.text, op.val);
-                if (op.val === hoyLunes) opt.selected = true;
+                if (anio == hoy.getFullYear() && op.val === lunesActualStr) opt.selected = true;
                 sel.add(opt);
             });
         }
 
+        async function sincronizarDesdeNube() {
+            const ind = document.getElementById('indicadorCarga');
+            ind.classList.remove('hidden');
+            try {
+                const fStr = lunesReferencia.toISOString().split('T')[0];
+                const res = await fetch(`${WEB_APP_URL}?action=getFlota&fecha=${fStr}`);
+                const data = await res.json();
+                
+                ESTRUCTURA_FLOTA = data;
+                datosActuales = {};
+                
+                // Mapeo de datos para el renderizado
+                data.forEach(v => {
+                    v.p.forEach(placa => {
+                        datosActuales[placa] = { L: v.L, M: v.M, Mi: v.Mi, J: v.J, V: v.V, S: v.S, D: v.D, total: v.total };
+                    });
+                });
+                renderTabla(datosActuales, ESTRUCTURA_FLOTA);
+            } catch (e) { console.error(e); }
+            finally { ind.classList.add('hidden'); }
+        }
+
+        function renderTabla(datosConsumo, estructura) {
+            const cuerpo = document.getElementById('cuerpoTabla');
+            cuerpo.innerHTML = "";
+            let tA = 0, tC = 0;
+
+            estructura.forEach(grupo => {
+                const totalGrupoConsumo = grupo.p.reduce((acc, pl) => acc + (datosConsumo[pl]?.total || 0), 0);
+                const saldoGrupo = grupo.a - totalGrupoConsumo;
+                const esAlerta = saldoGrupo < 2;
+
+                grupo.p.forEach((placa, index) => {
+                    const esP = index === 0;
+                    const diario = datosConsumo[placa] || {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0};
+                    if(esP) { tA += grupo.a; tC += totalGrupoConsumo; }
+
+                    cuerpo.innerHTML += `
+                        <tr class="${grupo.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50 transition-colors">
+                            <td data-label="Placa" class="p-2 font-bold border-r ${esAlerta ? 'text-red-600' : 'text-blue-800'}">
+                                <div class="flex items-center justify-between">
+                                    <span>${placa}</span>
+                                    <button onclick="abrirEditarFlota('${placa}', ${grupo.a})" class="text-gray-400 hover:text-green-600 ml-2">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td data-label="Responsable" class="p-2 border-r">
+                                <span class="font-bold block">${grupo.r}</span>
+                                <span class="text-[9px] text-gray-400 font-bold uppercase">${grupo.area}</span>
+                            </td>
+                            <td data-label="L" class="text-center border-r border-gray-100">${diario.L || '-'}</td>
+                            <td data-label="M" class="text-center border-r border-gray-100">${diario.M || '-'}</td>
+                            <td data-label="Mi" class="text-center border-r border-gray-100">${diario.Mi || '-'}</td>
+                            <td data-label="J" class="text-center border-r border-gray-100">${diario.J || '-'}</td>
+                            <td data-label="V" class="text-center border-r border-gray-100">${diario.V || '-'}</td>
+                            <td data-label="S" class="text-center border-r border-gray-100">${diario.S || '-'}</td>
+                            <td data-label="D" class="text-center border-r border-gray-100">${diario.D || '-'}</td>
+                            <td data-label="Asig." class="p-2 text-center font-black bg-gray-50 border-l">${esP ? grupo.a.toFixed(2) : '-'}</td>
+                            <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">${esP ? totalGrupoConsumo.toFixed(2) : '-'}</td>
+                            <td data-label="Saldo" class="p-2 text-center font-black ${esAlerta && esP ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'} border-l">${esP ? saldoGrupo.toFixed(2) : '-'}</td>
+                        </tr>`;
+                });
+            });
+            actualizarResumen(tA, tC);
+        }
+
         function gestionarCambioSemana() {
-            const selector = document.getElementById('selectorSemanas');
-            if (!selector.value) return;
-            lunesReferencia = new Date(selector.value + "T12:00:00");
+            lunesReferencia = new Date(document.getElementById('selectorSemanas').value + "T12:00:00");
             sincronizarDesdeNube();
         }
 
@@ -179,71 +242,6 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
             gestionarCambioSemana();
         }
 
-        async function sincronizarDesdeNube() {
-            const ind = document.getElementById('indicadorCarga');
-            ind.classList.remove('hidden');
-            try {
-                const f = lunesReferencia.toISOString().split('T')[0];
-                const res = await fetch(`${WEB_APP_URL}?action=getFlota&fecha=${f}`);
-                const data = await res.json();
-                renderTabla(data);
-            } catch (e) {
-                console.error(e);
-                alert("Error de conexión con la base de datos.");
-            } finally {
-                ind.classList.add('hidden');
-            }
-        }
-
-        function renderTabla(datos) {
-            const cuerpo = document.getElementById('cuerpoTabla');
-            cuerpo.innerHTML = "";
-            let tA = 0, tC = 0;
-
-            if (!Array.isArray(datos)) return;
-
-            datos.forEach(grupo => {
-                const consumoTotal = parseFloat(grupo.total || 0);
-                const asignacion = parseFloat(grupo.a || 0);
-                const saldo = asignacion - consumoTotal;
-                const esAlerta = saldo < 2;
-
-                grupo.p.forEach((placa, idx) => {
-                    const esPrimero = idx === 0;
-                    if(esPrimero) { 
-                        tA += asignacion; 
-                        tC += consumoTotal; 
-                    }
-
-                    cuerpo.innerHTML += `
-                        <tr class="${grupo.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
-                            <td data-label="Placa" class="p-2 font-bold border-r ${esAlerta ? 'text-red-600' : 'text-blue-800'}">${placa}</td>
-                            <td data-label="Responsable" class="p-2 border-r">
-                                <span class="font-bold block text-[10px]">${grupo.r}</span>
-                                <span class="text-[9px] text-gray-400 uppercase">${grupo.area}</span>
-                            </td>
-                            <td data-label="L" class="text-center p-1 border-r">${grupo.L || '-'}</td>
-                            <td data-label="M" class="text-center p-1 border-r">${grupo.M || '-'}</td>
-                            <td data-label="Mi" class="text-center p-1 border-r">${grupo.Mi || '-'}</td>
-                            <td data-label="J" class="text-center p-1 border-r">${grupo.J || '-'}</td>
-                            <td data-label="V" class="text-center p-1 border-r">${grupo.V || '-'}</td>
-                            <td data-label="S" class="text-center p-1 border-r">${grupo.S || '-'}</td>
-                            <td data-label="D" class="text-center p-1 border-r">${grupo.D || '-'}</td>
-                            <td data-label="Asig." class="p-2 text-center font-bold bg-gray-50 border-l">${esPrimero ? asignacion.toFixed(2) : '-'}</td>
-                            <td data-label="Cons." class="p-2 text-center font-bold bg-orange-50 text-orange-700">${esPrimero ? consumoTotal.toFixed(2) : '-'}</td>
-                            <td data-label="Saldo" class="p-2 text-center font-black ${esAlerta && esPrimero ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'}">
-                                ${esPrimero ? saldo.toFixed(2) : '-'}
-                            </td>
-                        </tr>`;
-                });
-            });
-
-            document.getElementById('resumenAsignado').innerText = tA.toFixed(2);
-            document.getElementById('resumenConsumido').innerText = tC.toFixed(2);
-            document.getElementById('resumenSaldo').innerText = (tA - tC).toFixed(2);
-            document.getElementById('resumenEficiencia').innerText = tA > 0 ? ((tC/tA)*100).toFixed(1) + "%" : "0%";
-        }
-
         function filtrarTabla() {
             const q = document.getElementById('buscador').value.toUpperCase();
             document.querySelectorAll('#cuerpoTabla tr').forEach(row => {
@@ -251,19 +249,21 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
             });
         }
 
-        // INICIO DE LA APP
+        function actualizarResumen(tA, tC) {
+            document.getElementById('resumenAsignado').innerText = tA.toFixed(2);
+            document.getElementById('resumenConsumido').innerText = tC.toFixed(2);
+            document.getElementById('resumenSaldo').innerText = (tA - tC).toFixed(2);
+            document.getElementById('resumenEficiencia').innerText = tA > 0 ? ((tC/tA)*100).toFixed(1) + "%" : "0%";
+        }
+
         window.onload = () => {
             poblarAnios();
-            const anioActual = document.getElementById('selectorAnio').value;
-            poblarSemanasPorAnio(anioActual);
-            
-            // Establecer lunes de referencia inicial
-            const selectorSem = document.getElementById('selectorSemanas');
-            if (selectorSem.value) {
-                lunesReferencia = new Date(selectorSem.value + "T12:00:00");
-                sincronizarDesdeNube();
-            }
+            poblarSemanasPorAnio(new Date().getFullYear());
+            lunesReferencia = new Date(document.getElementById('selectorSemanas').value + "T12:00:00");
+            sincronizarDesdeNube();
         };
+
+        // ... El resto de tus funciones auxiliares (Modales, Excel, SAP) ...
     </script>
 </body>
 </html>
