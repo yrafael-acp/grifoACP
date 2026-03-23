@@ -712,15 +712,14 @@ function exportarConsultaExcel() {
         
 // ... (Mantén todo el código anterior idéntico)
 window.onload = async () => {
-    poblarAnios();
-
-    const anio = document.getElementById('selectorAnio').value;
-    poblarSemanasPorAnio(anio);
-
-    const selector = document.getElementById('selectorSemanas');
-    lunesReferencia = new Date(selector.value);
-
-    await sincronizarDesdeNube();
+    try {
+        poblarSemanasDelAnio();
+        const selector = document.getElementById('selectorSemanas');
+        lunesReferencia = new Date(selector.value);
+        await sincronizarDesdeNube();
+    } catch (e) {
+        console.error("Error inicial:", e);
+    }
 };
         
     </script>
