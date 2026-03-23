@@ -254,37 +254,35 @@
         }
 
         function renderTabla(datos) {
-            const cuerpo = document.getElementById('cuerpoTabla');
-            cuerpo.innerHTML = "";
-            let tA = 0, tC = 0;
-            datos.forEach(g => {
-                const asig = g.a, cons = g.total, saldo = asig - cons;
-                g.p.forEach((placa, idx) => {
-                    const esP = idx === 0;
-                    if(esP) { tA += asig; tC += cons; }
-                    cuerpo.innerHTML += `
-                        <tr class="${g.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
-                            <td data-label="Placa" class="p-2 font-bold ${saldo < 2 ? 'text-red-600':'text-blue-800'}">
-                            <div class="flex items-center justify-between">
-                            <span>${placa}</span>
-                            <button onclick="abrirEditarFlota('${placa}', ${asig})" class="text-gray-400 hover:text-green-600 ml-2">
-                            <i class="fas fa-edit"></i>
+    const cuerpo = document.getElementById('cuerpoTabla');
+    cuerpo.innerHTML = "";
+    datos.forEach(g => {
+        const asig = g.a, cons = g.total, saldo = asig - cons;
+        const esExcepcion = g.isEx; // Detectamos si viene de la hoja de excepciones
+
+        g.p.forEach((placa, idx) => {
+            const esP = idx === 0;
+            cuerpo.innerHTML += `
+                <tr class="${g.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
+                    <td data-label="Placa" class="p-2 font-bold ${saldo < 2 ? 'text-red-600':'text-blue-800'}">
+                        <div class="flex items-center justify-between">
+                            <span>
+                                ${placa} 
+                                ${esExcepcion ? '<i class="fas fa-star text-yellow-500 ml-1" title="Ajuste Semanal"></i>' : ''}
+                            </span>
+                            <button onclick="abrirEditarFlota('${placa}', ${asig})" class="text-gray-400 hover:text-green-600">
+                                <i class="fas fa-edit"></i>
                             </button>
-                            </div>
-                            </td>
-                            <td data-label="Responsable" class="p-2 border-r"><span class="font-bold block">${g.r}</span><span class="text-[9px] text-gray-400 uppercase">${g.area}</span></td>
-                            <td data-label="L" class="text-center">${g.L||'-'}</td><td data-label="M" class="text-center">${g.M||'-'}</td>
-                            <td data-label="Mi" class="text-center">${g.Mi||'-'}</td><td data-label="J" class="text-center">${g.J||'-'}</td>
-                            <td data-label="V" class="text-center">${g.V||'-'}</td><td data-label="S" class="text-center">${g.S||'-'}</td>
-                            <td data-label="D" class="text-center">${g.D||'-'}</td>
-                            <td data-label="Asig." class="p-2 text-center font-black bg-gray-50 border-l">${esP ? asig.toFixed(2) : '-'}</td>
-                            <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">${esP ? cons.toFixed(2) : '-'}</td>
-                            <td data-label="Saldo" class="p-2 text-center font-black ${saldo < 2 && esP ? 'bg-red-600 text-white animate-pulse':'bg-green-100 text-green-800'} border-l">${esP ? saldo.toFixed(2) : '-'}</td>
-                        </tr>`;
-                });
-            });
-            actualizarResumen(tA, tC);
-        }
+                        </div>
+                    </td>
+                    ...
+                    <td data-label="Asig." class="p-2 text-center font-black ${esExcepcion ? 'bg-blue-100 text-blue-800' : 'bg-gray-50'} border-l">
+                        ${esP ? asig.toFixed(2) : '-'}
+                    </td>
+                </tr>`;
+        });
+    });
+}
 
         function actualizarResumen(tA, tC) {
             document.getElementById('resumenAsignado').innerText = tA.toFixed(2);
@@ -361,38 +359,49 @@
         }
 
         async function guardarExcepcionSemanal() {
-            const placa = document.getElementById('editPlaca').value;
-            const dotacion = document.getElementById('editDotacion').value;
-            const semana = document.getElementById('selectorSemanas').value;
+    const placa = document.getElementById('editPlaca').value;
+    const nuevaDot = parseFloat(document.getElementById('editDotacion').value);
+    
+    // Buscamos la dotación que tiene actualmente la tabla para comparar
+    const placaNormalizada = placa.toUpperCase().replace(/-/g, "");
+    const infoActual = ESTRUCTURA_FLOTA.find(g => g.p.includes(placaNormalizada));
+    const dotAnterior = infoActual ? infoActual.a : 0;
+    
+    const semana = document.getElementById('selectorSemanas').value;
 
-            if(!dotacion || isNaN(dotacion)) return alert("Por favor, ingrese un monto válido.");
+    if(!nuevaDot || isNaN(nuevaDot)) return alert("Ingrese un monto válido.");
 
-            const ind = document.getElementById('indicadorCarga');
-            ind.classList.remove('hidden');
+    const ind = document.getElementById('indicadorCarga');
+    ind.classList.remove('hidden');
 
-            try {
-                const payload = {
-                    action: "saveExcepcion",
-                    semana: semana,
-                    placa: placa.toUpperCase().replace(/-/g, ""),
-                    dotacion: parseFloat(dotacion)
-                };
+    try {
+        const payload = {
+            action: "saveExcepcion",
+            semana: semana,
+            placa: placaNormalizada,
+            dotacion: nuevaDot
+        };
 
-                await fetch(WEB_APP_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify(payload) 
-                });
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
 
-                alert("Dotación ajustada para esta semana.");
-                cerrarModalEditarFlota();
-                sincronizarDesdeNube(); // Recarga la tabla para ver el cambio
-            } catch (e) {
-                alert("Error al guardar la excepción.");
-            } finally {
-                ind.classList.add('hidden');
-            }
+        // --- NOTIFICACIÓN DE GALONES ADICIONALES ---
+        const diferencia = nuevaDot - dotAnterior;
+        if (diferencia > 0) {
+            alert(`✅ ASIGNACIÓN EXITOSA\nUnidad: ${placa}\nSe han asignado ${diferencia.toFixed(2)} GLN adicionales para esta semana.`);
+        } else if (diferencia < 0) {
+            alert(`✅ AJUSTE REALIZADO\nSe han reducido ${Math.abs(diferencia).toFixed(2)} GLN a la unidad ${placa}.`);
+        } else {
+            alert("✅ La dotación se mantiene sin cambios.");
         }
+
+        cerrarModalEditarFlota();
+        sincronizarDesdeNube(); // Esto recargará la tabla con los nuevos datos
+    } catch (e) {
+        alert("Error al conectar con la base de datos.");
+    } finally {
+        ind.classList.add('hidden');
+    }
+}
     </script>
     <div id="modalEditarFlota" class="modal">
         <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[400px] overflow-hidden">
