@@ -15,11 +15,8 @@
             thead { display: none; }
             tr { display: block; margin-bottom: 1.5rem; border: 2px solid #e5e7eb; border-radius: 1rem; background: white; padding: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
             td { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0 !important; border: none !important; border-bottom: 1px solid #f3f4f6 !important; text-align: right; }
-            td:last-child { border-bottom: none !important; }
             td::before { content: attr(data-label); font-weight: 800; text-transform: uppercase; font-size: 0.7rem; color: #6b7280; text-align: left; margin-right: 10px; }
         }
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); align-items: center; justify-content: center; }
-        .modal-content { max-height: 90vh; overflow-y: auto; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
@@ -39,21 +36,9 @@
                 <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30 outline-none w-full sm:w-auto"></select>
             </div>
 
-            <div class="flex flex-wrap justify-center gap-2 w-full lg:w-auto">
-                <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                    <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
-                </button>
-                <button onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                    <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
-                </button>
-                <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+            <div class="flex gap-2">
+                <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow">
                     <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
-                </button>
-                <button onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow">
-                    <i class="fas fa-cog"></i>
-                </button>
-                <button onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow">
-                    <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
                 </button>
             </div>
         </div>
@@ -83,7 +68,7 @@
             <div class="p-3 border-b bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-3">
                 <div class="relative w-full md:w-96">
                     <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                    <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa, responsable o área..." class="pl-9 pr-4 py-2 border rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-green-500">
+                    <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa..." class="pl-9 pr-4 py-2 border rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-green-500">
                 </div>
                 <div id="indicadorCarga" class="hidden text-green-600 font-bold animate-pulse text-[10px]">
                     <i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO...
@@ -114,129 +99,10 @@
         </div>
     </main>
 
-    <div id="modalRegistro" class="modal">
-        <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[450px] overflow-hidden">
-            <div class="p-4 bg-orange-600 text-white flex justify-between items-center">
-                <h2 class="font-bold uppercase text-sm"><i class="fas fa-edit mr-2"></i> Registrar Despacho</h2>
-                <button onclick="cerrarModal('modalRegistro')" class="text-white text-2xl">&times;</button>
-            </div>
-            <div class="p-5 space-y-3">
-                <input type="text" id="regPlaca" class="w-full p-2 border rounded uppercase font-bold" placeholder="Placa">
-                <input type="date" id="regFecha" class="w-full p-2 border rounded">
-                <select id="regTipo" class="w-full p-2 border rounded">
-                    <option value="GASOHOL 90">GASOHOL 90</option>
-                    <option value="DIESEL B5 S50">DIESEL B5 S50</option>
-                </select>
-                <input type="number" id="regCant" step="0.01" class="w-full p-2 border rounded" placeholder="Cantidad GLN">
-                <button onclick="guardarRegistroManual()" class="w-full bg-orange-600 text-white py-3 rounded-lg font-bold hover:bg-orange-700 transition">ENVIAR A NUBE</button>
-            </div>
-        </div>
-    </div>
-
     <script>
+        // REEMPLAZA CON TU URL REAL
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec';
         
-        let ESTRUCTURA_FLOTA = [];
-        let lunesReferencia = new Date();
-
-        // --- RENDERIZADO ---
-        function renderTabla(datos) {
-            const cuerpo = document.getElementById('cuerpoTabla');
-            cuerpo.innerHTML = "";
-            let tA = 0, tC = 0;
-
-            datos.forEach(grupo => {
-                const totalGrupoConsumo = parseFloat(grupo.total || 0);
-                const saldoGrupo = parseFloat(grupo.a || 0) - totalGrupoConsumo;
-                const esAlerta = saldoGrupo < 2;
-
-                grupo.p.forEach((placa, index) => {
-                    const esPrimeraPlaca = index === 0;
-                    if(esPrimeraPlaca) { 
-                        tA += parseFloat(grupo.a || 0); 
-                        tC += totalGrupoConsumo; 
-                    }
-
-                    cuerpo.innerHTML += `
-                        <tr class="${grupo.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50 transition-colors">
-                            <td data-label="Placa" class="p-2 font-bold border-r ${esAlerta ? 'text-red-600' : 'text-blue-800'}">
-                                <div class="flex items-center justify-between">
-                                    <span>${placa}</span>
-                                    <button onclick="abrirEditarFlota('${placa}', ${grupo.a})" class="text-gray-300 hover:text-green-600 ml-2">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </div>
-                            </td>
-                            <td data-label="Responsable" class="p-2 border-r">
-                                <span class="font-bold block text-[10px]">${grupo.r}</span>
-                                <span class="text-[9px] text-gray-400 uppercase">${grupo.area}</span>
-                            </td>
-                            <td data-label="L" class="p-1 text-center border-r">${grupo.L || '-'}</td>
-                            <td data-label="M" class="p-1 text-center border-r">${grupo.M || '-'}</td>
-                            <td data-label="Mi" class="p-1 text-center border-r">${grupo.Mi || '-'}</td>
-                            <td data-label="J" class="p-1 text-center border-r">${grupo.J || '-'}</td>
-                            <td data-label="V" class="p-1 text-center border-r">${grupo.V || '-'}</td>
-                            <td data-label="S" class="p-1 text-center border-r">${grupo.S || '-'}</td>
-                            <td data-label="D" class="p-1 text-center border-r">${grupo.D || '-'}</td>
-                            <td data-label="Asig." class="p-2 text-center font-bold bg-gray-50 border-l">
-                                ${esPrimeraPlaca ? grupo.a.toFixed(2) : '-'}
-                            </td>
-                            <td data-label="Cons." class="p-2 text-center font-bold bg-orange-50 text-orange-700">
-                                ${esPrimeraPlaca ? totalGrupoConsumo.toFixed(2) : '-'}
-                            </td>
-                            <td data-label="Saldo" class="p-2 text-center font-black ${esAlerta ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'}">
-                                ${esPrimeraPlaca ? saldoGrupo.toFixed(2) : '-'}
-                            </td>
-                        </tr>`;
-                });
-            });
-            actualizarResumen(tA, tC);
-        }
-
-        // --- LÓGICA NUBE ---
-        async function sincronizarDesdeNube() {
-            const indicador = document.getElementById('indicadorCarga');
-            indicador.classList.remove('hidden');
-            try {
-                const fechaStr = lunesReferencia.toISOString().split('T')[0];
-                const res = await fetch(`${WEB_APP_URL}?action=getFlota&fecha=${fechaStr}`);
-                const data = await res.json();
-                ESTRUCTURA_FLOTA = data;
-                renderTabla(data);
-            } catch (e) {
-                console.error("Error sincronizando:", e);
-                alert("Error al obtener datos.");
-            } finally {
-                indicador.classList.add('hidden');
-            }
-        }
-
-        async function guardarRegistroManual() {
-            const payload = {
-                action: 'saveTemporal',
-                placa: document.getElementById('regPlaca').value.toUpperCase().trim(),
-                fecha: document.getElementById('regFecha').value,
-                tipo: document.getElementById('regTipo').value,
-                cantidad: parseFloat(document.getElementById('regCant').value)
-            };
-
-            if(!payload.placa || !payload.fecha || isNaN(payload.cantidad)) return alert("Datos incompletos.");
-
-            try {
-                // Se usa 'no-cors' para evitar problemas de pre-flight en Apps Script
-                await fetch(WEB_APP_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload) 
-                });
-                alert("Registro enviado a la nube correctamente.");
-                cerrarModal('modalRegistro');
-                setTimeout(sincronizarDesdeNube, 2000); // Recarga después de 2 seg para dar tiempo al servidor
-            } catch (e) { alert("Error al conectar."); }
-        }
-
-        // --- AUXILIARES ---
         let lunesReferencia = new Date();
 
         function getLunesActual(fechaBase) {
@@ -266,8 +132,12 @@
             let opciones = [];
 
             while (f.getFullYear() <= anio) {
-                let fin = new Date(f); fin.setDate(f.getDate() + 6);
-                opciones.push({ val: f.toISOString().split('T')[0], text: `Sem: ${f.toLocaleDateString()} al ${fin.toLocaleDateString()}` });
+                let fin = new Date(f); 
+                fin.setDate(f.getDate() + 6);
+                opciones.push({ 
+                    val: f.toISOString().split('T')[0], 
+                    text: `Sem: ${f.toLocaleDateString()} al ${fin.toLocaleDateString()}` 
+                });
                 f.setDate(f.getDate() + 7);
             }
 
@@ -280,20 +150,15 @@
 
         function gestionarCambioSemana() {
             const selector = document.getElementById('selectorSemanas');
+            if (!selector.value) return;
             lunesReferencia = new Date(selector.value + "T12:00:00");
             sincronizarDesdeNube();
         }
 
         function cambiarAnio() {
-            poblarSemanasPorAnio(document.getElementById('selectorAnio').value);
+            const anio = document.getElementById('selectorAnio').value;
+            poblarSemanasPorAnio(anio);
             gestionarCambioSemana();
-        }
-
-        function filtrarTabla() {
-            const q = document.getElementById('buscador').value.toUpperCase();
-            document.querySelectorAll('#cuerpoTabla tr').forEach(row => {
-                row.style.display = row.innerText.toUpperCase().includes(q) ? "" : "none";
-            });
         }
 
         async function sincronizarDesdeNube() {
@@ -305,7 +170,8 @@
                 const data = await res.json();
                 renderTabla(data);
             } catch (e) {
-                alert("Error de conexión");
+                console.error(e);
+                alert("Error de conexión con la base de datos.");
             } finally {
                 ind.classList.add('hidden');
             }
@@ -316,30 +182,37 @@
             cuerpo.innerHTML = "";
             let tA = 0, tC = 0;
 
+            if (!Array.isArray(datos)) return;
+
             datos.forEach(grupo => {
-                const saldo = grupo.a - grupo.total;
+                const consumoTotal = parseFloat(grupo.total || 0);
+                const asignacion = parseFloat(grupo.a || 0);
+                const saldo = asignacion - consumoTotal;
                 const esAlerta = saldo < 2;
-                
+
                 grupo.p.forEach((placa, idx) => {
                     const esPrimero = idx === 0;
-                    if(esPrimero) { tA += grupo.a; tC += grupo.total; }
+                    if(esPrimero) { 
+                        tA += asignacion; 
+                        tC += consumoTotal; 
+                    }
 
                     cuerpo.innerHTML += `
-                        <tr class="${grupo.p.length > 1 ? 'bg-gray-50' : ''}">
-                            <td data-label="Placa" class="p-2 font-bold text-blue-800">${placa}</td>
-                            <td data-label="Responsable" class="p-2">
+                        <tr class="${grupo.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
+                            <td data-label="Placa" class="p-2 font-bold border-r ${esAlerta ? 'text-red-600' : 'text-blue-800'}">${placa}</td>
+                            <td data-label="Responsable" class="p-2 border-r">
                                 <span class="font-bold block text-[10px]">${grupo.r}</span>
                                 <span class="text-[9px] text-gray-400 uppercase">${grupo.area}</span>
                             </td>
-                            <td data-label="L" class="text-center">${grupo.L || '-'}</td>
-                            <td data-label="M" class="text-center">${grupo.M || '-'}</td>
-                            <td data-label="Mi" class="text-center">${grupo.Mi || '-'}</td>
-                            <td data-label="J" class="text-center">${grupo.J || '-'}</td>
-                            <td data-label="V" class="text-center">${grupo.V || '-'}</td>
-                            <td data-label="S" class="text-center">${grupo.S || '-'}</td>
-                            <td data-label="D" class="text-center">${grupo.D || '-'}</td>
-                            <td data-label="Asig." class="p-2 text-center font-bold bg-gray-50 border-l">${esPrimero ? grupo.a.toFixed(2) : '-'}</td>
-                            <td data-label="Cons." class="p-2 text-center font-bold bg-orange-50 text-orange-700">${esPrimero ? grupo.total.toFixed(2) : '-'}</td>
+                            <td data-label="L" class="text-center p-1 border-r">${grupo.L || '-'}</td>
+                            <td data-label="M" class="text-center p-1 border-r">${grupo.M || '-'}</td>
+                            <td data-label="Mi" class="text-center p-1 border-r">${grupo.Mi || '-'}</td>
+                            <td data-label="J" class="text-center p-1 border-r">${grupo.J || '-'}</td>
+                            <td data-label="V" class="text-center p-1 border-r">${grupo.V || '-'}</td>
+                            <td data-label="S" class="text-center p-1 border-r">${grupo.S || '-'}</td>
+                            <td data-label="D" class="text-center p-1 border-r">${grupo.D || '-'}</td>
+                            <td data-label="Asig." class="p-2 text-center font-bold bg-gray-50 border-l">${esPrimero ? asignacion.toFixed(2) : '-'}</td>
+                            <td data-label="Cons." class="p-2 text-center font-bold bg-orange-50 text-orange-700">${esPrimero ? consumoTotal.toFixed(2) : '-'}</td>
                             <td data-label="Saldo" class="p-2 text-center font-black ${esAlerta && esPrimero ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'}">
                                 ${esPrimero ? saldo.toFixed(2) : '-'}
                             </td>
@@ -353,12 +226,26 @@
             document.getElementById('resumenEficiencia').innerText = tA > 0 ? ((tC/tA)*100).toFixed(1) + "%" : "0%";
         }
 
+        function filtrarTabla() {
+            const q = document.getElementById('buscador').value.toUpperCase();
+            document.querySelectorAll('#cuerpoTabla tr').forEach(row => {
+                row.style.display = row.innerText.toUpperCase().includes(q) ? "" : "none";
+            });
+        }
+
+        // INICIO DE LA APP
         window.onload = () => {
             poblarAnios();
-            poblarSemanasPorAnio(new Date().getFullYear());
-            gestionarCambioSemana();
+            const anioActual = document.getElementById('selectorAnio').value;
+            poblarSemanasPorAnio(anioActual);
+            
+            // Establecer lunes de referencia inicial
+            const selectorSem = document.getElementById('selectorSemanas');
+            if (selectorSem.value) {
+                lunesReferencia = new Date(selectorSem.value + "T12:00:00");
+                sincronizarDesdeNube();
+            }
         };
-
     </script>
 </body>
 </html>
