@@ -642,6 +642,8 @@ async function ejecutarConsultaOrden() {
         const url = `${WEB_APP_URL}?action=getDetalleOrden&orden=${encodeURIComponent(input)}`
   + (fDesde ? `&desde=${fDesde}` : '')
   + (fHasta ? `&hasta=${fHasta}` : '');
+
+const res = await fetch(url);
 const result = await res.json();
         
         cacheConsultaOrden = [];
