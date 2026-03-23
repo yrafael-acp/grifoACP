@@ -550,9 +550,9 @@ async function ejecutarConsultaOrden() {
 
     try {
         // Obtenemos toda la base de datos (independiente de la semana actual)
-        const res = await fetch(
-    `${WEB_APP_URL}?action=getDetalleOrden&orden=${encodeURIComponent(input)}&desde=${fDesde}&hasta=${fHasta}`
-);
+        const url = `${WEB_APP_URL}?action=getDetalleOrden&orden=${encodeURIComponent(input)}`
+  + (fDesde ? `&desde=${fDesde}` : '')
+  + (fHasta ? `&hasta=${fHasta}` : '');
 const result = await res.json();
         
         cacheConsultaOrden = [];
