@@ -403,35 +403,39 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
     const hoy = new Date();
     const lunesActual = getLunesActual(hoy).toISOString().split('T')[0];
 
+    let opciones = [];
+
     while (fechaIterador.getFullYear() <= anio) {
         let finSemana = new Date(fechaIterador);
         finSemana.setDate(fechaIterador.getDate() + 6);
 
         const value = fechaIterador.toISOString().split('T')[0];
 
-        const option = document.createElement('option');
-        option.value = value;
-        option.text = `Semana: ${fechaIterador.toLocaleDateString()} al ${finSemana.toLocaleDateString()}`;
-
-        // ⭐ Solo marcar si es año actual
-        if (anio == hoy.getFullYear() && value === lunesActual) {
-            option.selected = true;
-        }
-
-        sel.appendChild(option);
+        opciones.push({
+            value,
+            text: `Semana: ${fechaIterador.toLocaleDateString()} al ${finSemana.toLocaleDateString()}`
+        });
 
         fechaIterador.setDate(fechaIterador.getDate() + 7);
     }
 
-    // 🔥 ordenar: más reciente arriba
-    sel.innerHTML = Array.from(sel.options)
-        .reverse()
-        .map(o => o.outerHTML)
-        .join('');
+    // 🔥 invertir visualmente
+    opciones.reverse().forEach(op => {
+        const option = document.createElement('option');
+        option.value = op.value;
+        option.text = op.text;
 
-    // 🔥 fallback: si no seleccionó nada, elegir la primera
-    if (!sel.value && sel.options.length > 0) {
-        sel.selectedIndex = 0;
+        // ✅ SOLO seleccionar semana actual si es año actual
+        if (anio == hoy.getFullYear() && op.value === lunesActual) {
+            option.selected = true;
+        }
+
+        sel.appendChild(option);
+    });
+
+    // ✅ SI NO ES AÑO ACTUAL → seleccionar la PRIMERA semana del año
+    if (anio != hoy.getFullYear()) {
+        sel.selectedIndex = sel.options.length - 1;
     }
 }
         function cambiarAnio() {
@@ -461,6 +465,7 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
     }
 
     indicador.classList.add('hidden');
+            console.log("Fecha enviada:", lunesReferencia.toISOString().split('T')[0]);
 }
         
         async function cargarFlota() {
@@ -730,15 +735,19 @@ function exportarConsultaExcel() {
     XLSX.utils.book_append_sheet(wb, ws, "Consulta_Filtrada");
     XLSX.writeFile(wb, `Reporte_Ordenes_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
-        //CODIGO AGREGADO
-        
-// ... (Mantén todo el código anterior idéntico)
 window.onload = async () => {
     try {
-        poblarAnios(); // 🔥 FALTABA
-        cambiarAnio(); // 🔥 esto carga semanas automáticamente
+        poblarAnios();
+
+        const anio = document.getElementById('selectorAnio').value;
+        poblarSemanasPorAnio(anio);
+
+        // 🔥 CLAVE: setear lunesReferencia correctamente
+        const selector = document.getElementById('selectorSemanas');
+        lunesReferencia = new Date(selector.value);
 
         await sincronizarDesdeNube();
+
     } catch (e) {
         console.error("Error al iniciar:", e);
     }
