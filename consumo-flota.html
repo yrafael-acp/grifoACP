@@ -157,7 +157,7 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
                             <th class="p-3 border-r border-gray-700">RESPONSABLE / ÁREA</th>
                             <th class="p-3 text-center bg-blue-900">L</th>
                             <th class="p-3 text-center bg-blue-900">M</th>
-                            <th class="p-3 text-center bg-blue-900">M</th>
+                            <th class="p-3 text-center bg-blue-900">Mi</th>
                             <th class="p-3 text-center bg-blue-900">J</th>
                             <th class="p-3 text-center bg-blue-900">V</th>
                             <th class="p-3 text-center bg-blue-900">S</th>
@@ -454,12 +454,22 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
     indicador.classList.remove('hidden');
 
     try {
-        await cargarFlota(); // 🔥 NUEVO
+        const res = await fetch(`${WEB_APP_URL}?action=getFlota&fecha=${lunesReferencia.toISOString().split('T')[0]}`);
+const data = await res.json();
 
-        const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal&fecha=${lunesReferencia.toISOString().split('T')[0]}`);
-        datosActuales = await res.json();
+// 🔥 separar estructura y consumo
+ESTRUCTURA_FLOTA = data;
+datosActuales = {};
 
-        renderTabla(datosActuales, ESTRUCTURA_FLOTA);
+// reconstruir consumo desde data
+data.forEach(v => {
+    datosActuales[v.p[0]] = {
+        L: v.L, M: v.M, Mi: v.Mi, J: v.J, V: v.V, S: v.S, D: v.D,
+        total: v.total
+    };
+});
+
+renderTabla(datosActuales, ESTRUCTURA_FLOTA);
     } catch (e) {
         console.error(e);
     }
@@ -624,7 +634,7 @@ async function guardarEdicionFlota() {
         async function guardarSemanaCloud() {
             if(!confirm("¿Cerrar semana y subir a base de datos final?")) return;
             const payload = { 
-    action: 'closeWeek', 
+    action: 'saveFlotaSnapshot', 
     fecha: lunesReferencia.toISOString().split('T')[0], 
     data: datosActuales 
 };
