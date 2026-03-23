@@ -312,31 +312,45 @@
         }
 
         function poblarSemanasDelAnio() {
-            const sel = document.getElementById('selectorSemanas');
-            sel.innerHTML = '';
-            let fechaIterador = new Date("2025-09-01T12:00:00");
-            const hoy = new Date();
-            
-            let day = fechaIterador.getDay();
-            let diff = fechaIterador.getDate() - day + (day === 0 ? -6 : 1);
-            fechaIterador.setDate(diff);
+    const sel = document.getElementById('selectorSemanas');
+    sel.innerHTML = '';
 
-            let opciones = [];
-            while (fechaIterador <= hoy) {
-                let finSemana = new Date(fechaIterador);
-                finSemana.setDate(fechaIterador.getDate() + 6);
-                const value = fechaIterador.toISOString();
-                const lunesDeHoy = getLunesActual(new Date()).toDateString();
-                const label = `Semana: ${fechaIterador.toLocaleDateString()} al ${finSemana.toLocaleDateString()}` + (fechaIterador.toDateString() === lunesDeHoy ? " ⭐" : "");
-                opciones.push({ value, label });
-                fechaIterador.setDate(fechaIterador.getDate() + 7);
-            }
+    // 🔥 Inicio desde enero 2025
+    let fechaIterador = new Date("2025-01-01T12:00:00");
 
-            opciones.reverse().forEach(opt => {
-                const el = document.createElement('option');
-                el.value = opt.value; el.text = opt.label; sel.appendChild(el);
-            });
+    // Ajustar al lunes de esa semana
+    fechaIterador = getLunesActual(fechaIterador);
+
+    const hoy = new Date();
+    const lunesActual = getLunesActual(hoy).toISOString().split('T')[0];
+
+    while (fechaIterador <= hoy) {
+        let finSemana = new Date(fechaIterador);
+        finSemana.setDate(fechaIterador.getDate() + 6);
+
+        const value = fechaIterador.toISOString().split('T')[0];
+
+        const option = document.createElement('option');
+        option.value = value;
+        option.text = `Semana: ${fechaIterador.toLocaleDateString()} al ${finSemana.toLocaleDateString()}`;
+
+        // ⭐ Selección automática de la semana actual
+        if (value === lunesActual) {
+            option.selected = true;
         }
+
+        sel.appendChild(option);
+
+        // siguiente semana
+        fechaIterador.setDate(fechaIterador.getDate() + 7);
+    }
+
+    // 🔥 Opcional: ordenar descendente (semana más reciente arriba)
+    sel.innerHTML = Array.from(sel.options)
+        .reverse()
+        .map(o => o.outerHTML)
+        .join('');
+}
 
         async function sincronizarDesdeNube() {
     const indicador = document.getElementById('indicadorCarga');
@@ -621,18 +635,11 @@ function exportarConsultaExcel() {
         
 // ... (Mantén todo el código anterior idéntico)
 window.onload = async () => {
-    // 1. Cargamos las semanas en el selector
     poblarSemanasDelAnio();
-    
-    // 2. Establecemos la fecha de hoy
-    lunesReferencia = getLunesActual(new Date());
-    
-    const selector = document.getElementById('selectorSemanas');
-    if (selector) {
-        selector.value = lunesReferencia.toISOString();
-    }
 
-    // 3. Sincronizamos los datos sin abrir ninguna ventana
+    const selector = document.getElementById('selectorSemanas');
+    lunesReferencia = new Date(selector.value);
+
     await sincronizarDesdeNube();
 };
         
