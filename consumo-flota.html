@@ -153,13 +153,17 @@
                 </div>
             </div>
             <div class="flex justify-between items-center">
-                <div id="resumenConsultaOrden" class="hidden flex gap-4">
-                    <div class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
-                        TOTAL GLN: <span id="totalGlnOrden">0.00</span>
-                    </div>
-                    <div class="text-[10px] font-bold text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200">
-                        TOTAL SOLES: <span id="totalSolesOrden">0.00</span>
-                    </div>
+                <div id="resumenConsultaOrden" class="hidden flex items-center gap-4">
+    <div class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
+        TOTAL GLN: <span id="totalGlnOrden">0.00</span>
+    </div>
+    <div class="text-[10px] font-bold text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+        TOTAL SOLES: <span id="totalSolesOrden">0.00</span>
+    </div>
+    <button onclick="exportarConsultaExcel()" class="bg-green-700 hover:bg-green-800 text-white px-3 py-1 rounded-lg text-[10px] font-bold flex items-center shadow-sm transition">
+        <i class="fas fa-file-excel mr-1"></i> EXPORTAR EXCEL
+    </button>
+</div>
                 </div>
                 <button onclick="ejecutarConsultaOrden()" class="bg-indigo-600 text-white px-6 py-2 rounded text-xs font-bold uppercase hover:bg-indigo-700 transition">Consultar</button>
             </div>
@@ -529,6 +533,20 @@ async function limpiarValesManuales() {
     } finally {
         document.getElementById('indicadorCarga').classList.add('hidden');
     }
+}
+        function exportarConsultaExcel() {
+    // 1. Obtener la tabla de resultados
+    const tabla = document.getElementById("tablaResultadoOrden");
+    
+    // 2. Crear un libro de trabajo (workbook) a partir de la tabla
+    const wb = XLSX.utils.table_to_book(tabla, { sheet: "Consulta de Ordenes" });
+    
+    // 3. Generar el nombre del archivo con la fecha actual
+    const fecha = new Date().toISOString().split('T')[0];
+    const nombreArchivo = `Reporte_Ordenes_ACP_${fecha}.xlsx`;
+    
+    // 4. Descargar el archivo
+    XLSX.writeFile(wb, nombreArchivo);
 }
     </script>
 </body>
