@@ -166,24 +166,46 @@
         </div>
     </div>
 
+    <div id="modalEditarFlota" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[400px] overflow-hidden">
+            <div class="p-4 bg-green-700 text-white flex justify-between items-center">
+                <span class="font-bold text-sm">AJUSTAR DOTACIÓN SEMANAL</span>
+                <button onclick="cerrarModalEditarFlota()" class="text-2xl">&times;</button>
+            </div>
+            <div class="p-4 space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Vehículo</label>
+                    <input type="text" id="editPlaca" class="w-full p-2 border rounded font-bold bg-gray-50" readonly>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Nueva cantidad (Galones)</label>
+                    <input type="number" id="editDotacion" class="w-full p-2 border border-green-200 rounded outline-none focus:ring-2 focus:ring-green-500" placeholder="0.00">
+                </div>
+                <div class="grid grid-cols-1 gap-2 pt-2">
+                    <button onclick="guardarExcepcionSemanal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold text-xs transition shadow">
+                        <i class="fas fa-calendar-check mr-1"></i> APLICAR SOLO ESTA SEMANA
+                    </button>
+                    <p class="text-[9px] text-gray-400 text-center italic">* Solo afecta a la semana seleccionada.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="modalConfig" class="modal">
         <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[500px]">
             <div class="p-4 bg-gray-800 text-white flex justify-between items-center text-sm font-bold">
                 <span>CONFIGURACIÓN FLOTA</span>
                 <button onclick="cerrarModalConfig()" class="text-2xl">&times;</button>
             </div>
-            <div class="p-5" id="listaConfigFlota">
-                </div>
+            <div class="p-5" id="listaConfigFlota"></div>
         </div>
     </div>
 
     <script>
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec';
         let ESTRUCTURA_FLOTA = [];
-        let datosActuales = {};
         let lunesReferencia = new Date();
 
-        // --- FUNCIONES DE INICIO ---
         window.onload = () => {
             poblarAnios();
             poblarSemanasPorAnio(new Date().getFullYear());
@@ -191,15 +213,6 @@
             sincronizarDesdeNube();
         };
 
-        // --- FUNCIONES DE INTERFAZ ---
-        function abrirModalRegistro() { document.getElementById('modalRegistro').style.display = 'flex'; }
-        function cerrarModalRegistro() { document.getElementById('modalRegistro').style.display = 'none'; }
-        function abrirModalConsulta() { document.getElementById('modalConsulta').style.display = 'flex'; }
-        function cerrarModalConsulta() { document.getElementById('modalConsulta').style.display = 'none'; }
-        function abrirModalConfig() { document.getElementById('modalConfig').style.display = 'flex'; renderListaConfig(); }
-        function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
-
-        // --- FUNCIONES DE LÓGICA ---
         function getLunesActual(f) {
             const d = new Date(f); d.setHours(12,0,0,0);
             const day = d.getDay();
@@ -235,11 +248,6 @@
             sincronizarDesdeNube();
         }
 
-        function cambiarAnio() {
-            poblarSemanasPorAnio(document.getElementById('selectorAnio').value);
-            gestionarCambioSemana();
-        }
-
         async function sincronizarDesdeNube() {
             const ind = document.getElementById('indicadorCarga');
             ind.classList.remove('hidden');
@@ -254,41 +262,102 @@
         }
 
         function renderTabla(datos) {
-    const cuerpo = document.getElementById('cuerpoTabla');
-    cuerpo.innerHTML = "";
-    datos.forEach(g => {
-        const asig = g.a, cons = g.total, saldo = asig - cons;
-        const esExcepcion = g.isEx; // Detectamos si viene de la hoja de excepciones
+            const cuerpo = document.getElementById('cuerpoTabla');
+            cuerpo.innerHTML = "";
+            let tA = 0, tC = 0;
+            datos.forEach(g => {
+                const asig = g.a, cons = g.total, saldo = asig - cons;
+                const esExcepcion = g.isEx;
 
-        g.p.forEach((placa, idx) => {
-            const esP = idx === 0;
-            cuerpo.innerHTML += `
-                <tr class="${g.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
-                    <td data-label="Placa" class="p-2 font-bold ${saldo < 2 ? 'text-red-600':'text-blue-800'}">
-                        <div class="flex items-center justify-between">
-                            <span>
-                                ${placa} 
-                                ${esExcepcion ? '<i class="fas fa-star text-yellow-500 ml-1" title="Ajuste Semanal"></i>' : ''}
-                            </span>
-                            <button onclick="abrirEditarFlota('${placa}', ${asig})" class="text-gray-400 hover:text-green-600">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </div>
-                    </td>
-                    ...
-                    <td data-label="Asig." class="p-2 text-center font-black ${esExcepcion ? 'bg-blue-100 text-blue-800' : 'bg-gray-50'} border-l">
-                        ${esP ? asig.toFixed(2) : '-'}
-                    </td>
-                </tr>`;
-        });
-    });
-}
+                g.p.forEach((placa, idx) => {
+                    const esP = idx === 0;
+                    if(esP) { tA += asig; tC += cons; }
+                    cuerpo.innerHTML += `
+                        <tr class="${g.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
+                            <td data-label="Placa" class="p-2 font-bold ${saldo < 2 ? 'text-red-600':'text-blue-800'}">
+                                <div class="flex items-center justify-between">
+                                    <span>${placa} ${esExcepcion ? '<i class="fas fa-star text-yellow-500 ml-1"></i>' : ''}</span>
+                                    <button onclick="abrirEditarFlota('${placa}', ${asig})" class="text-gray-400 hover:text-green-600 ml-2">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </td>
+                            <td data-label="Responsable" class="p-2 border-r">
+                                <span class="font-bold block">${g.r}</span>
+                                <span class="text-[9px] text-gray-400 uppercase">${g.area}</span>
+                            </td>
+                            <td data-label="L" class="text-center">${g.L||'-'}</td>
+                            <td data-label="M" class="text-center">${g.M||'-'}</td>
+                            <td data-label="Mi" class="text-center">${g.Mi||'-'}</td>
+                            <td data-label="J" class="text-center">${g.J||'-'}</td>
+                            <td data-label="V" class="text-center">${g.V||'-'}</td>
+                            <td data-label="S" class="text-center">${g.S||'-'}</td>
+                            <td data-label="D" class="text-center">${g.D||'-'}</td>
+                            <td data-label="Asig." class="p-2 text-center font-black ${esExcepcion ? 'bg-blue-100 text-blue-800' : 'bg-gray-50'} border-l">
+                                ${esP ? asig.toFixed(2) : '-'}
+                            </td>
+                            <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">
+                                ${esP ? cons.toFixed(2) : '-'}
+                            </td>
+                            <td data-label="Saldo" class="p-2 text-center font-black ${saldo < 2 && esP ? 'bg-red-600 text-white animate-pulse':'bg-green-100 text-green-800'} border-l">
+                                ${esP ? saldo.toFixed(2) : '-'}
+                            </td>
+                        </tr>`;
+                });
+            });
+            actualizarResumen(tA, tC);
+        }
 
         function actualizarResumen(tA, tC) {
             document.getElementById('resumenAsignado').innerText = tA.toFixed(2);
             document.getElementById('resumenConsumido').innerText = tC.toFixed(2);
             document.getElementById('resumenSaldo').innerText = (tA - tC).toFixed(2);
             document.getElementById('resumenEficiencia').innerText = tA > 0 ? ((tC/tA)*100).toFixed(1) + "%" : "0%";
+        }
+
+        function filtrarTabla() {
+            const q = document.getElementById('buscador').value.toUpperCase();
+            document.querySelectorAll('#cuerpoTabla tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? "" : "none");
+        }
+
+        // --- FUNCIONES DE MODALES ---
+        function abrirModalRegistro() { document.getElementById('modalRegistro').style.display = 'flex'; }
+        function cerrarModalRegistro() { document.getElementById('modalRegistro').style.display = 'none'; }
+        function abrirModalConsulta() { document.getElementById('modalConsulta').style.display = 'flex'; }
+        function cerrarModalConsulta() { document.getElementById('modalConsulta').style.display = 'none'; }
+        function abrirModalConfig() { document.getElementById('modalConfig').style.display = 'flex'; renderListaConfig(); }
+        function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
+        function abrirEditarFlota(placa, dotActual) {
+            document.getElementById('editPlaca').value = placa;
+            document.getElementById('editDotacion').value = dotActual;
+            document.getElementById('modalEditarFlota').style.display = 'flex';
+        }
+        function cerrarModalEditarFlota() { document.getElementById('modalEditarFlota').style.display = 'none'; }
+
+        // --- ACCIONES NUBE ---
+        async function guardarExcepcionSemanal() {
+            const placa = document.getElementById('editPlaca').value;
+            const nuevaDot = parseFloat(document.getElementById('editDotacion').value);
+            const placaNorm = placa.toUpperCase().replace(/-/g, "");
+            
+            // Buscar dotación previa para el mensaje
+            const infoActual = ESTRUCTURA_FLOTA.find(g => g.p.includes(placa));
+            const dotAnterior = infoActual ? infoActual.a : 0;
+            const semana = document.getElementById('selectorSemanas').value;
+
+            if(!nuevaDot || isNaN(nuevaDot)) return alert("Ingrese un monto válido.");
+
+            try {
+                const payload = { action: "saveExcepcion", semana, placa: placaNorm, dotacion: nuevaDot };
+                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                
+                const diff = nuevaDot - dotAnterior;
+                if (diff > 0) alert(`✅ ASIGNACIÓN EXITOSA\nUnidad: ${placa}\nSe han asignado ${diff.toFixed(2)} GLN adicionales.`);
+                else alert("✅ Ajuste realizado correctamente.");
+
+                cerrarModalEditarFlota();
+                sincronizarDesdeNube();
+            } catch (e) { alert("Error al conectar."); }
         }
 
         async function ejecutarConsultaOrden() {
@@ -307,23 +376,7 @@
                     document.getElementById('tablaConsultaContainer').classList.remove('hidden');
                     document.getElementById('estadoConsulta').classList.add('hidden');
                 }
-            } catch (e) { alert("Error en consulta."); }
-        }
-
-        function leerExcel(input) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = new Uint8Array(e.target.result);
-                const wb = XLSX.read(data, {type: 'array', cellDates: true});
-                alert("Excel cargado. Procesando localmente...");
-                // Aquí podrías añadir la lógica de procesamiento local si es necesario
-            };
-            reader.readAsArrayBuffer(input.files[0]);
-        }
-
-        function filtrarTabla() {
-            const q = document.getElementById('buscador').value.toUpperCase();
-            document.querySelectorAll('#cuerpoTabla tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? "" : "none");
+            } catch (e) { alert("Error."); }
         }
 
         async function guardarRegistroManual() {
@@ -335,98 +388,8 @@
                 cantidad: parseFloat(document.getElementById('regCant').value)
             };
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            alert("Registro enviado."); cerrarModalRegistro();
+            alert("Enviado."); cerrarModalRegistro();
         }
-
-        async function guardarSemanaCloud() {
-            if(!confirm("¿Cerrar semana?")) return;
-            alert("Procesando cierre...");
-        }
-
-        function renderListaConfig() {
-            document.getElementById('listaConfigFlota').innerHTML = ESTRUCTURA_FLOTA.map(g => `<div class="p-2 border-b text-xs">${g.p.join(', ')} - ${g.r}</div>`).join('');
-        }
-        // --- FUNCIONES DE EDICIÓN E INYECTADAS (EXCEPCIONES) ---
-        
-        function abrirEditarFlota(placa, dotacionActual) {
-            document.getElementById('editPlaca').value = placa;
-            document.getElementById('editDotacion').value = dotacionActual;
-            document.getElementById('modalEditarFlota').style.display = 'flex';
-        }
-
-        function cerrarModalEditarFlota() {
-            document.getElementById('modalEditarFlota').style.display = 'none';
-        }
-
-        async function guardarExcepcionSemanal() {
-    const placa = document.getElementById('editPlaca').value;
-    const nuevaDot = parseFloat(document.getElementById('editDotacion').value);
-    
-    // Buscamos la dotación que tiene actualmente la tabla para comparar
-    const placaNormalizada = placa.toUpperCase().replace(/-/g, "");
-    const infoActual = ESTRUCTURA_FLOTA.find(g => g.p.includes(placaNormalizada));
-    const dotAnterior = infoActual ? infoActual.a : 0;
-    
-    const semana = document.getElementById('selectorSemanas').value;
-
-    if(!nuevaDot || isNaN(nuevaDot)) return alert("Ingrese un monto válido.");
-
-    const ind = document.getElementById('indicadorCarga');
-    ind.classList.remove('hidden');
-
-    try {
-        const payload = {
-            action: "saveExcepcion",
-            semana: semana,
-            placa: placaNormalizada,
-            dotacion: nuevaDot
-        };
-
-        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-
-        // --- NOTIFICACIÓN DE GALONES ADICIONALES ---
-        const diferencia = nuevaDot - dotAnterior;
-        if (diferencia > 0) {
-            alert(`✅ ASIGNACIÓN EXITOSA\nUnidad: ${placa}\nSe han asignado ${diferencia.toFixed(2)} GLN adicionales para esta semana.`);
-        } else if (diferencia < 0) {
-            alert(`✅ AJUSTE REALIZADO\nSe han reducido ${Math.abs(diferencia).toFixed(2)} GLN a la unidad ${placa}.`);
-        } else {
-            alert("✅ La dotación se mantiene sin cambios.");
-        }
-
-        cerrarModalEditarFlota();
-        sincronizarDesdeNube(); // Esto recargará la tabla con los nuevos datos
-    } catch (e) {
-        alert("Error al conectar con la base de datos.");
-    } finally {
-        ind.classList.add('hidden');
-    }
-}
     </script>
-    <div id="modalEditarFlota" class="modal">
-        <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[400px] overflow-hidden">
-            <div class="p-4 bg-green-700 text-white flex justify-between items-center">
-                <span class="font-bold text-sm">AJUSTAR DOTACIÓN</span>
-                <button onclick="cerrarModalEditarFlota()" class="text-2xl">&times;</button>
-            </div>
-            <div class="p-4 space-y-4">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Vehículo seleccionado</label>
-                    <input type="text" id="editPlaca" class="w-full p-2 border rounded font-bold bg-gray-50" readonly>
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Nueva cantidad (Galones)</label>
-                    <input type="number" id="editDotacion" class="w-full p-2 border border-green-200 rounded outline-none focus:ring-2 focus:ring-green-500" placeholder="0.00">
-                </div>
-                
-                <div class="grid grid-cols-1 gap-2 pt-2">
-                    <button onclick="guardarExcepcionSemanal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold text-xs transition shadow">
-                        <i class="fas fa-calendar-check mr-1"></i> APLICAR SOLO ESTA SEMANA
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center italic">* Este cambio no afectará al maestro de flota ni a otras semanas.</p>
-                </div>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
