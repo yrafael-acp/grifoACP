@@ -450,46 +450,6 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
     sincronizarDesdeNube();
 }
 
-        function poblarSemanasDelAnio() {
-    const sel = document.getElementById('selectorSemanas');
-    sel.innerHTML = '';
-    // 🔥 Inicio desde enero 2025
-    let fechaIterador = new Date("2025-01-01T12:00:00");
-
-    // Ajustar al lunes de esa semana
-    fechaIterador = getLunesActual(fechaIterador);
-
-    const hoy = new Date();
-    const lunesActual = getLunesActual(hoy).toISOString().split('T')[0];
-
-    while (fechaIterador <= hoy) {
-        let finSemana = new Date(fechaIterador);
-        finSemana.setDate(fechaIterador.getDate() + 6);
-
-        const value = fechaIterador.toISOString().split('T')[0];
-
-        const option = document.createElement('option');
-        option.value = value;
-        option.text = `Semana: ${fechaIterador.toLocaleDateString()} al ${finSemana.toLocaleDateString()}`;
-
-        // ⭐ Selección automática de la semana actual
-        if (value === lunesActual) {
-            option.selected = true;
-        }
-
-        sel.appendChild(option);
-
-        // siguiente semana
-        fechaIterador.setDate(fechaIterador.getDate() + 7);
-    }
-
-    // 🔥 Opcional: ordenar descendente (semana más reciente arriba)
-    sel.innerHTML = Array.from(sel.options)
-        .reverse()
-        .map(o => o.outerHTML)
-        .join('');
-}
-
         async function sincronizarDesdeNube() {
     const indicador = document.getElementById('indicadorCarga');
     indicador.classList.remove('hidden');
