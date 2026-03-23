@@ -48,6 +48,7 @@
                     </button>
                     <button onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-cog mr-1"></i>
+                        <div id="contenedorAdmin" class="flex gap-2"></div>
                     </button>
                     <button onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
@@ -418,6 +419,41 @@
         console.error(e);
     } finally {
         ind.classList.add('hidden');
+    }
+}
+        function verificarRolAdmin(rol) {
+    const contenedor = document.getElementById('contenedorAdmin');
+    if (rol === "ADMINISTRADOR") {
+        contenedor.innerHTML = `
+            <button onclick="limpiarValesManuales()" title="Solo Administradores" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                <i class="fas fa-broom mr-1"></i> LIMPIAR VALES
+            </button>
+        `;
+    } else {
+        contenedor.innerHTML = ""; // Limpia si no es admin
+    }
+}
+
+// Función para ejecutar la limpieza
+async function limpiarValesManuales() {
+    if (!confirm("⚠️ ATENCIÓN: ¿Deseas eliminar todos los registros manuales (vales)?\nConfirma que estos datos ya fueron procesados en SAP.")) return;
+
+    document.getElementById('indicadorCarga').classList.remove('hidden');
+
+    try {
+        const payload = { action: 'limpiarTemporales' };
+        await fetch(WEB_APP_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify(payload) 
+        });
+
+        alert("✅ Hoja temporal de vales limpiada con éxito.");
+        sincronizarDesdeNube();
+    } catch (e) {
+        alert("Error al intentar limpiar los datos.");
+    } finally {
+        document.getElementById('indicadorCarga').classList.add('hidden');
     }
 }
     </script>
