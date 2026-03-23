@@ -215,14 +215,53 @@
     </div>
 
     <div id="modalConfig" class="modal">
-        <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[500px]">
-            <div class="p-4 bg-gray-800 text-white flex justify-between items-center text-sm font-bold">
-                <span>CONFIGURACIÓN FLOTA</span>
-                <button onclick="cerrarModalConfig()" class="text-2xl">&times;</button>
+    <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[600px] overflow-hidden">
+        <div class="p-4 bg-gray-800 text-white flex justify-between items-center text-sm font-bold">
+            <span>CONFIGURACIÓN DE FLOTA - MAESTRO</span>
+            <button onclick="cerrarModalConfig()" class="text-2xl">&times;</button>
+        </div>
+        
+        <div class="flex border-b bg-gray-50">
+            <button id="btnTabLista" onclick="cambiarTabConfig('lista')" class="flex-1 py-3 text-[10px] font-bold border-b-2 border-green-600 text-green-700">LISTA PARA BAJA</button>
+            <button id="btnTabAlta" onclick="cambiarTabConfig('alta')" class="flex-1 py-3 text-[10px] font-bold text-gray-400 hover:bg-gray-100">DAR DE ALTA NUEVO</button>
+        </div>
+
+        <div class="p-4 max-h-[60vh] overflow-y-auto">
+            <div id="panelListaConfig">
+                <div id="listaConfigFlota" class="divide-y divide-gray-100">
+                    </div>
             </div>
-            <div class="p-5" id="listaConfigFlota"></div>
+
+            <div id="panelAltaConfig" class="hidden space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-bold text-gray-400 uppercase">Placa</label>
+                        <input type="text" id="newPlaca" class="w-full p-2 border rounded text-xs uppercase font-bold" placeholder="ABC-123">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[9px] font-bold text-gray-400 uppercase">Dotación (GLN)</label>
+                        <input type="number" id="newDot" class="w-full p-2 border rounded text-xs" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-gray-400 uppercase">Responsable</label>
+                    <input type="text" id="newResp" class="w-full p-2 border rounded text-xs uppercase" placeholder="NOMBRE DEL CONDUCTOR">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-gray-400 uppercase">Área / Fundo</label>
+                    <input type="text" id="newArea" class="w-full p-2 border rounded text-xs uppercase" placeholder="EJ: CERRO LA PATA">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-gray-400 uppercase">Fecha de Inicio (Alta)</label>
+                    <input type="date" id="newFechaAlta" class="w-full p-2 border rounded text-xs">
+                </div>
+                <button onclick="registrarAltaMaestro()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-lg font-bold text-xs shadow-lg transition">
+                    <i class="fas fa-plus-circle mr-1"></i> GUARDAR EN MAESTRO
+                </button>
+            </div>
         </div>
     </div>
+</div>
 
     <script>
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec';
@@ -547,6 +586,71 @@ async function limpiarValesManuales() {
     
     // 4. Descargar el archivo
     XLSX.writeFile(wb, nombreArchivo);
+}
+        function cambiarTabConfig(tab) {
+    const isLista = tab === 'lista';
+    document.getElementById('panelListaConfig').classList.toggle('hidden', !isLista);
+    document.getElementById('panelAltaConfig').classList.toggle('hidden', isLista);
+    
+    // Estilos de botones
+    document.getElementById('btnTabLista').className = isLista ? 'flex-1 py-3 text-[10px] font-bold border-b-2 border-green-600 text-green-700' : 'flex-1 py-3 text-[10px] font-bold text-gray-400 hover:bg-gray-100';
+    document.getElementById('btnTabAlta').className = !isLista ? 'flex-1 py-3 text-[10px] font-bold border-b-2 border-green-600 text-green-700' : 'flex-1 py-3 text-[10px] font-bold text-gray-400 hover:bg-gray-100';
+    
+    if(isLista) renderListaConfig();
+}
+
+function renderListaConfig() {
+    const contenedor = document.getElementById('listaConfigFlota');
+    contenedor.innerHTML = ESTRUCTURA_FLOTA.map(g => `
+        <div class="flex justify-between items-center py-3">
+            <div>
+                <span class="font-bold text-xs text-blue-900">${g.p[0]}</span>
+                <p class="text-[10px] text-gray-400">${g.r} | ${g.area}</p>
+            </div>
+            <button onclick="ejecutarBajaMaestro('${g.p[0]}')" class="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1 rounded text-[9px] font-bold transition border border-red-100">
+                <i class="fas fa-arrow-down mr-1"></i> DAR DE BAJA
+            </button>
+        </div>
+    `).join('');
+}
+
+async function registrarAltaMaestro() {
+    const data = {
+        action: "insertFlota",
+        placa: document.getElementById('newPlaca').value,
+        dotacion: document.getElementById('newDot').value,
+        responsable: document.getElementById('newResp').value,
+        area: document.getElementById('newArea').value,
+        fechaAlta: document.getElementById('newFechaAlta').value
+    };
+
+    if(!data.placa || !data.fechaAlta) return alert("Placa y Fecha de Alta son obligatorios.");
+
+    document.getElementById('indicadorCarga').classList.remove('hidden');
+    try {
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+        alert("✅ Unidad registrada exitosamente en el Maestro.");
+        cerrarModalConfig();
+        sincronizarDesdeNube();
+    } catch (e) { alert("Error al registrar."); }
+    finally { document.getElementById('indicadorCarga').classList.add('hidden'); }
+}
+
+async function ejecutarBajaMaestro(placa) {
+    const fechaBaja = prompt(`Confirme la fecha de BAJA para ${placa} (AAAA-MM-DD):`, new Date().toISOString().split('T')[0]);
+    if(!fechaBaja) return;
+
+    if(!confirm(`¿Está seguro? La unidad dejará de aparecer después del ${fechaBaja}`)) return;
+
+    document.getElementById('indicadorCarga').classList.remove('hidden');
+    try {
+        const payload = { action: "updateFlota", placa, fechaBaja };
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        alert("✅ Baja procesada. El histórico se mantendrá intacto.");
+        cerrarModalConfig();
+        sincronizarDesdeNube();
+    } catch (e) { alert("Error al procesar baja."); }
+    finally { document.getElementById('indicadorCarga').classList.add('hidden'); }
 }
     </script>
 </body>
