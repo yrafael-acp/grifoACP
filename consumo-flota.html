@@ -264,7 +264,14 @@
                     if(esP) { tA += asig; tC += cons; }
                     cuerpo.innerHTML += `
                         <tr class="${g.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
-                            <td data-label="Placa" class="p-2 font-bold ${saldo < 2 ? 'text-red-600':'text-blue-800'}">${placa}</td>
+                            <td data-label="Placa" class="p-2 font-bold ${saldo < 2 ? 'text-red-600':'text-blue-800'}">
+                            <div class="flex items-center justify-between">
+                            <span>${placa}</span>
+                            <button onclick="abrirEditarFlota('${placa}', ${asig})" class="text-gray-400 hover:text-green-600 ml-2">
+                            <i class="fas fa-edit"></i>
+                            </button>
+                            </div>
+                            </td>
                             <td data-label="Responsable" class="p-2 border-r"><span class="font-bold block">${g.r}</span><span class="text-[9px] text-gray-400 uppercase">${g.area}</span></td>
                             <td data-label="L" class="text-center">${g.L||'-'}</td><td data-label="M" class="text-center">${g.M||'-'}</td>
                             <td data-label="Mi" class="text-center">${g.Mi||'-'}</td><td data-label="J" class="text-center">${g.J||'-'}</td>
@@ -341,6 +348,76 @@
         function renderListaConfig() {
             document.getElementById('listaConfigFlota').innerHTML = ESTRUCTURA_FLOTA.map(g => `<div class="p-2 border-b text-xs">${g.p.join(', ')} - ${g.r}</div>`).join('');
         }
+        // --- FUNCIONES DE EDICIÓN E INYECTADAS (EXCEPCIONES) ---
+        
+        function abrirEditarFlota(placa, dotacionActual) {
+            document.getElementById('editPlaca').value = placa;
+            document.getElementById('editDotacion').value = dotacionActual;
+            document.getElementById('modalEditarFlota').style.display = 'flex';
+        }
+
+        function cerrarModalEditarFlota() {
+            document.getElementById('modalEditarFlota').style.display = 'none';
+        }
+
+        async function guardarExcepcionSemanal() {
+            const placa = document.getElementById('editPlaca').value;
+            const dotacion = document.getElementById('editDotacion').value;
+            const semana = document.getElementById('selectorSemanas').value;
+
+            if(!dotacion || isNaN(dotacion)) return alert("Por favor, ingrese un monto válido.");
+
+            const ind = document.getElementById('indicadorCarga');
+            ind.classList.remove('hidden');
+
+            try {
+                const payload = {
+                    action: "saveExcepcion",
+                    semana: semana,
+                    placa: placa.toUpperCase().replace(/-/g, ""),
+                    dotacion: parseFloat(dotacion)
+                };
+
+                await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify(payload) 
+                });
+
+                alert("Dotación ajustada para esta semana.");
+                cerrarModalEditarFlota();
+                sincronizarDesdeNube(); // Recarga la tabla para ver el cambio
+            } catch (e) {
+                alert("Error al guardar la excepción.");
+            } finally {
+                ind.classList.add('hidden');
+            }
+        }
     </script>
+    <div id="modalEditarFlota" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[400px] overflow-hidden">
+            <div class="p-4 bg-green-700 text-white flex justify-between items-center">
+                <span class="font-bold text-sm">AJUSTAR DOTACIÓN</span>
+                <button onclick="cerrarModalEditarFlota()" class="text-2xl">&times;</button>
+            </div>
+            <div class="p-4 space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Vehículo seleccionado</label>
+                    <input type="text" id="editPlaca" class="w-full p-2 border rounded font-bold bg-gray-50" readonly>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Nueva cantidad (Galones)</label>
+                    <input type="number" id="editDotacion" class="w-full p-2 border border-green-200 rounded outline-none focus:ring-2 focus:ring-green-500" placeholder="0.00">
+                </div>
+                
+                <div class="grid grid-cols-1 gap-2 pt-2">
+                    <button onclick="guardarExcepcionSemanal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold text-xs transition shadow">
+                        <i class="fas fa-calendar-check mr-1"></i> APLICAR SOLO ESTA SEMANA
+                    </button>
+                    <p class="text-[9px] text-gray-400 text-center italic">* Este cambio no afectará al maestro de flota ni a otras semanas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
