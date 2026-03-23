@@ -52,6 +52,9 @@
                     <button onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
                     </button>
+                    <button onclick="limpiarValesManuales()" title="Limpiar Vales Manuales" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-broom mr-1"></i> LIMPIAR VALES
+                    </button>
                     <button onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
                         <i class="fas fa-file-excel"></i>
                     </button>
@@ -390,6 +393,33 @@
             await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             alert("Enviado."); cerrarModalRegistro();
         }
+        async function limpiarValesManuales() {
+    // Preguntamos para evitar borrar por error
+    if (!confirm("¿Deseas eliminar todos los registros manuales (vales)?\nUsa esto solo si ya subiste los datos a SAP para evitar duplicados.")) return;
+
+    const ind = document.getElementById('indicadorCarga');
+    ind.classList.remove('hidden');
+
+    try {
+        const payload = { action: 'limpiarTemporales' };
+        
+        // Enviamos la orden a la nube
+        await fetch(WEB_APP_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify(payload) 
+        });
+
+        alert("✅ Registros manuales eliminados. La tabla se actualizará ahora.");
+        sincronizarDesdeNube(); // Refrescamos la tabla para que el consumo vuelva a la normalidad
+
+    } catch (e) {
+        alert("Error al intentar limpiar los datos.");
+        console.error(e);
+    } finally {
+        ind.classList.add('hidden');
+    }
+}
     </script>
 </body>
 </html>
