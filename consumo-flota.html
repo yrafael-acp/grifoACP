@@ -87,11 +87,6 @@
             <select id="selectorAnio" onchange="cambiarAnio()" 
 class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
 </select>
-
-<select id="selectorSemanas" onchange="gestionarCambioSemana()" 
-class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
-</select>
-
             <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
                 <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30 outline-none focus:ring-2 focus:ring-yellow-400 w-full sm:w-auto">
                 </select>
@@ -457,7 +452,7 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
     try {
         await cargarFlota(); // 🔥 NUEVO
 
-        const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal&fecha=${lunesReferencia.toISOString()}`);
+        const res = await fetch(`${WEB_APP_URL}?action=getConsumoReal&fecha=${lunesReferencia.toISOString().split('T')[0]}`);
         datosActuales = await res.json();
 
         renderTabla(datosActuales, ESTRUCTURA_FLOTA);
@@ -470,7 +465,7 @@ class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
         
         async function cargarFlota() {
     try {
-        const res = await fetch(`${WEB_APP_URL}?action=getFlota&fecha=${lunesReferencia.toISOString()}`);
+        const res = await fetch(`${WEB_APP_URL}?action=getFlota&fecha=${lunesReferencia.toISOString().split('T')[0]}`);
         ESTRUCTURA_FLOTA = await res.json();
     } catch (e) {
         console.error("Error cargando flota", e);
@@ -623,7 +618,11 @@ async function guardarEdicionFlota() {
 
         async function guardarSemanaCloud() {
             if(!confirm("¿Cerrar semana y subir a base de datos final?")) return;
-            const payload = { action: 'closeWeek', fecha: lunesReferencia.toISOString(), data: datosActuales };
+            const payload = { 
+    action: 'closeWeek', 
+    fecha: lunesReferencia.toISOString().split('T')[0], 
+    data: datosActuales 
+};
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
                 alert("Semana cerrada exitosamente.");
