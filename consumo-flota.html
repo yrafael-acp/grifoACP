@@ -296,15 +296,67 @@
             });
         }
 
-        function abrirModalRegistro() { document.getElementById('modalRegistro').style.display = 'flex'; }
-        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+        async function sincronizarDesdeNube() {
+            const ind = document.getElementById('indicadorCarga');
+            ind.classList.remove('hidden');
+            try {
+                const f = lunesReferencia.toISOString().split('T')[0];
+                const res = await fetch(`${WEB_APP_URL}?action=getFlota&fecha=${f}`);
+                const data = await res.json();
+                renderTabla(data);
+            } catch (e) {
+                alert("Error de conexión");
+            } finally {
+                ind.classList.add('hidden');
+            }
+        }
 
-        // Inicialización
-        window.onload = async () => {
+        function renderTabla(datos) {
+            const cuerpo = document.getElementById('cuerpoTabla');
+            cuerpo.innerHTML = "";
+            let tA = 0, tC = 0;
+
+            datos.forEach(grupo => {
+                const saldo = grupo.a - grupo.total;
+                const esAlerta = saldo < 2;
+                
+                grupo.p.forEach((placa, idx) => {
+                    const esPrimero = idx === 0;
+                    if(esPrimero) { tA += grupo.a; tC += grupo.total; }
+
+                    cuerpo.innerHTML += `
+                        <tr class="${grupo.p.length > 1 ? 'bg-gray-50' : ''}">
+                            <td data-label="Placa" class="p-2 font-bold text-blue-800">${placa}</td>
+                            <td data-label="Responsable" class="p-2">
+                                <span class="font-bold block text-[10px]">${grupo.r}</span>
+                                <span class="text-[9px] text-gray-400 uppercase">${grupo.area}</span>
+                            </td>
+                            <td data-label="L" class="text-center">${grupo.L || '-'}</td>
+                            <td data-label="M" class="text-center">${grupo.M || '-'}</td>
+                            <td data-label="Mi" class="text-center">${grupo.Mi || '-'}</td>
+                            <td data-label="J" class="text-center">${grupo.J || '-'}</td>
+                            <td data-label="V" class="text-center">${grupo.V || '-'}</td>
+                            <td data-label="S" class="text-center">${grupo.S || '-'}</td>
+                            <td data-label="D" class="text-center">${grupo.D || '-'}</td>
+                            <td data-label="Asig." class="p-2 text-center font-bold bg-gray-50 border-l">${esPrimero ? grupo.a.toFixed(2) : '-'}</td>
+                            <td data-label="Cons." class="p-2 text-center font-bold bg-orange-50 text-orange-700">${esPrimero ? grupo.total.toFixed(2) : '-'}</td>
+                            <td data-label="Saldo" class="p-2 text-center font-black ${esAlerta && esPrimero ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'}">
+                                ${esPrimero ? saldo.toFixed(2) : '-'}
+                            </td>
+                        </tr>`;
+                });
+            });
+
+            document.getElementById('resumenAsignado').innerText = tA.toFixed(2);
+            document.getElementById('resumenConsumido').innerText = tC.toFixed(2);
+            document.getElementById('resumenSaldo').innerText = (tA - tC).toFixed(2);
+            document.getElementById('resumenEficiencia').innerText = tA > 0 ? ((tC/tA)*100).toFixed(1) + "%" : "0%";
+        }
+
+        window.onload = () => {
             poblarAnios();
             poblarSemanasPorAnio(new Date().getFullYear());
-            lunesReferencia = getLunesActual(new Date());
-            await sincronizarDesdeNube();
+            gestionarCambioSemana();
         };
 
     </script>
