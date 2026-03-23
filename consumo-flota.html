@@ -30,16 +30,34 @@
                     <span class="text-[10px] uppercase tracking-widest opacity-80">Agrícola Cerro Prieto</span>
                 </div>
             </div>
-            
-            <div class="flex flex-wrap items-center justify-center gap-2">
-                <select id="selectorAnio" onchange="cambiarAnio()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30"></select>
-                <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30 outline-none w-full sm:w-auto"></select>
-            </div>
+            <select id="selectorAnio" onchange="cambiarAnio()" 
+class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
+</select>
+            <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
+                <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30 outline-none focus:ring-2 focus:ring-yellow-400 w-full sm:w-auto">
+                </select>
 
-            <div class="flex gap-2">
-                <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow">
-                    <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
-                </button>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                        <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
+                    </button>
+                    <button onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+    <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
+</button>
+                    <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                        <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
+                    </button>
+                    <button id="btnGestionar" onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                        <i class="fas fa-cog mr-1"></i>
+                    </button>
+                    <button id="btnCerrarSemana" onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                        <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
+                    </button>
+                    <button onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
+                        <i class="fas fa-file-excel"></i>
+                    </button>
+                </div>
+                <input type="file" id="uploadExcel" accept=".xlsx, .xls" class="hidden" onchange="leerExcel(this)">
             </div>
         </div>
     </header>
