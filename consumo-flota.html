@@ -463,10 +463,18 @@ datosActuales = {};
 
 // reconstruir consumo desde data
 data.forEach(v => {
-    datosActuales[v.p[0]] = {
-        L: v.L, M: v.M, Mi: v.Mi, J: v.J, V: v.V, S: v.S, D: v.D,
-        total: v.total
-    };
+    v.p.forEach(placa => {
+        datosActuales[placa] = {
+            L: v.L,
+            M: v.M,
+            Mi: v.Mi,
+            J: v.J,
+            V: v.V,
+            S: v.S,
+            D: v.D,
+            total: v.total
+        };
+    });
 });
 
 renderTabla(datosActuales, ESTRUCTURA_FLOTA);
