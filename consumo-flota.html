@@ -714,11 +714,18 @@ function exportarConsultaExcel() {
 window.onload = async () => {
     try {
         poblarSemanasDelAnio();
+
         const selector = document.getElementById('selectorSemanas');
+        if (!selector.value) {
+            console.warn("Selector vacío");
+            return;
+        }
+
         lunesReferencia = new Date(selector.value);
+
         await sincronizarDesdeNube();
     } catch (e) {
-        console.error("Error inicial:", e);
+        console.error("Error al iniciar:", e);
     }
 };
         
