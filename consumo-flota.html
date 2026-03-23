@@ -237,23 +237,19 @@
         }
 
         // --- AUXILIARES ---
+        let lunesReferencia = new Date();
+
         function getLunesActual(fechaBase) {
             const d = new Date(fechaBase);
-            d.setHours(12,0,0,0);
+            d.setHours(12, 0, 0, 0);
             const day = d.getDay();
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
             return new Date(d.setDate(diff));
         }
 
-        function actualizarResumen(tA, tC) {
-            document.getElementById('resumenAsignado').innerText = tA.toFixed(2);
-            document.getElementById('resumenConsumido').innerText = tC.toFixed(2);
-            document.getElementById('resumenSaldo').innerText = (tA - tC).toFixed(2);
-            document.getElementById('resumenEficiencia').innerText = tA > 0 ? ((tC/tA)*100).toFixed(1) + "%" : "0%";
-        }
-
         function poblarAnios() {
             const sel = document.getElementById('selectorAnio');
+            sel.innerHTML = '';
             const anioActual = new Date().getFullYear();
             for (let y = 2025; y <= anioActual; y++) {
                 const opt = new Option(y, y);
@@ -283,7 +279,8 @@
         }
 
         function gestionarCambioSemana() {
-            lunesReferencia = new Date(document.getElementById('selectorSemanas').value + "T12:00:00");
+            const selector = document.getElementById('selectorSemanas');
+            lunesReferencia = new Date(selector.value + "T12:00:00");
             sincronizarDesdeNube();
         }
 
