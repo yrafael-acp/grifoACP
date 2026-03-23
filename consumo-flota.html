@@ -14,13 +14,55 @@
         @media (max-width: 768px) {
             .table-container { max-height: none; overflow: visible; }
             thead { display: none; }
-            tr { display: block; margin-bottom: 1.5rem; border: 2px solid #e5e7eb; border-radius: 1rem; background: white; padding: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-            td { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0 !important; border: none !important; border-bottom: 1px solid #f3f4f6 !important; text-align: right; }
+            tr { 
+                display: block; 
+                margin-bottom: 1.5rem; 
+                border: 2px solid #e5e7eb; 
+                border-radius: 1rem; 
+                background: white;
+                padding: 1rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+            td { 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center;
+                padding: 0.5rem 0 !important; 
+                border: none !important;
+                border-bottom: 1px solid #f3f4f6 !important;
+                text-align: right;
+            }
             td:last-child { border-bottom: none !important; }
-            td::before { content: attr(data-label); font-weight: 800; text-transform: uppercase; font-size: 0.7rem; color: #6b7280; text-align: left; margin-right: 10px; }
+            td::before {
+                content: attr(data-label);
+                font-weight: 800;
+                text-transform: uppercase;
+                font-size: 0.7rem;
+                color: #6b7280;
+                text-align: left;
+                margin-right: 10px;
+            }
         }
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); align-items: center; justify-content: center; }
-        .modal > div { max-height: 90vh; overflow-y: auto; }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(2px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal > div {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .table-container::-webkit-scrollbar { width: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f1f1; }
+        .table-container::-webkit-scrollbar-thumb { background: #007d32; border-radius: 4px; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
@@ -34,51 +76,54 @@
                     <span class="text-[10px] uppercase tracking-widest opacity-80">Agrícola Cerro Prieto</span>
                 </div>
             </div>
+            
+            <select id="selectorAnio" onchange="cambiarAnio()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30"></select>
 
-            <div class="flex flex-wrap items-center justify-center gap-2">
-                <select id="selectorAnio" onchange="cambiarAnio()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30"></select>
-                <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30 outline-none w-full sm:w-auto"></select>
-            </div>
+            <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
+                <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30 outline-none focus:ring-2 focus:ring-yellow-400 w-full sm:w-auto"></select>
 
-            <div class="flex flex-wrap justify-center gap-2 w-full lg:w-auto">
-                <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                    <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
-                </button>
-                <button onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                    <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
-                </button>
-                <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                    <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
-                </button>
-                <button onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow">
-                    <i class="fas fa-cog"></i>
-                </button>
-                <button onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                    <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
-                </button>
-                <button onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
-                    <i class="fas fa-file-excel"></i>
-                </button>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                        <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
+                    </button>
+                    <button onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                        <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
+                    </button>
+                    <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                        <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
+                    </button>
+                    <button id="btnGestionar" onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                        <i class="fas fa-cog mr-1"></i>
+                    </button>
+                    <button id="btnCerrarSemana" onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                        <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
+                    </button>
+                    <button onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
+                        <i class="fas fa-file-excel"></i>
+                    </button>
+                </div>
                 <input type="file" id="uploadExcel" accept=".xlsx, .xls" class="hidden" onchange="leerExcel(this)">
             </div>
         </div>
     </header>
 
     <main class="max-w-[1580px] mx-auto p-3">
+        <div id="contenedorAlertas" class="mb-4 space-y-2 hidden"></div>
+
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-blue-600 text-center">
+            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-blue-600">
                 <span class="text-[9px] font-bold text-gray-400 uppercase">Gln Asignado</span>
                 <p id="resumenAsignado" class="text-lg font-black text-blue-900">0.00</p>
             </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-orange-500 text-center">
+            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-orange-500">
                 <span class="text-[9px] font-bold text-gray-400 uppercase">Gln Consumido</span>
                 <p id="resumenConsumido" class="text-lg font-black text-orange-600">0.00</p>
             </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-green-600 text-center">
+            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-green-600">
                 <span class="text-[9px] font-bold text-gray-400 uppercase">Saldo Disp.</span>
                 <p id="resumenSaldo" class="text-lg font-black text-green-700">0.00</p>
             </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-purple-600 text-center">
+            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-purple-600">
                 <span class="text-[9px] font-bold text-gray-400 uppercase">% Eficiencia</span>
                 <p id="resumenEficiencia" class="text-lg font-black text-purple-800">0%</p>
             </div>
@@ -88,19 +133,19 @@
             <div class="p-3 border-b bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-3">
                 <div class="relative w-full md:w-96">
                     <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                    <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa, responsable o área..." class="pl-9 pr-4 py-2 border rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-green-500">
+                    <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa, responsable o área..." class="pl-9 pr-4 py-2 border rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-green-500 transition-all">
                 </div>
                 <div id="indicadorCarga" class="hidden text-green-600 font-bold animate-pulse text-[10px]">
                     <i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO DATOS...
                 </div>
             </div>
             
-            <div class="table-container">
+            <div class="table-container p-2 md:p-0">
                 <table class="w-full text-left text-xs border-collapse" id="tablaFlota">
                     <thead class="bg-gray-800 text-white sticky top-0 z-20">
                         <tr>
-                            <th class="p-3">PLACA</th>
-                            <th class="p-3">RESPONSABLE / ÁREA</th>
+                            <th class="p-3 border-r border-gray-700">PLACA</th>
+                            <th class="p-3 border-r border-gray-700">RESPONSABLE / ÁREA</th>
                             <th class="p-3 text-center bg-blue-900">L</th>
                             <th class="p-3 text-center bg-blue-900">M</th>
                             <th class="p-3 text-center bg-blue-900">Mi</th>
@@ -108,7 +153,7 @@
                             <th class="p-3 text-center bg-blue-900">V</th>
                             <th class="p-3 text-center bg-blue-900">S</th>
                             <th class="p-3 text-center bg-blue-900">D</th>
-                            <th class="p-3 text-center border-l bg-gray-700">ASIG.</th>
+                            <th class="p-3 text-center border-l border-gray-700 bg-gray-700">ASIG.</th>
                             <th class="p-3 text-center bg-orange-700">CONS.</th>
                             <th class="p-3 text-center bg-green-700">SALDO</th>
                         </tr>
@@ -119,90 +164,165 @@
         </div>
     </main>
 
+    <div id="modalRegistro" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[450px] overflow-hidden">
+            <div class="p-4 bg-orange-600 text-white flex justify-between items-center">
+                <h2 class="font-bold uppercase text-sm"><i class="fas fa-edit mr-2"></i> Registrar Despacho</h2>
+                <button onclick="cerrarModalRegistro()" class="text-white text-2xl">&times;</button>
+            </div>
+            <div class="p-5 space-y-3">
+                <input type="text" id="regPlaca" class="w-full p-2 border rounded uppercase font-bold" placeholder="Placa">
+                <input type="date" id="regFecha" class="w-full p-2 border rounded">
+                <select id="regTipo" class="w-full p-2 border rounded">
+                    <option value="GASOHOL 90">GASOHOL 90</option>
+                    <option value="DIESEL B5 S50">DIESEL B5 S50</option>
+                </select>
+                <input type="number" id="regCant" step="0.01" class="w-full p-2 border rounded" placeholder="Cantidad GLN">
+                <button onclick="guardarRegistroManual()" class="w-full bg-orange-600 text-white py-3 rounded-lg font-bold hover:bg-orange-700 transition">ENVIAR A NUBE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalConfig" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[850px] max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-4 bg-gray-800 text-white flex justify-between items-center text-sm font-bold">
+                <span>CONFIGURAR ESTRUCTURA DE FLOTA</span>
+                <button onclick="cerrarModalConfig()" class="text-2xl">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-4 p-3 bg-blue-50 rounded border border-blue-100">
+                    <input type="text" id="newPlacas" placeholder="PLACAS (COMA)" class="p-2 border rounded text-xs">
+                    <input type="text" id="newResp" placeholder="RESPONSABLE" class="p-2 border rounded text-xs">
+                    <input type="text" id="newArea" placeholder="ÁREA" class="p-2 border rounded text-xs">
+                    <input type="number" id="newAsig" placeholder="ASIGNACIÓN" class="p-2 border rounded text-xs">
+                    <button onclick="agregarFlotaManual()" class="md:col-span-4 bg-green-600 text-white py-2 rounded text-xs font-bold uppercase">Agregar Fila</button>
+                </div>
+                <table class="w-full text-[11px]">
+                    <thead class="bg-gray-100 border-b">
+                        <tr class="text-left">
+                            <th class="p-2">PLACAS</th>
+                            <th class="p-2">RESPONSABLE</th>
+                            <th class="p-2">ÁREA</th>
+                            <th class="p-2 text-center">ASIG.</th>
+                            <th class="p-2 text-right">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaConfigFlota"></tbody>
+                </table>
+            </div>
+            <div class="p-4 border-t bg-gray-50 flex justify-end">
+                <button onclick="cerrarModalConfig()" class="bg-gray-800 text-white px-4 py-2 rounded text-xs font-bold uppercase">Cerrar Ventana</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalEditarFlota" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[400px] overflow-hidden">
+            <div class="p-4 bg-green-700 text-white flex justify-between items-center">
+                <span class="font-bold text-sm">EDITAR FLOTA</span>
+                <button onclick="cerrarModalEditarFlota()" class="text-2xl">&times;</button>
+            </div>
+            <div class="p-4 space-y-3">
+                <input type="text" id="editPlaca" class="w-full p-2 border rounded font-bold" placeholder="PLACA" readonly>
+                <input type="number" id="editDotacion" class="w-full p-2 border rounded" placeholder="DOTACIÓN">
+                <label class="text-xs font-bold text-gray-500">FECHA ALTA</label>
+                <input type="date" id="editAlta" class="w-full p-2 border rounded">
+                <label class="text-xs font-bold text-gray-500">FECHA BAJA</label>
+                <input type="date" id="editBaja" class="w-full p-2 border rounded">
+                <button onclick="guardarEdicionFlota()" class="w-full bg-green-700 text-white py-2 rounded font-bold">GUARDAR CAMBIOS</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalConsulta" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[1000px] max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-4 bg-indigo-800 text-white flex justify-between items-center text-sm font-bold">
+                <span><i class="fas fa-database mr-2"></i> CONSULTA POR ORDEN Y RANGO DE FECHAS</span>
+                <button onclick="cerrarModalConsulta()" class="text-2xl">&times;</button>
+            </div>
+            <div class="p-4 bg-gray-50 border-b flex flex-col gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Órdenes Estadísticas</label>
+                        <input type="text" id="inputOrdenes" placeholder="Ej: 100456, 100789" class="w-full p-2 border rounded text-xs outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Desde</label>
+                            <input type="date" id="fechaDesde" class="w-full p-2 border rounded text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Hasta</label>
+                            <input type="date" id="fechaHasta" class="w-full p-2 border rounded text-xs">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div id="resumenEstadistico" class="hidden flex gap-4 text-[11px]">
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold" id="totalGalonesConsulta"></span>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold" id="totalImporteConsulta"></span>
+                    </div>
+                    <div class="flex gap-2 ml-auto">
+                        <button onclick="ejecutarConsultaOrden()" class="bg-indigo-600 text-white px-6 py-2 rounded text-xs font-bold uppercase">Consultar</button>
+                        <button onclick="exportarConsultaExcel()" id="btnExportarOrden" class="hidden bg-green-600 text-white px-6 py-2 rounded text-xs font-bold uppercase">Excel</button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1 bg-white">
+                <div id="tablaConsultaContainer" class="hidden">
+                    <table class="w-full text-[10px] border-collapse" id="tablaResultadoOrden">
+                        <thead class="bg-gray-100 sticky top-0 border-b">
+                            <tr class="text-left text-gray-600">
+                                <th class="p-2">FECHA CONTAB.</th>
+                                <th class="p-2">MATERIAL</th>
+                                <th class="p-2">PLACA</th>
+                                <th class="p-2">DOC. MATERIAL</th>
+                                <th class="p-2">CTD.</th>
+                                <th class="p-2">IMPTE.</th>
+                                <th class="p-2">ORDEN</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y text-gray-700"></tbody>
+                    </table>
+                </div>
+                <div id="estadoConsulta" class="text-center py-10 text-gray-400 italic text-sm">Ingresa los datos para filtrar...</div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec';
         
         let ESTRUCTURA_FLOTA = [];
         let datosActuales = {};
         let lunesReferencia = new Date();
+        let cacheConsultaOrden = [];
 
+        // --- FUNCIONES CORE ---
         function getLunesActual(fechaBase) {
-            const d = new Date(fechaBase); d.setHours(12, 0, 0, 0);
+            const d = new Date(fechaBase); d.setHours(12,0,0,0);
             const day = d.getDay();
             const diff = d.getDate() - day + (day === 0 ? -6 : 1);
             return new Date(d.setDate(diff));
         }
 
-        function poblarAnios() {
-            const sel = document.getElementById('selectorAnio');
-            sel.innerHTML = '';
-            const anioActual = new Date().getFullYear();
-            for (let y = 2025; y <= anioActual; y++) {
-                const opt = new Option(y, y, y === anioActual, y === anioActual);
-                sel.add(opt);
-            }
-        }
-
-        function poblarSemanasPorAnio(anio) {
-            const sel = document.getElementById('selectorSemanas');
-            sel.innerHTML = '';
-            let f = getLunesActual(new Date(`${anio}-01-01T12:00:00`));
-            const hoy = new Date();
-            const lunesActualStr = getLunesActual(hoy).toISOString().split('T')[0];
-            let opciones = [];
-
-            while (f.getFullYear() <= anio) {
-                let fin = new Date(f); fin.setDate(f.getDate() + 6);
-                opciones.push({ val: f.toISOString().split('T')[0], text: `Semana: ${f.toLocaleDateString()} al ${fin.toLocaleDateString()}` });
-                f.setDate(f.getDate() + 7);
-            }
-
-            opciones.reverse().forEach(op => {
-                const opt = new Option(op.text, op.val);
-                if (anio == hoy.getFullYear() && op.val === lunesActualStr) opt.selected = true;
-                sel.add(opt);
-            });
-        }
-
-        async function sincronizarDesdeNube() {
-            const ind = document.getElementById('indicadorCarga');
-            ind.classList.remove('hidden');
-            try {
-                const fStr = lunesReferencia.toISOString().split('T')[0];
-                const res = await fetch(`${WEB_APP_URL}?action=getFlota&fecha=${fStr}`);
-                const data = await res.json();
-                
-                ESTRUCTURA_FLOTA = data;
-                datosActuales = {};
-                
-                // Mapeo de datos para el renderizado
-                data.forEach(v => {
-                    v.p.forEach(placa => {
-                        datosActuales[placa] = { L: v.L, M: v.M, Mi: v.Mi, J: v.J, V: v.V, S: v.S, D: v.D, total: v.total };
-                    });
-                });
-                renderTabla(datosActuales, ESTRUCTURA_FLOTA);
-            } catch (e) { console.error(e); }
-            finally { ind.classList.add('hidden'); }
-        }
-
-        function renderTabla(datosConsumo, estructura) {
+        function renderTabla(datosConsumo = {}, estructuraUsar = ESTRUCTURA_FLOTA) {
             const cuerpo = document.getElementById('cuerpoTabla');
             cuerpo.innerHTML = "";
             let tA = 0, tC = 0;
 
-            estructura.forEach(grupo => {
+            estructuraUsar.forEach(grupo => {
                 const totalGrupoConsumo = grupo.p.reduce((acc, pl) => acc + (datosConsumo[pl]?.total || 0), 0);
                 const saldoGrupo = grupo.a - totalGrupoConsumo;
                 const esAlerta = saldoGrupo < 2;
 
                 grupo.p.forEach((placa, index) => {
-                    const esP = index === 0;
-                    const diario = datosConsumo[placa] || {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0};
-                    if(esP) { tA += grupo.a; tC += totalGrupoConsumo; }
+                    const diario = datosConsumo[placa] || {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0, total:0};
+                    const mostrarAsig = index === 0;
+                    if(mostrarAsig) { tA += grupo.a; tC += totalGrupoConsumo; }
 
                     cuerpo.innerHTML += `
-                        <tr class="${grupo.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50 transition-colors">
+                        <tr class="${grupo.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
                             <td data-label="Placa" class="p-2 font-bold border-r ${esAlerta ? 'text-red-600' : 'text-blue-800'}">
                                 <div class="flex items-center justify-between">
                                     <span>${placa}</span>
@@ -215,38 +335,81 @@
                                 <span class="font-bold block">${grupo.r}</span>
                                 <span class="text-[9px] text-gray-400 font-bold uppercase">${grupo.area}</span>
                             </td>
-                            <td data-label="L" class="text-center border-r border-gray-100">${diario.L || '-'}</td>
-                            <td data-label="M" class="text-center border-r border-gray-100">${diario.M || '-'}</td>
-                            <td data-label="Mi" class="text-center border-r border-gray-100">${diario.Mi || '-'}</td>
-                            <td data-label="J" class="text-center border-r border-gray-100">${diario.J || '-'}</td>
-                            <td data-label="V" class="text-center border-r border-gray-100">${diario.V || '-'}</td>
-                            <td data-label="S" class="text-center border-r border-gray-100">${diario.S || '-'}</td>
-                            <td data-label="D" class="text-center border-r border-gray-100">${diario.D || '-'}</td>
-                            <td data-label="Asig." class="p-2 text-center font-black bg-gray-50 border-l">${esP ? grupo.a.toFixed(2) : '-'}</td>
-                            <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">${esP ? totalGrupoConsumo.toFixed(2) : '-'}</td>
-                            <td data-label="Saldo" class="p-2 text-center font-black ${esAlerta && esP ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'} border-l">${esP ? saldoGrupo.toFixed(2) : '-'}</td>
+                            <td data-label="L" class="text-center border-r">${diario.L || '-'}</td>
+                            <td data-label="M" class="text-center border-r">${diario.M || '-'}</td>
+                            <td data-label="Mi" class="text-center border-r">${diario.Mi || '-'}</td>
+                            <td data-label="J" class="text-center border-r">${diario.J || '-'}</td>
+                            <td data-label="V" class="text-center border-r">${diario.V || '-'}</td>
+                            <td data-label="S" class="text-center border-r">${diario.S || '-'}</td>
+                            <td data-label="D" class="text-center border-r">${diario.D || '-'}</td>
+                            <td data-label="Asig." class="p-2 text-center font-black bg-gray-50 border-l">${mostrarAsig ? grupo.a.toFixed(2) : '-'}</td>
+                            <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">${mostrarAsig ? totalGrupoConsumo.toFixed(2) : '-'}</td>
+                            <td data-label="Saldo" class="p-2 text-center font-black ${esAlerta && mostrarAsig ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'} border-l">${mostrarAsig ? saldoGrupo.toFixed(2) : '-'}</td>
                         </tr>`;
                 });
             });
             actualizarResumen(tA, tC);
         }
 
-        function gestionarCambioSemana() {
-            lunesReferencia = new Date(document.getElementById('selectorSemanas').value + "T12:00:00");
-            sincronizarDesdeNube();
+        async function sincronizarDesdeNube() {
+            const ind = document.getElementById('indicadorCarga');
+            ind.classList.remove('hidden');
+            try {
+                const res = await fetch(`${WEB_APP_URL}?action=getFlota&fecha=${lunesReferencia.toISOString().split('T')[0]}`);
+                const data = await res.json();
+                ESTRUCTURA_FLOTA = data;
+                datosActuales = {};
+                data.forEach(v => {
+                    v.p.forEach(placa => {
+                        datosActuales[placa] = { L: v.L, M: v.M, Mi: v.Mi, J: v.J, V: v.V, S: v.S, D: v.D, total: v.total };
+                    });
+                });
+                renderTabla(datosActuales, ESTRUCTURA_FLOTA);
+            } catch (e) { console.error(e); }
+            ind.classList.add('hidden');
+        }
+
+        // --- SELECTORES Y FILTROS ---
+        function poblarAnios() {
+            const sel = document.getElementById('selectorAnio');
+            const aA = new Date().getFullYear();
+            for (let y = 2025; y <= aA; y++) {
+                const opt = new Option(y, y, y === aA, y === aA);
+                sel.add(opt);
+            }
+        }
+
+        function poblarSemanasPorAnio(anio) {
+            const sel = document.getElementById('selectorSemanas'); sel.innerHTML = '';
+            let f = getLunesActual(new Date(`${anio}-01-01T12:00:00`));
+            const hoy = new Date();
+            const lunAct = getLunesActual(hoy).toISOString().split('T')[0];
+            let ops = [];
+            while (f.getFullYear() <= anio) {
+                let fin = new Date(f); fin.setDate(f.getDate() + 6);
+                ops.push({ val: f.toISOString().split('T')[0], text: `Semana: ${f.toLocaleDateString()} al ${fin.toLocaleDateString()}` });
+                f.setDate(f.getDate() + 7);
+            }
+            ops.reverse().forEach(op => {
+                const opt = new Option(op.text, op.val);
+                if (anio == hoy.getFullYear() && op.val === lunAct) opt.selected = true;
+                sel.add(opt);
+            });
         }
 
         function cambiarAnio() {
-            const anio = document.getElementById('selectorAnio').value;
-            poblarSemanasPorAnio(anio);
+            poblarSemanasPorAnio(document.getElementById('selectorAnio').value);
             gestionarCambioSemana();
+        }
+
+        function gestionarCambioSemana() {
+            lunesReferencia = new Date(document.getElementById('selectorSemanas').value);
+            sincronizarDesdeNube();
         }
 
         function filtrarTabla() {
             const q = document.getElementById('buscador').value.toUpperCase();
-            document.querySelectorAll('#cuerpoTabla tr').forEach(row => {
-                row.style.display = row.innerText.toUpperCase().includes(q) ? "" : "none";
-            });
+            document.querySelectorAll('#cuerpoTabla tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? "" : "none");
         }
 
         function actualizarResumen(tA, tC) {
@@ -256,14 +419,106 @@
             document.getElementById('resumenEficiencia').innerText = tA > 0 ? ((tC/tA)*100).toFixed(1) + "%" : "0%";
         }
 
+        // --- MODALES ---
+        function abrirModalRegistro() { document.getElementById('modalRegistro').style.display = 'flex'; }
+        function cerrarModalRegistro() { document.getElementById('modalRegistro').style.display = 'none'; }
+        function abrirModalConfig() { document.getElementById('modalConfig').style.display = 'flex'; renderListaConfig(); }
+        function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
+        function abrirModalConsulta() { document.getElementById('modalConsulta').style.display = 'flex'; }
+        function cerrarModalConsulta() { document.getElementById('modalConsulta').style.display = 'none'; }
+        function abrirEditarFlota(placa, dot) { 
+            document.getElementById('editPlaca').value = placa;
+            document.getElementById('editDotacion').value = dot;
+            document.getElementById('modalEditarFlota').style.display = 'flex'; 
+        }
+        function cerrarModalEditarFlota() { document.getElementById('modalEditarFlota').style.display = 'none'; }
+
+        // --- ACCIONES NUBE ---
+        async function guardarRegistroManual() {
+            const payload = {
+                action: 'saveTemporal',
+                placa: document.getElementById('regPlaca').value.toUpperCase(),
+                fecha: document.getElementById('regFecha').value,
+                tipo: document.getElementById('regTipo').value,
+                cantidad: parseFloat(document.getElementById('regCant').value)
+            };
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("Enviado."); cerrarModalRegistro();
+        }
+
+        async function guardarEdicionFlota() {
+            const payload = {
+                action: "updateFlota",
+                placa: document.getElementById('editPlaca').value,
+                dotacion: document.getElementById('editDotacion').value,
+                fechaAlta: document.getElementById('editAlta').value,
+                fechaBaja: document.getElementById('editBaja').value
+            };
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("Actualizado."); cerrarModalEditarFlota(); sincronizarDesdeNube();
+        }
+
+        async function guardarSemanaCloud() {
+            if(!confirm("¿Cerrar semana?")) return;
+            const payload = { action: 'saveFlotaSnapshot', fecha: lunesReferencia.toISOString().split('T')[0], data: datosActuales };
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("Cerrado.");
+        }
+
+        async function ejecutarConsultaOrden() {
+            const input = document.getElementById('inputOrdenes').value;
+            const fD = document.getElementById('fechaDesde').value;
+            const fH = document.getElementById('fechaHasta').value;
+            const res = await fetch(`${WEB_APP_URL}?action=getDetalleOrden&orden=${encodeURIComponent(input)}&desde=${fD}&hasta=${fH}`);
+            const data = await res.json();
+            const tbody = document.querySelector('#tablaResultadoOrden tbody');
+            tbody.innerHTML = "";
+            if(data.status === "OK") {
+                data.items.forEach(i => {
+                    tbody.innerHTML += `<tr class="border-b"><td class="p-2">${i.fecha}</td><td class="p-2">${i.tipo}</td><td class="p-2 font-bold">${i.placa}</td><td class="p-2">${i.documento}</td><td class="p-2 font-bold text-blue-700">${i.cantidad.toFixed(2)}</td><td class="p-2 font-bold text-green-700">${i.importe.toFixed(2)}</td><td class="p-2 font-black text-indigo-600">${i.orden}</td></tr>`;
+                });
+                document.getElementById('tablaConsultaContainer').classList.remove('hidden');
+                document.getElementById('estadoConsulta').classList.add('hidden');
+                document.getElementById('resumenEstadistico').classList.remove('hidden');
+                document.getElementById('totalGalonesConsulta').innerText = `${data.total.toFixed(2)} GLN`;
+            }
+        }
+
+        function renderListaConfig() {
+            document.getElementById('listaConfigFlota').innerHTML = ESTRUCTURA_FLOTA.map(g => `
+                <tr class="border-b"><td class="p-2">${g.p.join(',')}</td><td class="p-2">${g.r}</td><td class="p-2 text-[10px]">${g.area}</td><td class="p-2 text-center font-bold">${g.a.toFixed(2)}</td><td class="p-2 text-right text-gray-300"><i class="fas fa-trash"></i></td></tr>
+            `).join('');
+        }
+
+        function leerExcel(input) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const wb = XLSX.read(data, {type: 'array', cellDates: true});
+                const rows = XLSX.utils.sheet_to_json(wb.Sheets['dat_comb']);
+                const lunes = new Date(lunesReferencia);
+                const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6); domingo.setHours(23,59,59);
+                const proc = {};
+                rows.forEach(r => {
+                    const p = r['Placa']?.toString().toUpperCase();
+                    const c = parseFloat(r['Ctd.en UM entrada']) || 0;
+                    const f = new Date(r['Fecha contabiliz.']);
+                    if(p && f >= lunes && f <= domingo) {
+                        if(!proc[p]) proc[p] = {L:0,M:0,Mi:0,J:0,V:0,S:0,D:0,total:0};
+                        const d = {1:'L',2:'M',3:'Mi',4:'J',5:'V',6:'S',0:'D'}[f.getDay()];
+                        proc[p][d] += c; proc[p].total += c;
+                    }
+                });
+                datosActuales = proc; renderTabla(datosActuales);
+            };
+            reader.readAsArrayBuffer(input.files[0]);
+        }
+
         window.onload = () => {
             poblarAnios();
             poblarSemanasPorAnio(new Date().getFullYear());
-            lunesReferencia = new Date(document.getElementById('selectorSemanas').value + "T12:00:00");
+            lunesReferencia = new Date(document.getElementById('selectorSemanas').value);
             sincronizarDesdeNube();
         };
-
-        // ... El resto de tus funciones auxiliares (Modales, Excel, SAP) ...
     </script>
-</body>
 </html>
