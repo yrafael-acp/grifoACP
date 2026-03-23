@@ -84,6 +84,13 @@
                     <span class="text-[10px] uppercase tracking-widest opacity-80">Agrícola Cerro Prieto</span>
                 </div>
             </div>
+            <select id="selectorAnio" onchange="cambiarAnio()" 
+class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
+</select>
+
+<select id="selectorSemanas" onchange="gestionarCambioSemana()" 
+class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
+</select>
 
             <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
                 <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30 outline-none focus:ring-2 focus:ring-yellow-400 w-full sm:w-auto">
@@ -446,14 +453,6 @@
         function poblarSemanasDelAnio() {
     const sel = document.getElementById('selectorSemanas');
     sel.innerHTML = '';
-            <select id="selectorAnio" onchange="cambiarAnio()" 
-class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
-</select>
-
-<select id="selectorSemanas" onchange="gestionarCambioSemana()" 
-class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30">
-</select>
-
     // 🔥 Inicio desde enero 2025
     let fechaIterador = new Date("2025-01-01T12:00:00");
 
@@ -777,15 +776,8 @@ function exportarConsultaExcel() {
 // ... (Mantén todo el código anterior idéntico)
 window.onload = async () => {
     try {
-        poblarSemanasDelAnio();
-
-        const selector = document.getElementById('selectorSemanas');
-        if (!selector.value) {
-            console.warn("Selector vacío");
-            return;
-        }
-
-        lunesReferencia = new Date(selector.value);
+        poblarAnios(); // 🔥 FALTABA
+        cambiarAnio(); // 🔥 esto carga semanas automáticamente
 
         await sincronizarDesdeNube();
     } catch (e) {
