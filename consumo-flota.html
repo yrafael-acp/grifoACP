@@ -385,27 +385,68 @@
         }
 
         async function ejecutarConsultaOrden() {
-            const ordenes = document.getElementById('inputOrdenes').value;
-            const desde = document.getElementById('fechaDesde').value;
-            const hasta = document.getElementById('fechaHasta').value;
-            if(!ordenes) return alert("Ingrese órdenes");
+    const input = document.getElementById('inputOrdenes').value;
+    const fD = document.getElementById('fechaDesde').value;
+    const fH = document.getElementById('fechaHasta').value;
+    
+    if(!input) return alert("Por favor, ingrese al menos un número de orden.");
+
+    // Elementos visuales de estado
+    const loader = document.getElementById('cargaConsulta'); 
+    const resumen = document.getElementById('resumenConsultaOrden'); 
+    const container = document.getElementById('tablaConsultaContainer'); 
+    const estado = document.getElementById('estadoConsulta'); 
+    const tbody = document.querySelector('#tablaResultadoOrden tbody');
+
+    // 1. Mostrar estado de "Cargando"
+    loader.classList.remove('hidden');
+    estado.classList.add('hidden');
+    container.classList.add('hidden');
+    resumen.classList.add('hidden');
+    tbody.innerHTML = ""; 
+
+    try {
+        const url = `${WEB_APP_URL}?action=getDetalleOrden&orden=${encodeURIComponent(input)}&desde=${fD}&hasta=${fH}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if(data.status === "OK" && data.items.length > 0) {
+            let totalSoles = 0;
             
-            try {
-                const res = await fetch(`${WEB_APP_URL}?action=getDetalleOrden&orden=${encodeURIComponent(ordenes)}&desde=${desde}&hasta=${hasta}`);
-                const data = await res.json();
-                const tbody = document.querySelector('#tablaResultadoOrden tbody');
-                tbody.innerHTML = data.items.map(i => `
-                    <tr>
-                        <td class="p-2">${i.fecha}</td>
+            data.items.forEach(i => {
+                totalSoles += parseFloat(i.importe || 0);
+                tbody.innerHTML += `
+                    <tr class="hover:bg-indigo-50 transition-colors border-b">
+                        <td class="p-2 whitespace-nowrap">${i.fecha}</td>
                         <td class="p-2">${i.tipo}</td>
-                        <td class="p-2 font-bold">${i.placa}</td>
-                        <td class="p-2 text-right">${parseFloat(i.cantidad).toFixed(2)}</td>
+                        <td class="p-2 font-bold text-indigo-700">${i.placa}</td>
+                        <td class="p-2 text-right font-bold text-gray-800">${parseFloat(i.cantidad).toFixed(2)}</td>
                         <td class="p-2 text-right font-bold text-green-700">${parseFloat(i.importe).toFixed(2)}</td>
-                        <td class="p-2 text-center">${i.orden}</td>
-                    </tr>
-                `).join('');
-            } catch (e) { alert("Error en consulta"); }
+                        <td class="p-2 text-center text-gray-400">${i.orden}</td>
+                    </tr>`;
+            });
+
+            // Actualizar totales en la cabecera del modal
+            document.getElementById('totalGlnOrden').innerText = parseFloat(data.total).toFixed(2);
+            document.getElementById('totalSolesOrden').innerText = totalSoles.toFixed(2);
+            
+            // 2. Mostrar la tabla y los resultados
+            container.classList.remove('hidden');
+            resumen.classList.remove('hidden');
+        } else {
+            // 3. Mostrar estado de "Sin resultados"
+            estado.innerHTML = `<i class="fas fa-exclamation-circle text-orange-400 text-2xl mb-2"></i><p>${data.msg || "No se encontraron registros."}</p>`;
+            estado.classList.remove('hidden');
         }
+    } catch (e) {
+        console.error(e);
+        alert("Error en la conexión con el servidor.");
+        estado.classList.remove('hidden');
+    } finally {
+        // Ocultar siempre el cargador al final
+        loader.classList.add('hidden');
+    }
+}
 
         function abrirModalConfig() { 
             document.getElementById('modalConfig').style.display = 'flex'; 
@@ -458,6 +499,26 @@
                 sincronizarDesdeNube();
             } catch (e) { alert("Error"); }
         }
+        function exportarConsultaExcel() {
+    // 1. Obtener la tabla de resultados
+    const tabla = document.getElementById("tablaResultadoOrden");
+    
+    // Validar si tiene filas (sin contar el encabezado)
+    if (tabla.rows.length <= 1) {
+        return alert("No hay datos para exportar.");
+    }
+
+    // 2. Crear el libro de Excel
+    const wb = XLSX.utils.table_to_book(tabla, { sheet: "Consulta SAP - ACP" });
+    
+    // 3. Generar nombre de archivo con fecha y hora
+    const ahora = new Date();
+    const timestamp = ahora.toISOString().slice(0,10) + "_" + ahora.getHours() + ahora.getMinutes();
+    const nombreArchivo = `Reporte_SAP_ACP_${timestamp}.xlsx`;
+    
+    // 4. Descargar
+    XLSX.writeFile(wb, nombreArchivo);
+}
     </script>
 </body>
 </html>
