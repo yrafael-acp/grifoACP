@@ -572,49 +572,34 @@
 }
         async function guardarRegistroManual() {
     if (esSemanaBloqueada()) {
-        return alert("🔒 Semana cerrada. No se puede registrar.");
+        return alert("🔒 Semana cerrada.");
     }
 
     const placa = document.getElementById('regPlaca').value.trim().toUpperCase();
     const fecha = document.getElementById('regFecha').value;
+    const tipo = document.getElementById('regTipo').value;
     const cantidad = parseFloat(document.getElementById('regCant').value);
 
-    if (!placa) return alert("Ingrese placa");
-    if (!fecha) return alert("Seleccione fecha");
-    if (!cantidad || isNaN(cantidad)) return alert("Cantidad inválida");
-
-    const payload = {
-        action: 'saveTemporal',
-        placa,
-        fecha,
-        tipo: document.getElementById('regTipo').value,
-        cantidad
-    };
-
-    document.getElementById('indicadorCarga').classList.remove('hidden');
+    if (!placa || !fecha || isNaN(cantidad)) {
+        return alert("Complete todos los campos correctamente");
+    }
 
     try {
-        const res = await fetch(WEB_APP_URL, {
-            method: 'POST',
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
+        const url = `${WEB_APP_URL}?action=saveTemporal` +
+            `&placa=${encodeURIComponent(placa)}` +
+            `&fecha=${fecha}` +
+            `&tipo=${encodeURIComponent(tipo)}` +
+            `&cantidad=${cantidad}`;
 
-        const data = await res.json();
+        await fetch(url);
 
-        if (data.status !== "OK") {
-            throw new Error(data.message || "Error backend");
-        }
-
-        alert("✅ Registro enviado correctamente");
+        alert("✅ Registro guardado");
         cerrarModalRegistro();
         sincronizarDesdeNube();
 
     } catch (e) {
         console.error(e);
-        alert("❌ Error en envío de registro");
-    } finally {
-        document.getElementById('indicadorCarga').classList.add('hidden');
+        alert("❌ Error de conexión");
     }
 }
         function verificarRolAdmin(rol) {
