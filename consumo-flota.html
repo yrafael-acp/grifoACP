@@ -225,28 +225,88 @@
     </div>
 
     <div id="modalConfig" class="modal">
-        <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[600px] overflow-hidden">
-            <div class="p-4 bg-gray-800 text-white flex justify-between items-center text-sm font-bold">
-                <span>CONFIGURACIÓN MAESTRO</span>
-                <button onclick="cerrarModalConfig()" class="text-2xl">&times;</button>
+    <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[500px] overflow-hidden">
+        
+        <div class="p-4 bg-gray-800 text-white flex justify-between items-center text-sm font-bold">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-cogs text-yellow-400"></i>
+                <span class="uppercase tracking-wider">Configuración Maestro</span>
             </div>
-            <div class="flex border-b bg-gray-50">
-                <button onclick="cambiarTabConfig('lista')" id="btnTabLista" class="flex-1 py-3 text-[10px] font-bold border-b-2 border-green-600">LISTA</button>
-                <button onclick="cambiarTabConfig('alta')" id="btnTabAlta" class="flex-1 py-3 text-[10px] font-bold">ALTA</button>
+            <button onclick="cerrarModalConfig()" class="text-2xl hover:text-red-400 transition">&times;</button>
+        </div>
+        
+        <div class="flex border-b bg-gray-50">
+            <button id="btnTabLista" onclick="cambiarTabConfig('lista')" 
+                class="flex-1 py-3 text-[11px] font-extrabold transition-all border-b-4 border-green-600 text-green-700">
+                <i class="fas fa-list-ul mr-1"></i> VER LISTADO
+            </button>
+            <button id="btnTabAlta" onclick="cambiarTabConfig('alta')" 
+                class="flex-1 py-3 text-[11px] font-extrabold text-gray-400 hover:bg-gray-100 transition-all border-b-4 border-transparent">
+                <i class="fas fa-plus-circle mr-1"></i> DAR DE ALTA
+            </button>
+        </div>
+
+        <div class="p-6 max-h-[70vh] overflow-y-auto">
+            
+            <div id="panelListaConfig">
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-[10px] text-gray-400 font-black uppercase">Unidades Activas</p>
+                    <span class="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">Maestro Real</span>
+                </div>
+                <div id="listaConfigFlota" class="divide-y divide-gray-100">
+                    </div>
             </div>
-            <div class="p-4 max-h-[60vh] overflow-y-auto">
-                <div id="panelListaConfig"></div>
-                <div id="panelAltaConfig" class="hidden space-y-4">
-                    <input type="text" id="newPlaca" placeholder="PLACA" class="w-full p-2 border rounded uppercase">
-                    <input type="number" id="newDot" placeholder="DOTACIÓN GLN" class="w-full p-2 border rounded">
-                    <input type="text" id="newResp" placeholder="RESPONSABLE" class="w-full p-2 border rounded uppercase">
-                    <input type="text" id="newArea" placeholder="ÁREA" class="w-full p-2 border rounded uppercase">
-                    <input type="date" id="newFechaAlta" class="w-full p-2 border rounded">
-                    <button onclick="registrarAltaMaestro()" class="w-full bg-green-700 text-white py-3 rounded-lg font-bold">GUARDAR EN MAESTRO</button>
+
+            <div id="panelAltaConfig" class="hidden space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-extrabold text-gray-500 uppercase ml-1">Placa</label>
+                        <input type="text" id="newPlaca" 
+                            class="w-full p-2.5 border rounded-lg text-sm uppercase font-bold focus:ring-2 focus:ring-green-500 outline-none bg-gray-50" 
+                            placeholder="ABC-123">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-extrabold text-gray-500 uppercase ml-1">Dotación (GLN)</label>
+                        <input type="number" id="newDot" 
+                            class="w-full p-2.5 border rounded-lg text-sm font-bold focus:ring-2 focus:ring-green-500 outline-none bg-gray-50" 
+                            placeholder="0.00">
+                    </div>
+                </div>
+                
+                <div class="space-y-1">
+                    <label class="text-[10px] font-extrabold text-gray-500 uppercase ml-1">Responsable</label>
+                    <input type="text" id="newResp" 
+                        class="w-full p-2.5 border rounded-lg text-sm uppercase focus:ring-2 focus:ring-green-500 outline-none" 
+                        placeholder="Nombre del conductor">
+                </div>
+                
+                <div class="space-y-1">
+                    <label class="text-[10px] font-extrabold text-gray-500 uppercase ml-1">Área / Fundo</label>
+                    <input type="text" id="newArea" 
+                        class="w-full p-2.5 border rounded-lg text-sm uppercase focus:ring-2 focus:ring-green-500 outline-none" 
+                        placeholder="Ej. CERRO LA PATA">
+                </div>
+                
+                <div class="space-y-1">
+                    <label class="text-[10px] font-extrabold text-gray-500 uppercase ml-1">Fecha de Alta</label>
+                    <input type="date" id="newFechaAlta" 
+                        class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none">
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="registrarAltaMaestro()" 
+                        class="w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i>
+                        GUARDAR EN MAESTRO
+                    </button>
+                    <p class="text-[9px] text-gray-400 text-center mt-3 italic">
+                        * El alta se verá reflejada a partir de la fecha seleccionada.
+                    </p>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
     <script>
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyznJML-_JIaxXzggVrViaMlw4J7N_MGCYeuPPRJ8xE29W4k-LxwGedRnasteqTvPmfFA/exec';
@@ -487,10 +547,25 @@
         function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
 
         function cambiarTabConfig(tab) {
-            const isLista = tab === 'lista';
-            document.getElementById('panelListaConfig').classList.toggle('hidden', !isLista);
-            document.getElementById('panelAltaConfig').classList.toggle('hidden', isLista);
-        }
+    const isLista = tab === 'lista';
+    
+    // Alternar visibilidad de paneles
+    document.getElementById('panelListaConfig').classList.toggle('hidden', !isLista);
+    document.getElementById('panelAltaConfig').classList.toggle('hidden', isLista);
+    
+    // Estilos de botones (Tabs)
+    const btnLista = document.getElementById('btnTabLista');
+    const btnAlta = document.getElementById('btnTabAlta');
+
+    if (isLista) {
+        btnLista.className = "flex-1 py-3 text-[11px] font-extrabold transition-all border-b-4 border-green-600 text-green-700";
+        btnAlta.className = "flex-1 py-3 text-[11px] font-extrabold text-gray-400 hover:bg-gray-100 transition-all border-b-4 border-transparent";
+        renderListaConfig(); // Refrescar la lista al volver
+    } else {
+        btnAlta.className = "flex-1 py-3 text-[11px] font-extrabold transition-all border-b-4 border-green-600 text-green-700";
+        btnLista.className = "flex-1 py-3 text-[11px] font-extrabold text-gray-400 hover:bg-gray-100 transition-all border-b-4 border-transparent";
+    }
+}
 
         function renderListaConfig() {
             const div = document.getElementById('panelListaConfig');
