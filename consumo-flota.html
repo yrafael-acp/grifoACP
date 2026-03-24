@@ -301,6 +301,24 @@
             lunesReferencia = getLunesActual(new Date());
             sincronizarDesdeNube();
         };
+        function mostrarEstadoSemana() {
+    let aviso = document.getElementById("estadoSemana");
+
+    if (!aviso) {
+        aviso = document.createElement("div");
+        aviso.id = "estadoSemana";
+        aviso.className = "text-[10px] font-bold px-2 py-1 rounded";
+        document.querySelector("header div").appendChild(aviso);
+    }
+
+    if (esSemanaBloqueada()) {
+        aviso.innerText = "🔒 SEMANA CERRADA";
+        aviso.className += " bg-red-600 text-white";
+    } else {
+        aviso.innerText = "🟢 SEMANA ACTIVA";
+        aviso.className += " bg-green-600 text-white";
+    }
+}
 
         function getLunesActual(f) {
             const d = new Date(f); d.setHours(12,0,0,0);
@@ -333,8 +351,10 @@
         }
 
         function gestionarCambioSemana() {
-            lunesReferencia = new Date(document.getElementById('selectorSemanas').value + "T12:00:00");
-            sincronizarDesdeNube();
+    lunesReferencia = new Date(document.getElementById('selectorSemanas').value + "T12:00:00");
+    mostrarEstadoSemana();
+    sincronizarDesdeNube();
+}
         }
 
         async function sincronizarDesdeNube() {
@@ -377,7 +397,9 @@
                                 ${placa}
                                 ${esExcepcion ? '<i class="fas fa-star text-yellow-500 ml-1"></i>' : ''}
                             </span>
-                            <button onclick="abrirEditarFlota('${placa}', ${asig})" class="text-gray-400 hover:text-green-600 ml-2">
+                            <button onclick="${esSemanaBloqueada() ? '' : `abrirEditarFlota('${placa}', ${asig})`}" 
+    class="text-gray-400 ml-2 ${esSemanaBloqueada() ? 'opacity-30 cursor-not-allowed' : 'hover:text-green-600'}"
+    ${esSemanaBloqueada() ? 'title="Semana cerrada"' : ''}>
                                 <i class="fas fa-edit"></i>
                             </button>
                         </div>
@@ -549,6 +571,9 @@
 }
 
         async function guardarRegistroManual() {
+            if (esSemanaBloqueada()) {
+        return alert("🔒 Semana cerrada. No se puede registrar.");
+    }
     const payload = {
         action: 'saveTemporal',
         placa: document.getElementById('regPlaca').value.toUpperCase(),
@@ -657,6 +682,9 @@ function renderListaConfig() {
 }
 
 async function registrarAltaMaestro() {
+    if (esSemanaBloqueada()) {
+        return alert("🔒 No se puede dar de alta en semanas pasadas.");
+    }
     const data = {
         action: "insertFlota",
         placa: document.getElementById('newPlaca').value,
@@ -685,6 +713,9 @@ const data = await res.json();
 }
 
 async function ejecutarBajaMaestro(placa) {
+    if (esSemanaBloqueada()) {
+        return alert("🔒 No se puede dar de baja en semanas pasadas.");
+    }
     const fechaBaja = prompt(`Confirme la fecha de BAJA para ${placa} (AAAA-MM-DD):`, new Date().toISOString().split('T')[0]);
     if(!fechaBaja) return;
 
@@ -705,6 +736,21 @@ const data = await res.json();
         sincronizarDesdeNube();
     } catch (e) { alert("Error al procesar baja."); }
     finally { document.getElementById('indicadorCarga').classList.add('hidden'); }
+}
+        function esSemanaBloqueada() {
+    const hoy = new Date();
+    const lunesActual = getLunesActual(hoy);
+
+    return lunesReferencia < lunesActual;
+}
+        function abrirEditarFlota(placa, dotActual) {
+    if (esSemanaBloqueada()) {
+        return alert("🔒 Semana cerrada. No se puede editar.");
+    }
+
+    document.getElementById('editPlaca').value = placa;
+    document.getElementById('editDotacion').value = dotActual;
+    document.getElementById('modalEditarFlota').style.display = 'flex';
 }
     </script>
 </body>
