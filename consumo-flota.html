@@ -571,36 +571,32 @@
     }
 }
         async function guardarRegistroManual() {
-    if (esSemanaBloqueada()) {
-        return alert("🔒 Semana cerrada.");
+  try {
+    const placa = document.getElementById("placa").value;
+    const fecha = document.getElementById("fecha").value;
+    const tipo = document.getElementById("tipo").value;
+    const cantidad = document.getElementById("cantidad").value;
+
+    const url = `${URL}?action=saveTemporal&placa=${placa}&fecha=${fecha}&tipo=${tipo}&cantidad=${cantidad}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    console.log("RESPUESTA:", data);
+
+    if (data.status === "OK") {
+      alert("✅ Registro guardado");
+      cargarFlota(); // 🔥 importante
+    } else if (data.status === "BLOCKED") {
+      alert("🔒 Semana cerrada");
+    } else {
+      alert("❌ Error: " + data.msg);
     }
 
-    const placa = document.getElementById('regPlaca').value.trim().toUpperCase();
-    const fecha = document.getElementById('regFecha').value;
-    const tipo = document.getElementById('regTipo').value;
-    const cantidad = parseFloat(document.getElementById('regCant').value);
-
-    if (!placa || !fecha || isNaN(cantidad)) {
-        return alert("Complete todos los campos correctamente");
-    }
-
-    try {
-        const url = `${WEB_APP_URL}?action=saveTemporal` +
-            `&placa=${encodeURIComponent(placa)}` +
-            `&fecha=${fecha}` +
-            `&tipo=${encodeURIComponent(tipo)}` +
-            `&cantidad=${cantidad}`;
-
-        await fetch(url);
-
-        alert("✅ Registro guardado");
-        cerrarModalRegistro();
-        sincronizarDesdeNube();
-
-    } catch (e) {
-        console.error(e);
-        alert("❌ Error de conexión");
-    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ Error de conexión");
+  }
 }
         function verificarRolAdmin(rol) {
     const contenedor = document.getElementById('contenedorAdmin');
@@ -615,28 +611,14 @@
     }
 }
 // Función para ejecutar la limpieza
-async function limpiarValesManuales() {
-    if (!confirm("⚠️ ATENCIÓN: ¿Deseas eliminar todos los registros manuales (vales)?\nConfirma que estos datos ya fueron procesados en SAP.")) return;
+async function limpiarVales() {
+  const res = await fetch(`${URL}?action=limpiarTemporales`);
+  const data = await res.json();
 
-    document.getElementById('indicadorCarga').classList.remove('hidden');
-
-    try {
-        const payload = { action: 'limpiarTemporales' };
-        const res = await fetch(WEB_APP_URL, {
-  method: 'POST',
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload)
-});
-
-const data = await res.json();
-
-        alert("✅ Hoja temporal de vales limpiada con éxito.");
-        sincronizarDesdeNube();
-    } catch (e) {
-        alert("Error al intentar limpiar los datos.");
-    } finally {
-        document.getElementById('indicadorCarga').classList.add('hidden');
-    }
+  if (data.status === "OK") {
+    alert("🧹 Limpieza exitosa");
+    cargarFlota();
+  }
 }
         function exportarConsultaExcel() {
     // 1. Obtener la tabla de resultados
