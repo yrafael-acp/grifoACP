@@ -289,440 +289,202 @@
         </div>
     </div>
 </div>
-
     <script>
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec';
-        let ESTRUCTURA_FLOTA = [];
-        let lunesReferencia = new Date();
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec';
 
-        window.onload = () => {
+let ESTRUCTURA_FLOTA = [];
+let lunesReferencia = new Date();
+
+// HELPERS
+const $ = id => document.getElementById(id);
+const toggleModal = (id, show = true) => $(id).style.display = show ? 'flex' : 'none';
+const toggle = (el, show) => el.classList.toggle('hidden', !show);
+
+const postData = async (payload) => {
+    const res = await fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+    return res.json();
+};
+
+// INIT
+window.onload = () => {
+    const hoy = new Date();
     poblarAnios();
-    poblarSemanasPorAnio(new Date().getFullYear());
-    lunesReferencia = getLunesActual(new Date());
-    mostrarEstadoSemana(); // 👈 agrégalo
+    poblarSemanasPorAnio(hoy.getFullYear());
+    lunesReferencia = getLunesActual(hoy);
+    mostrarEstadoSemana();
     sincronizarDesdeNube();
 };
-        function mostrarEstadoSemana() {
-    let aviso = document.getElementById("estadoSemana");
 
+// FECHAS
+function getLunesActual(f) {
+    const d = new Date(f); d.setHours(12,0,0,0);
+    const day = d.getDay();
+    return new Date(d.setDate(d.getDate() - day + (day === 0 ? -6 : 1)));
+}
+
+function esSemanaBloqueada() {
+    return lunesReferencia < getLunesActual(new Date());
+}
+
+// UI
+function mostrarEstadoSemana() {
+    let aviso = $("estadoSemana");
     if (!aviso) {
         aviso = document.createElement("div");
         aviso.id = "estadoSemana";
         aviso.className = "text-[10px] font-bold px-2 py-1 rounded";
         document.querySelector("header div").appendChild(aviso);
     }
+    aviso.innerText = esSemanaBloqueada() ? "🔒 SEMANA CERRADA" : "🟢 SEMANA ACTIVA";
+    aviso.className += esSemanaBloqueada() ? " bg-red-600 text-white" : " bg-green-600 text-white";
+}
 
-    if (esSemanaBloqueada()) {
-        aviso.innerText = "🔒 SEMANA CERRADA";
-        aviso.className += " bg-red-600 text-white";
-    } else {
-        aviso.innerText = "🟢 SEMANA ACTIVA";
-        aviso.className += " bg-green-600 text-white";
+// SELECTORES
+function poblarAnios() {
+    const sel = $('selectorAnio');
+    const actual = new Date().getFullYear();
+    for (let y = 2025; y <= actual; y++) {
+        sel.add(new Option(y, y, y === actual, y === actual));
     }
 }
 
-        function getLunesActual(f) {
-            const d = new Date(f); d.setHours(12,0,0,0);
-            const day = d.getDay();
-            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-            return new Date(d.setDate(diff));
-        }
+function poblarSemanasPorAnio(anio) {
+    const sel = $('selectorSemanas');
+    sel.innerHTML = '';
 
-        function poblarAnios() {
-            const sel = document.getElementById('selectorAnio');
-            const aA = new Date().getFullYear();
-            for (let y = 2025; y <= aA; y++) sel.add(new Option(y, y, y === aA, y === aA));
-        }
+    let f = getLunesActual(new Date(`${anio}-01-01T12:00:00`));
+    let hoyL = getLunesActual(new Date()).toISOString().split('T')[0];
+    let semanas = [];
 
-        function poblarSemanasPorAnio(anio) {
-            const sel = document.getElementById('selectorSemanas'); sel.innerHTML = '';
-            let f = getLunesActual(new Date(`${anio}-01-01T12:00:00`));
-            const hoyL = getLunesActual(new Date()).toISOString().split('T')[0];
-            let ops = [];
-            while (f.getFullYear() <= anio) {
-                let fin = new Date(f); fin.setDate(f.getDate() + 6);
-                ops.push({ val: f.toISOString().split('T')[0], text: `Sem: ${f.toLocaleDateString()} al ${fin.toLocaleDateString()}` });
-                f.setDate(f.getDate() + 7);
-            }
-            ops.reverse().forEach(op => {
-                const opt = new Option(op.text, op.val);
-                if (op.val === hoyL) opt.selected = true;
-                sel.add(opt);
-            });
-        }
+    while (f.getFullYear() <= anio) {
+        let fin = new Date(f);
+        fin.setDate(f.getDate() + 6);
 
-        function gestionarCambioSemana() {
-    lunesReferencia = new Date(document.getElementById('selectorSemanas').value + "T12:00:00");
+        semanas.push({
+            val: f.toISOString().split('T')[0],
+            text: `Sem: ${f.toLocaleDateString()} al ${fin.toLocaleDateString()}`
+        });
+
+        f.setDate(f.getDate() + 7);
+    }
+
+    semanas.reverse().forEach(s => {
+        const opt = new Option(s.text, s.val);
+        if (s.val === hoyL) opt.selected = true;
+        sel.add(opt);
+    });
+}
+
+function gestionarCambioSemana() {
+    lunesReferencia = new Date($('selectorSemanas').value + "T12:00:00");
     mostrarEstadoSemana();
     sincronizarDesdeNube();
 }
 
-        async function sincronizarDesdeNube() {
-            const ind = document.getElementById('indicadorCarga');
-            ind.classList.remove('hidden');
-            try {
-                const fStr = lunesReferencia.toISOString().split('T')[0];
-                const res = await fetch(`${WEB_APP_URL}?action=getFlota&fecha=${fStr}`);
-                const data = await res.json();
-                ESTRUCTURA_FLOTA = data;
-                renderTabla(data);
-            } catch (e) { console.error(e); }
-            ind.classList.add('hidden');
-        }
+// DATA
+async function sincronizarDesdeNube() {
+    toggle($('indicadorCarga'), true);
+    try {
+        const fStr = lunesReferencia.toISOString().split('T')[0];
+        const res = await fetch(`${WEB_APP_URL}?action=getFlota&fecha=${fStr}`);
+        const data = await res.json();
+        ESTRUCTURA_FLOTA = data;
+        renderTabla(data);
+    } catch (e) {
+        console.error(e);
+    }
+    toggle($('indicadorCarga'), false);
+}
 
-        function renderTabla(datos) {
-    const cuerpo = document.getElementById('cuerpoTabla');
-    let html = "";
-    let tA = 0, tC = 0;
+// TABLA
+function renderTabla(datos) {
+    let html = "", tA = 0, tC = 0;
 
     datos.forEach(g => {
         const asig = g.a || 0;
         const cons = g.total || 0;
         const saldo = asig - cons;
-        const esExcepcion = g.isEx;
 
         g.p.forEach((placa, idx) => {
             const esP = idx === 0;
-
-            if (esP) {
-                tA += asig;
-                tC += cons;
-            }
+            if (esP) { tA += asig; tC += cons; }
 
             html += `
-                <tr class="${g.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
-                    <td data-label="Placa" class="p-2 font-bold ${saldo < 2 ? 'text-red-600':'text-blue-800'}">
-                        <div class="flex items-center justify-between">
-                            <span>
-                                ${placa}
-                                ${esExcepcion ? '<i class="fas fa-star text-yellow-500 ml-1"></i>' : ''}
-                            </span>
-                            <button onclick="${esSemanaBloqueada() ? '' : `abrirEditarFlota('${placa}', ${asig})`}" 
-    class="text-gray-400 ml-2 ${esSemanaBloqueada() ? 'opacity-30 cursor-not-allowed' : 'hover:text-green-600'}"
-    ${esSemanaBloqueada() ? 'title="Semana cerrada"' : ''}>
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </div>
-                    </td>
-
-                    <td data-label="Responsable" class="p-2 border-r">
-                        <span class="font-bold block">${g.r || ''}</span>
-                        <span class="text-[9px] text-gray-400 uppercase">${g.area || ''}</span>
-                    </td>
-
-                    <td data-label="L" class="text-center">${g.L || '-'}</td>
-                    <td data-label="M" class="text-center">${g.M || '-'}</td>
-                    <td data-label="Mi" class="text-center">${g.Mi || '-'}</td>
-                    <td data-label="J" class="text-center">${g.J || '-'}</td>
-                    <td data-label="V" class="text-center">${g.V || '-'}</td>
-                    <td data-label="S" class="text-center">${g.S || '-'}</td>
-                    <td data-label="D" class="text-center">${g.D || '-'}</td>
-
-                    <td data-label="Asig." class="p-2 text-center font-black ${esExcepcion ? 'bg-blue-100 text-blue-800' : 'bg-gray-50'} border-l">
-                        ${esP ? asig.toFixed(2) : '-'}
-                    </td>
-
-                    <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">
-                        ${esP ? `
-                            <span>${cons.toFixed(2)}</span>
-                            ${g.totalManual > 0 ? `<i class="fas fa-hand-holding-usd text-[9px] ml-1 text-orange-400" title="Incluye vales manuales"></i>` : ''}
-                        ` : '-'}
-                    </td>
-
-                    <td data-label="Saldo" class="p-2 text-center font-black ${
-                        saldo < 2 && esP 
-                            ? 'bg-red-600 text-white animate-pulse' 
-                            : 'bg-green-100 text-green-800'
-                    } border-l">
-                        ${esP ? saldo.toFixed(2) : '-'}
-                    </td>
-                </tr>
-            `;
+            <tr class="hover:bg-yellow-50">
+                <td class="p-2 font-bold">${placa}</td>
+                <td class="p-2">${g.r || ''}</td>
+                <td class="text-center">${g.L || '-'}</td>
+                <td class="text-center">${g.M || '-'}</td>
+                <td class="text-center">${g.Mi || '-'}</td>
+                <td class="text-center">${g.J || '-'}</td>
+                <td class="text-center">${g.V || '-'}</td>
+                <td class="text-center">${g.S || '-'}</td>
+                <td class="text-center">${g.D || '-'}</td>
+                <td class="text-center">${esP ? asig.toFixed(2) : '-'}</td>
+                <td class="text-center">${esP ? cons.toFixed(2) : '-'}</td>
+                <td class="text-center">${esP ? saldo.toFixed(2) : '-'}</td>
+            </tr>`;
         });
     });
 
-    cuerpo.innerHTML = html;
-
+    $('cuerpoTabla').innerHTML = html;
     actualizarResumen(tA, tC);
 }
 
-        function actualizarResumen(tA, tC) {
-            document.getElementById('resumenAsignado').innerText = tA.toFixed(2);
-            document.getElementById('resumenConsumido').innerText = tC.toFixed(2);
-            document.getElementById('resumenSaldo').innerText = (tA - tC).toFixed(2);
-            document.getElementById('resumenEficiencia').innerText = tA > 0 ? ((tC/tA)*100).toFixed(1) + "%" : "0%";
-        }
+// RESUMEN
+function actualizarResumen(tA, tC) {
+    $('resumenAsignado').innerText = tA.toFixed(2);
+    $('resumenConsumido').innerText = tC.toFixed(2);
+    $('resumenSaldo').innerText = (tA - tC).toFixed(2);
+    $('resumenEficiencia').innerText = tA ? ((tC/tA)*100).toFixed(1) + "%" : "0%";
+}
 
-        function filtrarTabla() {
-            const q = document.getElementById('buscador').value.toUpperCase();
-            document.querySelectorAll('#cuerpoTabla tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? "" : "none");
-        }
+// FILTRO
+function filtrarTabla() {
+    const q = $('buscador').value.toUpperCase();
+    document.querySelectorAll('#cuerpoTabla tr')
+        .forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? "" : "none");
+}
 
-        // --- FUNCIONES DE MODALES ---
-        function abrirModalRegistro() { document.getElementById('modalRegistro').style.display = 'flex'; }
-        function cerrarModalRegistro() { document.getElementById('modalRegistro').style.display = 'none'; }
-        function abrirModalConsulta() { document.getElementById('modalConsulta').style.display = 'flex'; }
-        function cerrarModalConsulta() { document.getElementById('modalConsulta').style.display = 'none'; }
-        function abrirModalConfig() { document.getElementById('modalConfig').style.display = 'flex'; renderListaConfig(); }
-        function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
-        function abrirEditarFlota(placa, dotActual) 
-        {if (esSemanaBloqueada()) {
-        return alert("🔒 Semana cerrada. No se puede editar.");}
-            document.getElementById('editPlaca').value = placa;
-            document.getElementById('editDotacion').value = dotActual;
-            document.getElementById('modalEditarFlota').style.display = 'flex';}
-        function cerrarModalEditarFlota() { document.getElementById('modalEditarFlota').style.display = 'none'; }
+// MODALES
+const abrirModalRegistro = () => toggleModal('modalRegistro', true);
+const cerrarModalRegistro = () => toggleModal('modalRegistro', false);
+const abrirModalConsulta = () => toggleModal('modalConsulta', true);
+const cerrarModalConsulta = () => toggleModal('modalConsulta', false);
+const abrirModalConfig = () => { toggleModal('modalConfig', true); renderListaConfig(); };
+const cerrarModalConfig = () => toggleModal('modalConfig', false);
 
-        // --- ACCIONES NUBE ---
-        async function guardarExcepcionSemanal() {
-            const placa = document.getElementById('editPlaca').value;
-            const nuevaDot = parseFloat(document.getElementById('editDotacion').value);
-            const placaNorm = placa.toUpperCase().replace(/-/g, "");
-            
-            // Buscar dotación previa para el mensaje
-            const infoActual = ESTRUCTURA_FLOTA.find(g => g.p.includes(placa));
-            const dotAnterior = infoActual ? infoActual.a : 0;
-            const semana = document.getElementById('selectorSemanas').value;
-
-            if(!nuevaDot || isNaN(nuevaDot)) return alert("Ingrese un monto válido.");
-
-            try {
-                const payload = { action: "saveExcepcion", semana, placa: placaNorm, dotacion: nuevaDot };
-                const res = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-                });
-
-                const data = await res.json();
-                
-                const diff = nuevaDot - dotAnterior;
-                if (diff > 0) alert(`✅ ASIGNACIÓN EXITOSA\nUnidad: ${placa}\nSe han asignado ${diff.toFixed(2)} GLN adicionales.`);
-                else alert("✅ Ajuste realizado correctamente.");
-
-                cerrarModalEditarFlota();
-                sincronizarDesdeNube();
-            } catch (e) { alert("Error al conectar."); }
-        }
-
-       async function ejecutarConsultaOrden() {
-    const input = document.getElementById('inputOrdenes').value;
-    const fD = document.getElementById('fechaDesde').value;
-    const fH = document.getElementById('fechaHasta').value;
-    
-    if(!input) return alert("Por favor, ingrese al menos un número de orden.");
-
-    // Ajuste de IDs para coincidir con el nuevo HTML corregido
-    const loader = document.getElementById('cargaConsulta'); // El spinner centrado
-    const resumen = document.getElementById('resumenConsultaOrden'); // Cuadro de totales
-    const container = document.getElementById('tablaConsultaContainer'); // Contenedor de la tabla
-    const estado = document.getElementById('estadoConsulta'); // Mensaje de "sin resultados"
-
-    // Gestión de estados visuales
-    loader.classList.remove('hidden');
-    resumen.classList.add('hidden');
-    container.classList.add('hidden');
-    estado.classList.add('hidden');
-
+// 🔥 CORREGIDO (ERROR ORIGINAL)
+async function guardarRegistroManual() {
     try {
-        const res = await fetch(`${WEB_APP_URL}?action=getDetalleOrden&orden=${encodeURIComponent(input)}&desde=${fD}&hasta=${fH}`);
-        const data = await res.json();
-        
-        const tbody = document.querySelector('#tablaResultadoOrden tbody');
-        tbody.innerHTML = "";
+        const payload = {
+            action: "saveTemporal",
+            placa: $('regPlaca').value,
+            fecha: $('regFecha').value,
+            tipo: $('regTipo').value,
+            cantidad: $('regCant').value
+        };
 
-        if(data.status === "OK") {
-            let totalSoles = 0;
-            
-            data.items.forEach(i => {
-                // Aseguramos que el importe sea tratado como número
-                totalSoles += parseFloat(i.importe || 0);
-                
-                tbody.innerHTML += `
-                    <tr class="hover:bg-indigo-50 transition-colors border-b">
-                        <td class="p-2 whitespace-nowrap">${i.fecha}</td>
-                        <td class="p-2">${i.tipo}</td>
-                        <td class="p-2 font-bold text-indigo-700">${i.placa}</td>
-                        <td class="p-2 font-mono">${i.documento}</td>
-                        <td class="p-2 text-right font-bold text-gray-800">${parseFloat(i.cantidad).toFixed(2)}</td>
-                        <td class="p-2 text-right font-bold text-green-700">${parseFloat(i.importe).toFixed(2)}</td>
-                        <td class="p-2 text-center text-gray-400">${i.orden}</td>
-                    </tr>`;
-            });
+        const data = await postData(payload);
 
-            // Actualizar totalizadores en el encabezado del modal
-            document.getElementById('totalGlnOrden').innerText = parseFloat(data.total).toFixed(2);
-            document.getElementById('totalSolesOrden').innerText = totalSoles.toFixed(2);
-            
-            // Mostrar resultados y ocultar mensaje de espera
-            resumen.classList.remove('hidden');
-            container.classList.remove('hidden');
+        if (data.status === "OK") {
+            alert("✅ Registro guardado");
+            sincronizarDesdeNube();
+        } else if (data.status === "BLOCKED") {
+            alert("🔒 Semana cerrada");
         } else {
-            estado.innerHTML = `<i class="fas fa-exclamation-circle text-orange-400 text-2xl mb-2"></i><p>${data.msg || "No se encontraron registros."}</p>`;
-            estado.classList.remove('hidden');
+            alert("❌ " + data.msg);
         }
-    } catch (e) {
-        console.error(e);
-        alert("Error en la conexión con el servidor.");
-        estado.classList.remove('hidden');
-    } finally {
-        // Ocultar siempre el loader al finalizar
-        loader.classList.add('hidden');
+
+    } catch (err) {
+        console.error(err);
+        alert("❌ Error de conexión");
     }
 }
-        async function guardarRegistroManual() {
-  try {
-    const placa = document.getElementById("placa").value;
-    const fecha = document.getElementById("fecha").value;
-    const tipo = document.getElementById("tipo").value;
-    const cantidad = document.getElementById("cantidad").value;
-
-    const url = `${URL}?action=saveTemporal&placa=${placa}&fecha=${fecha}&tipo=${tipo}&cantidad=${cantidad}`;
-
-    const res = await fetch(url);
-    const data = await res.json();
-
-    console.log("RESPUESTA:", data);
-
-    if (data.status === "OK") {
-      alert("✅ Registro guardado");
-      cargarFlota(); // 🔥 importante
-    } else if (data.status === "BLOCKED") {
-      alert("🔒 Semana cerrada");
-    } else {
-      alert("❌ Error: " + data.msg);
-    }
-
-  } catch (err) {
-    console.error(err);
-    alert("❌ Error de conexión");
-  }
-}
-        function verificarRolAdmin(rol) {
-    const contenedor = document.getElementById('contenedorAdmin');
-    if (rol === "ADMINISTRADOR") {
-        contenedor.innerHTML = `
-            <button onclick="limpiarValesManuales()" title="Solo Administradores" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                <i class="fas fa-broom mr-1"></i> LIMPIAR VALES
-            </button>
-        `;
-    } else {
-        contenedor.innerHTML = ""; // Limpia si no es admin
-    }
-}
-// Función para ejecutar la limpieza
-async function limpiarValesManuales() {
-  const res = await fetch(`${URL}?action=limpiarTemporales`);
-  const data = await res.json();
-
-  if (data.status === "OK") {
-    alert("🧹 Limpieza exitosa");
-    cargarFlota();
-  }
-}
-        function exportarConsultaExcel() {
-    // 1. Obtener la tabla de resultados
-    const tabla = document.getElementById("tablaResultadoOrden");
-    
-    // 2. Crear un libro de trabajo (workbook) a partir de la tabla
-    const wb = XLSX.utils.table_to_book(tabla, { sheet: "Consulta de Ordenes" });
-    
-    // 3. Generar el nombre del archivo con la fecha actual
-    const fecha = new Date().toISOString().split('T')[0];
-    const nombreArchivo = `Reporte_Ordenes_ACP_${fecha}.xlsx`;
-    
-    // 4. Descargar el archivo
-    XLSX.writeFile(wb, nombreArchivo);
-}
-        function cambiarTabConfig(tab) {
-    const isLista = tab === 'lista';
-    document.getElementById('panelListaConfig').classList.toggle('hidden', !isLista);
-    document.getElementById('panelAltaConfig').classList.toggle('hidden', isLista);
-    
-    // Estilos de botones
-    document.getElementById('btnTabLista').className = isLista ? 'flex-1 py-3 text-[10px] font-bold border-b-2 border-green-600 text-green-700' : 'flex-1 py-3 text-[10px] font-bold text-gray-400 hover:bg-gray-100';
-    document.getElementById('btnTabAlta').className = !isLista ? 'flex-1 py-3 text-[10px] font-bold border-b-2 border-green-600 text-green-700' : 'flex-1 py-3 text-[10px] font-bold text-gray-400 hover:bg-gray-100';
-    
-    if(isLista) renderListaConfig();
-}
-
-function renderListaConfig() {
-    const contenedor = document.getElementById('listaConfigFlota');
-    contenedor.innerHTML = ESTRUCTURA_FLOTA.map(g => `
-        <div class="flex justify-between items-center py-3">
-            <div>
-                <span class="font-bold text-xs text-blue-900">${g.p[0]}</span>
-                <p class="text-[10px] text-gray-400">${g.r} | ${g.area}</p>
-            </div>
-            <button onclick="ejecutarBajaMaestro('${g.p[0]}')" class="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1 rounded text-[9px] font-bold transition border border-red-100">
-                <i class="fas fa-arrow-down mr-1"></i> DAR DE BAJA
-            </button>
-        </div>
-    `).join('');
-}
-
-async function registrarAltaMaestro() {
-    if (esSemanaBloqueada()) {
-        return alert("🔒 No se puede dar de alta en semanas pasadas.");
-    }
-    const data = {
-        action: "insertFlota",
-        placa: document.getElementById('newPlaca').value,
-        dotacion: document.getElementById('newDot').value,
-        responsable: document.getElementById('newResp').value,
-        area: document.getElementById('newArea').value,
-        fechaAlta: document.getElementById('newFechaAlta').value
-    };
-
-    if(!data.placa || !data.fechaAlta) return alert("Placa y Fecha de Alta son obligatorios.");
-
-    document.getElementById('indicadorCarga').classList.remove('hidden');
-    try {
-        const res = await fetch(WEB_APP_URL, {
-  method: 'POST',
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(data)
-});
-
-const data = await res.json();
-        alert("✅ Unidad registrada exitosamente en el Maestro.");
-        cerrarModalConfig();
-        sincronizarDesdeNube();
-    } catch (e) { alert("Error al registrar."); }
-    finally { document.getElementById('indicadorCarga').classList.add('hidden'); }
-}
-
-async function ejecutarBajaMaestro(placa) {
-    if (esSemanaBloqueada()) {
-        return alert("🔒 No se puede dar de baja en semanas pasadas.");
-    }
-    const fechaBaja = prompt(`Confirme la fecha de BAJA para ${placa} (AAAA-MM-DD):`, new Date().toISOString().split('T')[0]);
-    if(!fechaBaja) return;
-
-    if(!confirm(`¿Está seguro? La unidad dejará de aparecer después del ${fechaBaja}`)) return;
-
-    document.getElementById('indicadorCarga').classList.remove('hidden');
-    try {
-        const payload = { action: "updateFlota", placa, fechaBaja };
-        const res = await fetch(WEB_APP_URL, {
-  method: 'POST',
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload)
-});
-
-const data = await res.json();
-        alert("✅ Baja procesada. El histórico se mantendrá intacto.");
-        cerrarModalConfig();
-        sincronizarDesdeNube();
-    } catch (e) { alert("Error al procesar baja."); }
-    finally { document.getElementById('indicadorCarga').classList.add('hidden'); }
-}
-        function esSemanaBloqueada() {
-    const hoy = new Date();
-    const lunesActual = getLunesActual(hoy);
-
-    return lunesReferencia < lunesActual;
-}
-    </script>
+</script> 
 </body>
 </html>
