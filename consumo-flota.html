@@ -225,86 +225,87 @@
     </div>
 
     <div id="modalConfig" class="modal">
-    <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[500px] overflow-hidden">
-        
-        <div class="p-4 bg-gray-800 text-white flex justify-between items-center text-sm font-bold">
+    <div class="bg-white rounded-2xl shadow-2xl w-[95%] md:w-[550px] overflow-hidden border border-gray-200">
+        <div class="p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
             <div class="flex items-center gap-2">
-                <i class="fas fa-cogs text-yellow-400"></i>
-                <span class="uppercase tracking-wider">Configuración Maestro</span>
+                <i class="fas fa-tools text-yellow-400"></i>
+                <span class="font-bold text-xs uppercase tracking-widest">Configuración Maestro</span>
             </div>
             <button onclick="cerrarModalConfig()" class="text-2xl hover:text-red-400 transition">&times;</button>
         </div>
         
-        <div class="flex border-b bg-gray-50">
-            <button id="btnTabLista" onclick="cambiarTabConfig('lista')" 
-                class="flex-1 py-3 text-[11px] font-extrabold transition-all border-b-4 border-green-600 text-green-700">
-                <i class="fas fa-list-ul mr-1"></i> VER LISTADO
+        <div class="flex border-b bg-slate-50">
+            <button id="btnTabLista" onclick="cambiarTabConfig('lista')" class="flex-1 py-3 text-[10px] font-black transition-all border-b-4 border-green-600 text-green-700">
+                <i class="fas fa-list mr-1"></i> VER LISTADO
             </button>
-            <button id="btnTabAlta" onclick="cambiarTabConfig('alta')" 
-                class="flex-1 py-3 text-[11px] font-extrabold text-gray-400 hover:bg-gray-100 transition-all border-b-4 border-transparent">
+            <button id="btnTabAlta" onclick="cambiarTabConfig('alta')" class="flex-1 py-3 text-[10px] font-black text-gray-400 hover:bg-gray-100 transition-all border-b-4 border-transparent">
                 <i class="fas fa-plus-circle mr-1"></i> DAR DE ALTA
             </button>
         </div>
 
-        <div class="p-6 max-h-[70vh] overflow-y-auto">
-            
+        <div class="p-5 max-h-[75vh] overflow-y-auto">
             <div id="panelListaConfig">
-                <div class="flex justify-between items-center mb-4">
-                    <p class="text-[10px] text-gray-400 font-black uppercase">Unidades Activas</p>
-                    <span class="text-[9px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">Maestro Real</span>
-                </div>
-                <div id="listaConfigFlota" class="divide-y divide-gray-100">
-                    </div>
+                <div id="listaConfigFlota" class="space-y-1"></div>
             </div>
 
             <div id="panelAltaConfig" class="hidden space-y-4">
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-1">
-                        <label class="text-[10px] font-extrabold text-gray-500 uppercase ml-1">Placa</label>
-                        <input type="text" id="newPlaca" 
-                            class="w-full p-2.5 border rounded-lg text-sm uppercase font-bold focus:ring-2 focus:ring-green-500 outline-none bg-gray-50" 
-                            placeholder="ABC-123">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Placa</label>
+                        <input type="text" id="newPlaca" class="w-full p-2.5 border rounded-lg text-sm uppercase font-bold bg-gray-50 focus:ring-2 focus:ring-green-500 outline-none" placeholder="ABC-123">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-extrabold text-gray-500 uppercase ml-1">Dotación (GLN)</label>
-                        <input type="number" id="newDot" 
-                            class="w-full p-2.5 border rounded-lg text-sm font-bold focus:ring-2 focus:ring-green-500 outline-none bg-gray-50" 
-                            placeholder="0.00">
+                        <label class="text-[10px] font-bold text-blue-600 uppercase flex justify-between">
+                            ID Vínculo
+                            <button onclick="mostrarAyudaIds()" title="Ver IDs existentes" class="text-blue-500 hover:text-blue-700">
+                                <i class="fas fa-question-circle"></i>
+                            </button>
+                        </label>
+                        <input type="text" id="newIdVinculo" class="w-full p-2.5 border border-blue-200 rounded-lg text-sm font-bold bg-blue-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: UN62">
                     </div>
-                </div>
-                
-                <div class="space-y-1">
-                    <label class="text-[10px] font-extrabold text-gray-500 uppercase ml-1">Responsable</label>
-                    <input type="text" id="newResp" 
-                        class="w-full p-2.5 border rounded-lg text-sm uppercase focus:ring-2 focus:ring-green-500 outline-none" 
-                        placeholder="Nombre del conductor">
-                </div>
-                
-                <div class="space-y-1">
-                    <label class="text-[10px] font-extrabold text-gray-500 uppercase ml-1">Área / Fundo</label>
-                    <input type="text" id="newArea" 
-                        class="w-full p-2.5 border rounded-lg text-sm uppercase focus:ring-2 focus:ring-green-500 outline-none" 
-                        placeholder="Ej. CERRO LA PATA">
-                </div>
-                
-                <div class="space-y-1">
-                    <label class="text-[10px] font-extrabold text-gray-500 uppercase ml-1">Fecha de Alta</label>
-                    <input type="date" id="newFechaAlta" 
-                        class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none">
                 </div>
 
-                <div class="pt-4">
-                    <button onclick="registrarAltaMaestro()" 
-                        class="w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-save"></i>
-                        GUARDAR EN MAESTRO
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Dotación (GLN)</label>
+                        <input type="number" id="newDot" class="w-full p-2.5 border rounded-lg text-sm font-bold focus:ring-2 focus:ring-green-500 outline-none" placeholder="0.00">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase">Fecha de Alta</label>
+                        <input type="date" id="newFechaAlta" class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Responsable / Conductor</label>
+                    <input type="text" id="newResp" class="w-full p-2.5 border rounded-lg text-sm uppercase focus:ring-2 focus:ring-green-500 outline-none" placeholder="NOMBRE COMPLETO">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-gray-500 uppercase">Área / Fundo</label>
+                    <input type="text" id="newArea" class="w-full p-2.5 border rounded-lg text-sm uppercase focus:ring-2 focus:ring-green-500 outline-none" placeholder="EJ: CERRO LA PATA">
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="registrarAltaMaestro()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i> GUARDAR EN MAESTRO
                     </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3 italic">
-                        * El alta se verá reflejada a partir de la fecha seleccionada.
-                    </p>
+                    <p class="text-[8px] text-gray-400 text-center mt-2 italic">* Si dejas el ID Vínculo vacío, se generará un correlativo UN automático.</p>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="modalAyudaIds" class="hidden fixed inset-0 bg-black/60 z-[200] flex items-center justify-center backdrop-blur-sm">
+    <div class="bg-white rounded-2xl p-5 w-80 shadow-2xl">
+        <div class="flex justify-between items-center mb-4 border-b pb-2">
+            <span class="text-[10px] font-black uppercase text-blue-800">IDs de Saldo Compartido</span>
+            <button onclick="document.getElementById('modalAyudaIds').classList.add('hidden')" class="text-xl">&times;</button>
+        </div>
+        <div id="listaIdsExistentes" class="space-y-2 max-h-60 overflow-y-auto pr-2">
+            </div>
+        <p class="text-[8px] text-gray-400 mt-4 text-center">Haz clic en un ID para seleccionarlo</p>
     </div>
 </div>
 
@@ -720,6 +721,25 @@
     } finally {
         document.getElementById('indicadorCarga').classList.add('hidden');
     }
+}
+        function mostrarAyudaIds() {
+    const listaHtml = document.getElementById('listaIdsExistentes');
+    listaHtml.innerHTML = "<p class='text-[10px] text-center p-4'>Cargando IDs...</p>";
+    document.getElementById('modalAyudaIds').classList.remove('hidden');
+    
+    // Extraemos IDs únicos de la estructura que ya cargó la tabla principal
+    const idsUnicos = [...new Set(ESTRUCTURA_FLOTA.map(g => g.id))];
+    
+    listaHtml.innerHTML = idsUnicos.map(id => `
+        <div onclick="seleccionarId('${id}')" class="p-2 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-lg border border-blue-100 cursor-pointer hover:bg-blue-600 hover:text-white transition-colors">
+            <i class="fas fa-link mr-2"></i> ${id}
+        </div>
+    `).join('');
+}
+
+function seleccionarId(id) {
+    document.getElementById('newIdVinculo').value = id;
+    document.getElementById('modalAyudaIds').classList.add('hidden');
 }
     </script>
 </body>
