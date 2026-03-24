@@ -676,38 +676,49 @@
     }
 }
         async function ejecutarBajaMaestro(placa) {
+    // 1. 🔒 BLOQUEO PREVENTIVO: Si la semana seleccionada en el sistema ya pasó
     if (esSemanaBloqueada()) {
-        return alert("🔒 No se puede procesar bajas en semanas cerradas.");
+        return alert("🔒 No se puede procesar bajas en semanas cerradas. Cambie a la semana actual.");
     }
 
     const fechaBaja = prompt(`Confirme la fecha de BAJA para ${placa} (AAAA-MM-DD):`, new Date().toISOString().split('T')[0]);
-    if(!fechaBaja) return;
+    
+    if (!fechaBaja) return; // Si cancela el prompt, no hace nada
 
     document.getElementById('indicadorCarga').classList.remove('hidden');
 
     try {
-        const payload = { action: "updateFlota", placa: placa, fechaBaja: fechaBaja };
+        const payload = { 
+            action: "updateFlota", 
+            placa: placa, 
+            fechaBaja: fechaBaja 
+        };
+
         const res = await fetch(WEB_APP_URL, {
             method: 'POST',
             body: JSON.stringify(payload)
         });
+        
         const result = await res.json();
 
-        // --- VALIDACIÓN DEL PASO 3 ---
+        // 2. 🛡️ LEER BLOQUEO DEL SERVIDOR
         if (result.status === "BLOCKED") {
-            alert("❌ OPERACIÓN DENEGADA: " + result.msg);
+            alert(`❌ OPERACIÓN DENEGADA: ${result.msg}`);
             return;
         }
 
         if (result.status === "OK") {
-            alert("✅ Baja procesada correctamente.");
+            alert(`✅ La unidad ${placa} ha sido dada de baja correctamente.`);
             cerrarModalConfig();
             sincronizarDesdeNube();
+        } else {
+            alert("⚠️ No se pudo encontrar la unidad o hubo un error en el servidor.");
         }
-    } catch (e) { 
-        alert("Error al procesar la baja."); 
-    } finally { 
-        document.getElementById('indicadorCarga').classList.add('hidden'); 
+    } catch (e) {
+        console.error(e);
+        alert("Error de conexión al intentar procesar la baja.");
+    } finally {
+        document.getElementById('indicadorCarga').classList.add('hidden');
     }
 }
     </script>
