@@ -626,47 +626,53 @@
     // 4. Descargar
     XLSX.writeFile(wb, nombreArchivo);
 }
-        async function registrarAltaMaestro() {
-    // 1. Validación visual previa en el navegador
+       async function registrarAltaMaestro() {
+    const placa = document.getElementById('newPlaca').value.trim().toUpperCase();
+    const idVinculo = document.getElementById('newIdVinculo').value.trim().toUpperCase();
+    const fechaAlta = document.getElementById('newFechaAlta').value;
+    
+    // 1. 🔒 BLOQUEO VISUAL (Opcional pero recomendado)
     if (esSemanaBloqueada()) {
-        return alert("🔒 No se puede dar de alta en semanas pasadas desde esta interfaz.");
+        return alert("🔒 No se puede dar de alta en semanas pasadas desde el selector actual.");
     }
 
     const data = {
         action: "insertFlota",
-        placa: document.getElementById('newPlaca').value,
+        placa: placa,
+        id_vinculo: idVinculo, 
         dotacion: document.getElementById('newDot').value,
-        responsable: document.getElementById('newResp').value,
-        area: document.getElementById('newArea').value,
-        fechaAlta: document.getElementById('newFechaAlta').value
+        responsable: document.getElementById('newResp').value.toUpperCase(),
+        area: document.getElementById('newArea').value.toUpperCase(),
+        fechaAlta: fechaAlta
     };
 
-    if(!data.placa || !data.fechaAlta) return alert("Placa y Fecha de Alta son obligatorios.");
+    if(!data.placa || !data.fechaAlta) return alert("Placa y Fecha son obligatorios.");
 
     document.getElementById('indicadorCarga').classList.remove('hidden');
 
     try {
-        const res = await fetch(WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify(data)
+        const res = await fetch(WEB_APP_URL, { 
+            method: 'POST', 
+            body: JSON.stringify(data) 
         });
         const result = await res.json();
-
-        // --- VALIDACIÓN DEL PASO 3 ---
+        
+        // 2. 🛡️ LEER BLOQUEO DEL SERVIDOR (Paso 3)
         if (result.status === "BLOCKED") {
-            alert("❌ ERROR DEL SERVIDOR: " + result.msg);
-            return; // Detenemos el proceso
+            alert(`❌ OPERACIÓN DENEGADA: ${result.msg}`);
+            return; // Detenemos aquí
         }
-
-        if (result.status === "OK") {
-            alert("✅ Unidad registrada exitosamente en el Maestro.");
+        
+        if(result.status === "OK") {
+            alert(`✅ Unidad registrada.\nID Vínculo asignado: ${result.idAsignado}`);
             cerrarModalConfig();
             sincronizarDesdeNube();
         }
-    } catch (e) { 
-        alert("Error de conexión con el servidor."); 
-    } finally { 
-        document.getElementById('indicadorCarga').classList.add('hidden'); 
+    } catch(e) {
+        console.error(e);
+        alert("Error de conexión.");
+    } finally {
+        document.getElementById('indicadorCarga').classList.add('hidden');
     }
 }
         async function ejecutarBajaMaestro(placa) {
