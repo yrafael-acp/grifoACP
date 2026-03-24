@@ -351,54 +351,78 @@
         }
 
         function renderTabla(datos) {
-            const cuerpo = document.getElementById('cuerpoTabla');
-            cuerpo.innerHTML = "";
-            let tA = 0, tC = 0;
-            datos.forEach(g => {
-                const asig = g.a, cons = g.total, saldo = asig - cons;
-                const esExcepcion = g.isEx;
+    const cuerpo = document.getElementById('cuerpoTabla');
+    let html = "";
+    let tA = 0, tC = 0;
 
-                g.p.forEach((placa, idx) => {
-                    const esP = idx === 0;
-                    if(esP) { tA += asig; tC += cons; }
-                    cuerpo.innerHTML += `
-                        <tr class="${g.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
-                            <td data-label="Placa" class="p-2 font-bold ${saldo < 2 ? 'text-red-600':'text-blue-800'}">
-                                <div class="flex items-center justify-between">
-                                    <span>${placa} ${esExcepcion ? '<i class="fas fa-star text-yellow-500 ml-1"></i>' : ''}</span>
-                                    <button onclick="abrirEditarFlota('${placa}', ${asig})" class="text-gray-400 hover:text-green-600 ml-2">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </div>
-                            </td>
-                            <td data-label="Responsable" class="p-2 border-r">
-                                <span class="font-bold block">${g.r}</span>
-                                <span class="text-[9px] text-gray-400 uppercase">${g.area}</span>
-                            </td>
-                            <td data-label="L" class="text-center">${g.L||'-'}</td>
-                            <td data-label="M" class="text-center">${g.M||'-'}</td>
-                            <td data-label="Mi" class="text-center">${g.Mi||'-'}</td>
-                            <td data-label="J" class="text-center">${g.J||'-'}</td>
-                            <td data-label="V" class="text-center">${g.V||'-'}</td>
-                            <td data-label="S" class="text-center">${g.S||'-'}</td>
-                            <td data-label="D" class="text-center">${g.D||'-'}</td>
-                            <td data-label="Asig." class="p-2 text-center font-black ${esExcepcion ? 'bg-blue-100 text-blue-800' : 'bg-gray-50'} border-l">
-                                ${esP ? asig.toFixed(2) : '-'}
-                            </td>
-                            <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">
-                            ${esP ? `
+    datos.forEach(g => {
+        const asig = g.a || 0;
+        const cons = g.total || 0;
+        const saldo = asig - cons;
+        const esExcepcion = g.isEx;
+
+        g.p.forEach((placa, idx) => {
+            const esP = idx === 0;
+
+            if (esP) {
+                tA += asig;
+                tC += cons;
+            }
+
+            html += `
+                <tr class="${g.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
+                    <td data-label="Placa" class="p-2 font-bold ${saldo < 2 ? 'text-red-600':'text-blue-800'}">
+                        <div class="flex items-center justify-between">
+                            <span>
+                                ${placa}
+                                ${esExcepcion ? '<i class="fas fa-star text-yellow-500 ml-1"></i>' : ''}
+                            </span>
+                            <button onclick="abrirEditarFlota('${placa}', ${asig})" class="text-gray-400 hover:text-green-600 ml-2">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+
+                    <td data-label="Responsable" class="p-2 border-r">
+                        <span class="font-bold block">${g.r || ''}</span>
+                        <span class="text-[9px] text-gray-400 uppercase">${g.area || ''}</span>
+                    </td>
+
+                    <td data-label="L" class="text-center">${g.L || '-'}</td>
+                    <td data-label="M" class="text-center">${g.M || '-'}</td>
+                    <td data-label="Mi" class="text-center">${g.Mi || '-'}</td>
+                    <td data-label="J" class="text-center">${g.J || '-'}</td>
+                    <td data-label="V" class="text-center">${g.V || '-'}</td>
+                    <td data-label="S" class="text-center">${g.S || '-'}</td>
+                    <td data-label="D" class="text-center">${g.D || '-'}</td>
+
+                    <td data-label="Asig." class="p-2 text-center font-black ${esExcepcion ? 'bg-blue-100 text-blue-800' : 'bg-gray-50'} border-l">
+                        ${esP ? asig.toFixed(2) : '-'}
+                    </td>
+
+                    <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">
+                        ${esP ? `
                             <span>${cons.toFixed(2)}</span>
                             ${g.totalManual > 0 ? `<i class="fas fa-hand-holding-usd text-[9px] ml-1 text-orange-400" title="Incluye vales manuales"></i>` : ''}
-                            ` : '-'}
-                            </td>
-                            <td data-label="Saldo" class="p-2 text-center font-black ${saldo < 2 && esP ? 'bg-red-600 text-white animate-pulse':'bg-green-100 text-green-800'} border-l">
-                                ${esP ? saldo.toFixed(2) : '-'}
-                            </td>
-                        </tr>`;
-                });
-            });
-            actualizarResumen(tA, tC);
-        }
+                        ` : '-'}
+                    </td>
+
+                    <td data-label="Saldo" class="p-2 text-center font-black ${
+                        saldo < 2 && esP 
+                            ? 'bg-red-600 text-white animate-pulse' 
+                            : 'bg-green-100 text-green-800'
+                    } border-l">
+                        ${esP ? saldo.toFixed(2) : '-'}
+                    </td>
+                </tr>
+            `;
+        });
+    });
+
+    cuerpo.innerHTML = html;
+
+    actualizarResumen(tA, tC);
+}
 
         function actualizarResumen(tA, tC) {
             document.getElementById('resumenAsignado').innerText = tA.toFixed(2);
@@ -441,7 +465,13 @@
 
             try {
                 const payload = { action: "saveExcepcion", semana, placa: placaNorm, dotacion: nuevaDot };
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                const res = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
                 
                 const diff = nuevaDot - dotAnterior;
                 if (diff > 0) alert(`✅ ASIGNACIÓN EXITOSA\nUnidad: ${placa}\nSe han asignado ${diff.toFixed(2)} GLN adicionales.`);
@@ -530,7 +560,13 @@
     document.getElementById('indicadorCarga').classList.remove('hidden');
     
     try {
-        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        const res = await fetch(WEB_APP_URL, {
+  method: 'POST',
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+});
+
+const data = await res.json();
         alert("✅ Registro manual enviado. Sincronizando datos...");
         cerrarModalRegistro();
         
@@ -541,33 +577,6 @@
         alert("Error al enviar el registro.");
     } finally {
         document.getElementById('indicadorCarga').classList.add('hidden');
-    }
-}
-        async function limpiarValesManuales() {
-    // Preguntamos para evitar borrar por error
-    if (!confirm("¿Deseas eliminar todos los registros manuales (vales)?\nUsa esto solo si ya subiste los datos a SAP para evitar duplicados.")) return;
-
-    const ind = document.getElementById('indicadorCarga');
-    ind.classList.remove('hidden');
-
-    try {
-        const payload = { action: 'limpiarTemporales' };
-        
-        // Enviamos la orden a la nube
-        await fetch(WEB_APP_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify(payload) 
-        });
-
-        alert("✅ Registros manuales eliminados. La tabla se actualizará ahora.");
-        sincronizarDesdeNube(); // Refrescamos la tabla para que el consumo vuelva a la normalidad
-
-    } catch (e) {
-        alert("Error al intentar limpiar los datos.");
-        console.error(e);
-    } finally {
-        ind.classList.add('hidden');
     }
 }
         function verificarRolAdmin(rol) {
@@ -582,7 +591,6 @@
         contenedor.innerHTML = ""; // Limpia si no es admin
     }
 }
-
 // Función para ejecutar la limpieza
 async function limpiarValesManuales() {
     if (!confirm("⚠️ ATENCIÓN: ¿Deseas eliminar todos los registros manuales (vales)?\nConfirma que estos datos ya fueron procesados en SAP.")) return;
@@ -591,11 +599,13 @@ async function limpiarValesManuales() {
 
     try {
         const payload = { action: 'limpiarTemporales' };
-        await fetch(WEB_APP_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify(payload) 
-        });
+        const res = await fetch(WEB_APP_URL, {
+  method: 'POST',
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+});
+
+const data = await res.json();
 
         alert("✅ Hoja temporal de vales limpiada con éxito.");
         sincronizarDesdeNube();
@@ -660,7 +670,13 @@ async function registrarAltaMaestro() {
 
     document.getElementById('indicadorCarga').classList.remove('hidden');
     try {
-        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+        const res = await fetch(WEB_APP_URL, {
+  method: 'POST',
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+});
+
+const data = await res.json();
         alert("✅ Unidad registrada exitosamente en el Maestro.");
         cerrarModalConfig();
         sincronizarDesdeNube();
@@ -677,7 +693,13 @@ async function ejecutarBajaMaestro(placa) {
     document.getElementById('indicadorCarga').classList.remove('hidden');
     try {
         const payload = { action: "updateFlota", placa, fechaBaja };
-        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        const res = await fetch(WEB_APP_URL, {
+  method: 'POST',
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+});
+
+const data = await res.json();
         alert("✅ Baja procesada. El histórico se mantendrá intacto.");
         cerrarModalConfig();
         sincronizarDesdeNube();
