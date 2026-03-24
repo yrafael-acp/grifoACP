@@ -570,37 +570,49 @@
         loader.classList.add('hidden');
     }
 }
-
         async function guardarRegistroManual() {
-            if (esSemanaBloqueada()) {
+    if (esSemanaBloqueada()) {
         return alert("🔒 Semana cerrada. No se puede registrar.");
     }
+
+    const placa = document.getElementById('regPlaca').value.trim().toUpperCase();
+    const fecha = document.getElementById('regFecha').value;
+    const cantidad = parseFloat(document.getElementById('regCant').value);
+
+    if (!placa) return alert("Ingrese placa");
+    if (!fecha) return alert("Seleccione fecha");
+    if (!cantidad || isNaN(cantidad)) return alert("Cantidad inválida");
+
     const payload = {
         action: 'saveTemporal',
-        placa: document.getElementById('regPlaca').value.toUpperCase(),
-        fecha: document.getElementById('regFecha').value,
+        placa,
+        fecha,
         tipo: document.getElementById('regTipo').value,
-        cantidad: parseFloat(document.getElementById('regCant').value)
+        cantidad
     };
-    
+
     document.getElementById('indicadorCarga').classList.remove('hidden');
-    
+
     try {
         const res = await fetch(WEB_APP_URL, {
-  method: 'POST',
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload)
-});
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
 
-const data = await res.json();
-        alert("✅ Registro manual enviado. Sincronizando datos...");
+        const data = await res.json();
+
+        if (data.status !== "OK") {
+            throw new Error(data.message || "Error backend");
+        }
+
+        alert("✅ Registro enviado correctamente");
         cerrarModalRegistro();
-        
-        // RECARGA AUTOMÁTICA
-        sincronizarDesdeNube(); 
-        
+        sincronizarDesdeNube();
+
     } catch (e) {
-        alert("Error al enviar el registro.");
+        console.error(e);
+        alert("❌ Error en envío de registro");
     } finally {
         document.getElementById('indicadorCarga').classList.add('hidden');
     }
