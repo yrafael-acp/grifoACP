@@ -32,30 +32,35 @@
                     <h1 class="text-lg font-bold italic leading-none">FLOTA NUBE</h1>
                     <span class="text-[10px] uppercase tracking-widest opacity-80">Agrícola Cerro Prieto</span>
                 </div>
-                <div id="estadoSemana" class="text-[10px] font-bold px-2 py-1 rounded"></div>
             </div>
-            
+            <select id="selectorAnio" onchange="cambiarAnio()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30"></select>
             <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
-                <select id="selectorAnio" onchange="cambiarAnio()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30"></select>
                 <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30 outline-none w-full sm:w-auto"></select>
-                
                 <div class="flex flex-wrap justify-center gap-2">
                     <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
                     </button>
                     <button onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-search-dollar mr-1"></i> CONSULTA SAP
+                        <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
                     </button>
                     <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
                     </button>
                     <button onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-cog mr-1"></i> CONFIG
+                        <i class="fas fa-cog mr-1"></i>
+                        <div id="contenedorAdmin" class="flex gap-2"></div>
                     </button>
-                    <button onclick="limpiarValesManuales()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-broom mr-1"></i> LIMPIAR
+                    <button onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                        <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
+                    </button>
+                    <button onclick="limpiarValesManuales()" title="Limpiar Vales Manuales" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-broom mr-1"></i> LIMPIAR VALES
+                    </button>
+                    <button onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
+                        <i class="fas fa-file-excel"></i>
                     </button>
                 </div>
+                <input type="file" id="uploadExcel" accept=".xlsx, .xls" class="hidden" onchange="leerExcel(this)">
             </div>
         </div>
     </header>
@@ -134,78 +139,52 @@
     </div>
 
     <div id="modalConsulta" class="modal">
-    <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[900px] max-h-[90vh] flex flex-col overflow-hidden">
-        <div class="p-4 bg-indigo-800 text-white flex justify-between items-center shrink-0">
-            <span class="font-bold text-sm">CONSULTA ÓRDENES SAP</span>
-            <button onclick="cerrarModalConsulta()" class="text-2xl hover:opacity-70">&times;</button>
+    <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[1000px] max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="p-4 bg-indigo-800 text-white flex justify-between items-center text-sm font-bold">
+            <span>CONSULTA ÓRDENES</span>
+            <button onclick="cerrarModalConsulta()" class="text-2xl">&times;</button>
         </div>
-
-        <div class="p-4 bg-gray-50 border-b shrink-0">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                <div class="md:col-span-5">
-                    <label class="text-[9px] font-bold text-gray-400 uppercase ml-1">Órdenes (separadas por coma)</label>
-                    <input type="text" id="inputOrdenes" placeholder="8000266, 8000268..." class="w-full p-2 border rounded text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-                <div class="md:col-span-4 grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-[9px] font-bold text-gray-400 uppercase ml-1">Desde</label>
-                        <input type="date" id="fechaDesde" class="w-full p-2 border rounded text-xs">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-bold text-gray-400 uppercase ml-1">Hasta</label>
-                        <input type="date" id="fechaHasta" class="w-full p-2 border rounded text-xs">
-                    </div>
-                </div>
-                <div class="md:col-span-3">
-                    <button onclick="ejecutarConsultaOrden()" class="w-full bg-indigo-600 text-white py-2 rounded text-xs font-bold uppercase hover:bg-indigo-700 shadow-sm transition">
-                        <i class="fas fa-search mr-1"></i> Consultar
-                    </button>
+        <div class="p-4 bg-gray-50 border-b flex flex-col gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input type="text" id="inputOrdenes" placeholder="Órdenes separadas por coma" class="p-2 border rounded text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="date" id="fechaDesde" class="p-2 border rounded text-xs">
+                    <input type="date" id="fechaHasta" class="p-2 border rounded text-xs">
                 </div>
             </div>
-
-            <div id="resumenConsultaOrden" class="hidden mt-4 pt-3 border-t flex flex-wrap items-center justify-between gap-3">
-                <div class="flex gap-2">
-                    <div class="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg border border-indigo-200">
-                        <span class="text-[9px] uppercase font-bold block leading-none opacity-70">Total Gln</span>
-                        <span id="totalGlnOrden" class="text-xs font-black">0.00</span>
-                    </div>
-                    <div class="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg border border-green-200">
-                        <span class="text-[9px] uppercase font-bold block leading-none opacity-70">Total Soles</span>
-                        <span id="totalSolesOrden" class="text-xs font-black">0.00</span>
-                    </div>
+            <div class="flex justify-between items-center">
+                <div id="resumenConsultaOrden" class="hidden flex items-center gap-4">
+    <div class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
+        TOTAL GLN: <span id="totalGlnOrden">0.00</span>
+    </div>
+    <div class="text-[10px] font-bold text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+        TOTAL SOLES: <span id="totalSolesOrden">0.00</span>
+    </div>
+    <button onclick="exportarConsultaExcel()" class="bg-green-700 hover:bg-green-800 text-white px-3 py-1 rounded-lg text-[10px] font-bold flex items-center shadow-sm transition">
+        <i class="fas fa-file-excel mr-1"></i> EXPORTAR EXCEL
+    </button>
+</div>
                 </div>
-                <button onclick="exportarConsultaExcel()" class="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg text-[10px] font-bold flex items-center shadow-md transition">
-                    <i class="fas fa-file-excel mr-2"></i> EXPORTAR EXCEL
-                </button>
+                <button onclick="ejecutarConsultaOrden()" class="bg-indigo-600 text-white px-6 py-2 rounded text-xs font-bold uppercase hover:bg-indigo-700 transition">Consultar</button>
             </div>
         </div>
-
-        <div class="flex-1 overflow-auto bg-white relative min-h-[300px]">
-            <div id="cargaConsulta" class="hidden absolute inset-0 bg-white/90 flex flex-col items-center justify-center z-50">
-                <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
-                <p class="text-[10px] font-bold text-indigo-900 uppercase tracking-widest animate-pulse">Consultando SAP...</p>
-            </div>
-
-            <div id="tablaConsultaContainer" class="hidden p-1">
-                <table class="w-full text-[10px] border-collapse" id="tablaResultadoOrden">
-                    <thead class="bg-gray-100 sticky top-0 border-b z-10">
-                        <tr>
-                            <th class="p-2 text-left">FECHA</th>
-                            <th class="p-2 text-left">MATERIAL</th>
-                            <th class="p-2 text-left">PLACA</th>
-                            <th class="p-2 text-right">CANTIDAD</th>
-                            <th class="p-2 text-right">IMPORTE S/.</th>
-                            <th class="p-2 text-center">ORDEN</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y text-gray-600"></tbody>
-                </table>
+        <div class="p-4 overflow-y-auto flex-1 bg-white relative">
+            <div id="cargaConsulta" class="hidden absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin text-3xl text-indigo-600 mb-2"></i>
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Buscando registros...</p>
+                </div>
             </div>
             
-            <div id="estadoConsulta" class="flex flex-col items-center justify-center py-20 text-gray-400">
-                <i class="fas fa-filter text-4xl mb-3 opacity-20"></i>
-                <p class="text-xs font-medium">Ingresa las órdenes para iniciar la búsqueda</p>
+            <div id="tablaConsultaContainer" class="hidden">
+                <table class="w-full text-[10px] border-collapse" id="tablaResultadoOrden">
+                    <thead class="bg-gray-100 sticky top-0 border-b">
+                        <tr><th class="p-2">FECHA</th><th class="p-2">MATERIAL</th><th class="p-2">PLACA</th><th class="p-2">DOC</th><th class="p-2">CTD</th><th class="p-2">IMPTE</th><th class="p-2">ORDEN</th></tr>
+                    </thead>
+                    <tbody class="divide-y"></tbody>
+                </table>
             </div>
+            <div id="estadoConsulta" class="text-center py-10 text-gray-400">Ingresa datos para filtrar...</div>
         </div>
     </div>
 </div>
@@ -213,104 +192,79 @@
     <div id="modalEditarFlota" class="modal">
         <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[400px] overflow-hidden">
             <div class="p-4 bg-green-700 text-white flex justify-between items-center">
-                <span class="font-bold text-sm">AJUSTAR DOTACIÓN</span>
+                <span class="font-bold text-sm">AJUSTAR DOTACIÓN SEMANAL</span>
                 <button onclick="cerrarModalEditarFlota()" class="text-2xl">&times;</button>
             </div>
             <div class="p-4 space-y-4">
-                <input type="text" id="editPlaca" class="w-full p-2 border rounded bg-gray-50 font-bold" readonly>
-                <input type="number" id="editDotacion" class="w-full p-2 border rounded" placeholder="Nueva Cantidad">
-                <button onclick="guardarExcepcionSemanal()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold">APLICAR CAMBIO</button>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Vehículo</label>
+                    <input type="text" id="editPlaca" class="w-full p-2 border rounded font-bold bg-gray-50" readonly>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase">Nueva cantidad (Galones)</label>
+                    <input type="number" id="editDotacion" class="w-full p-2 border border-green-200 rounded outline-none focus:ring-2 focus:ring-green-500" placeholder="0.00">
+                </div>
+                <div class="grid grid-cols-1 gap-2 pt-2">
+                    <button onclick="guardarExcepcionSemanal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold text-xs transition shadow">
+                        <i class="fas fa-calendar-check mr-1"></i> APLICAR SOLO ESTA SEMANA
+                    </button>
+                    <p class="text-[9px] text-gray-400 text-center italic">* Solo afecta a la semana seleccionada.</p>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="modalConfig" class="modal">
-    <div class="bg-white rounded-2xl shadow-2xl w-[95%] md:w-[550px] overflow-hidden border border-gray-200">
-        <div class="p-4 bg-slate-800 text-white flex justify-between items-center shrink-0">
-            <div class="flex items-center gap-2">
-                <i class="fas fa-tools text-yellow-400"></i>
-                <span class="font-bold text-xs uppercase tracking-widest">Configuración Maestro</span>
-            </div>
-            <button onclick="cerrarModalConfig()" class="text-2xl hover:text-red-400 transition">&times;</button>
+    <div class="bg-white rounded-xl shadow-2xl w-[95%] md:w-[600px] overflow-hidden">
+        <div class="p-4 bg-gray-800 text-white flex justify-between items-center text-sm font-bold">
+            <span>CONFIGURACIÓN DE FLOTA - MAESTRO</span>
+            <button onclick="cerrarModalConfig()" class="text-2xl">&times;</button>
         </div>
         
-        <div class="flex border-b bg-slate-50">
-            <button id="btnTabLista" onclick="cambiarTabConfig('lista')" class="flex-1 py-3 text-[10px] font-black transition-all border-b-4 border-green-600 text-green-700">
-                <i class="fas fa-list mr-1"></i> VER LISTADO
-            </button>
-            <button id="btnTabAlta" onclick="cambiarTabConfig('alta')" class="flex-1 py-3 text-[10px] font-black text-gray-400 hover:bg-gray-100 transition-all border-b-4 border-transparent">
-                <i class="fas fa-plus-circle mr-1"></i> DAR DE ALTA
-            </button>
+        <div class="flex border-b bg-gray-50">
+            <button id="btnTabLista" onclick="cambiarTabConfig('lista')" class="flex-1 py-3 text-[10px] font-bold border-b-2 border-green-600 text-green-700">LISTA PARA BAJA</button>
+            <button id="btnTabAlta" onclick="cambiarTabConfig('alta')" class="flex-1 py-3 text-[10px] font-bold text-gray-400 hover:bg-gray-100">DAR DE ALTA NUEVO</button>
         </div>
 
-        <div class="p-5 max-h-[75vh] overflow-y-auto">
+        <div class="p-4 max-h-[60vh] overflow-y-auto">
             <div id="panelListaConfig">
-                <div id="listaConfigFlota" class="space-y-1"></div>
+                <div id="listaConfigFlota" class="divide-y divide-gray-100">
+                    </div>
             </div>
 
             <div id="panelAltaConfig" class="hidden space-y-4">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Placa</label>
-                        <input type="text" id="newPlaca" class="w-full p-2.5 border rounded-lg text-sm uppercase font-bold bg-gray-50 focus:ring-2 focus:ring-green-500 outline-none" placeholder="ABC-123">
+                        <label class="text-[9px] font-bold text-gray-400 uppercase">Placa</label>
+                        <input type="text" id="newPlaca" class="w-full p-2 border rounded text-xs uppercase font-bold" placeholder="ABC-123">
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-blue-600 uppercase flex justify-between">
-                            ID Vínculo
-                            <button onclick="mostrarAyudaIds()" title="Ver IDs existentes" class="text-blue-500 hover:text-blue-700">
-                                <i class="fas fa-question-circle"></i>
-                            </button>
-                        </label>
-                        <input type="text" id="newIdVinculo" class="w-full p-2.5 border border-blue-200 rounded-lg text-sm font-bold bg-blue-50 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: UN62">
+                        <label class="text-[9px] font-bold text-gray-400 uppercase">Dotación (GLN)</label>
+                        <input type="number" id="newDot" class="w-full p-2 border rounded text-xs" placeholder="0.00">
                     </div>
                 </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Dotación (GLN)</label>
-                        <input type="number" id="newDot" class="w-full p-2.5 border rounded-lg text-sm font-bold focus:ring-2 focus:ring-green-500 outline-none" placeholder="0.00">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-gray-500 uppercase">Fecha de Alta</label>
-                        <input type="date" id="newFechaAlta" class="w-full p-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none">
-                    </div>
-                </div>
-
                 <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-gray-500 uppercase">Responsable / Conductor</label>
-                    <input type="text" id="newResp" class="w-full p-2.5 border rounded-lg text-sm uppercase focus:ring-2 focus:ring-green-500 outline-none" placeholder="NOMBRE COMPLETO">
+                    <label class="text-[9px] font-bold text-gray-400 uppercase">Responsable</label>
+                    <input type="text" id="newResp" class="w-full p-2 border rounded text-xs uppercase" placeholder="NOMBRE DEL CONDUCTOR">
                 </div>
-
                 <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-gray-500 uppercase">Área / Fundo</label>
-                    <input type="text" id="newArea" class="w-full p-2.5 border rounded-lg text-sm uppercase focus:ring-2 focus:ring-green-500 outline-none" placeholder="EJ: CERRO LA PATA">
+                    <label class="text-[9px] font-bold text-gray-400 uppercase">Área / Fundo</label>
+                    <input type="text" id="newArea" class="w-full p-2 border rounded text-xs uppercase" placeholder="EJ: CERRO LA PATA">
                 </div>
-
-                <div class="pt-2">
-                    <button onclick="registrarAltaMaestro()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3.5 rounded-xl font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-save"></i> GUARDAR EN MAESTRO
-                    </button>
-                    <p class="text-[8px] text-gray-400 text-center mt-2 italic">* Si dejas el ID Vínculo vacío, se generará un correlativo UN automático.</p>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-bold text-gray-400 uppercase">Fecha de Inicio (Alta)</label>
+                    <input type="date" id="newFechaAlta" class="w-full p-2 border rounded text-xs">
                 </div>
+                <button onclick="registrarAltaMaestro()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-lg font-bold text-xs shadow-lg transition">
+                    <i class="fas fa-plus-circle mr-1"></i> GUARDAR EN MAESTRO
+                </button>
             </div>
         </div>
-    </div>
-</div>
-
-<div id="modalAyudaIds" class="hidden fixed inset-0 bg-black/60 z-[200] flex items-center justify-center backdrop-blur-sm">
-    <div class="bg-white rounded-2xl p-5 w-80 shadow-2xl">
-        <div class="flex justify-between items-center mb-4 border-b pb-2">
-            <span class="text-[10px] font-black uppercase text-blue-800">IDs de Saldo Compartido</span>
-            <button onclick="document.getElementById('modalAyudaIds').classList.add('hidden')" class="text-xl">&times;</button>
-        </div>
-        <div id="listaIdsExistentes" class="space-y-2 max-h-60 overflow-y-auto pr-2">
-            </div>
-        <p class="text-[8px] text-gray-400 mt-4 text-center">Haz clic en un ID para seleccionarlo</p>
     </div>
 </div>
 
     <script>
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyznJML-_JIaxXzggVrViaMlw4J7N_MGCYeuPPRJ8xE29W4k-LxwGedRnasteqTvPmfFA/exec';
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIIm2kt01jwia7nlpxB6LPFnmp3iigJ4SaGC-QVYfCFLRYWcG7uTLJrx3zYV1xhWYh6Q/exec';
         let ESTRUCTURA_FLOTA = [];
         let lunesReferencia = new Date();
 
@@ -318,7 +272,6 @@
             poblarAnios();
             poblarSemanasPorAnio(new Date().getFullYear());
             lunesReferencia = getLunesActual(new Date());
-            mostrarEstadoSemana();
             sincronizarDesdeNube();
         };
 
@@ -329,28 +282,14 @@
             return new Date(d.setDate(diff));
         }
 
-        function mostrarEstadoSemana() {
-            const aviso = document.getElementById("estadoSemana");
-            if (esSemanaBloqueada()) {
-                aviso.innerText = "🔒 CERRADA";
-                aviso.className = "text-[10px] font-bold px-2 py-1 rounded bg-red-600 text-white";
-            } else {
-                aviso.innerText = "🟢 ACTIVA";
-                aviso.className = "text-[10px] font-bold px-2 py-1 rounded bg-green-600 text-white";
-            }
-        }
-
         function poblarAnios() {
             const sel = document.getElementById('selectorAnio');
-            const anioActual = new Date().getFullYear();
-            for (let y = 2025; y <= anioActual; y++) {
-                sel.add(new Option(y, y, y === anioActual, y === anioActual));
-            }
+            const aA = new Date().getFullYear();
+            for (let y = 2025; y <= aA; y++) sel.add(new Option(y, y, y === aA, y === aA));
         }
 
         function poblarSemanasPorAnio(anio) {
-            const sel = document.getElementById('selectorSemanas');
-            sel.innerHTML = '';
+            const sel = document.getElementById('selectorSemanas'); sel.innerHTML = '';
             let f = getLunesActual(new Date(`${anio}-01-01T12:00:00`));
             const hoyL = getLunesActual(new Date()).toISOString().split('T')[0];
             let ops = [];
@@ -364,6 +303,11 @@
                 if (op.val === hoyL) opt.selected = true;
                 sel.add(opt);
             });
+        }
+
+        function gestionarCambioSemana() {
+            lunesReferencia = new Date(document.getElementById('selectorSemanas').value + "T12:00:00");
+            sincronizarDesdeNube();
         }
 
         async function sincronizarDesdeNube() {
@@ -381,48 +325,51 @@
 
         function renderTabla(datos) {
             const cuerpo = document.getElementById('cuerpoTabla');
-            let html = "";
+            cuerpo.innerHTML = "";
             let tA = 0, tC = 0;
-
             datos.forEach(g => {
-                const asig = g.a || 0;
-                const cons = g.total || 0;
-                const saldo = asig - cons;
-                
+                const asig = g.a, cons = g.total, saldo = asig - cons;
+                const esExcepcion = g.isEx;
+
                 g.p.forEach((placa, idx) => {
                     const esP = idx === 0;
-                    if (esP) { tA += asig; tC += cons; }
-
-                    html += `
+                    if(esP) { tA += asig; tC += cons; }
+                    cuerpo.innerHTML += `
                         <tr class="${g.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
                             <td data-label="Placa" class="p-2 font-bold ${saldo < 2 ? 'text-red-600':'text-blue-800'}">
                                 <div class="flex items-center justify-between">
-                                    <span>${placa} ${g.isEx ? '<i class="fas fa-star text-yellow-500 ml-1"></i>' : ''}</span>
-                                    <button onclick="abrirEditarFlota('${placa}', ${asig})" class="text-gray-400 hover:text-green-600">
+                                    <span>${placa} ${esExcepcion ? '<i class="fas fa-star text-yellow-500 ml-1"></i>' : ''}</span>
+                                    <button onclick="abrirEditarFlota('${placa}', ${asig})" class="text-gray-400 hover:text-green-600 ml-2">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                 </div>
                             </td>
                             <td data-label="Responsable" class="p-2 border-r">
-                                <span class="font-bold block">${g.r || ''}</span>
-                                <span class="text-[9px] text-gray-400 uppercase">${g.area || ''}</span>
+                                <span class="font-bold block">${g.r}</span>
+                                <span class="text-[9px] text-gray-400 uppercase">${g.area}</span>
                             </td>
-                            <td class="text-center">${g.L || '-'}</td>
-                            <td class="text-center">${g.M || '-'}</td>
-                            <td class="text-center">${g.Mi || '-'}</td>
-                            <td class="text-center">${g.J || '-'}</td>
-                            <td class="text-center">${g.V || '-'}</td>
-                            <td class="text-center">${g.S || '-'}</td>
-                            <td class="text-center">${g.D || '-'}</td>
-                            <td class="p-2 text-center font-black bg-gray-50 border-l">${esP ? asig.toFixed(2) : '-'}</td>
-                            <td class="p-2 text-center font-black bg-orange-50 text-orange-700">${esP ? cons.toFixed(2) : '-'}</td>
-                            <td class="p-2 text-center font-black ${saldo < 2 && esP ? 'bg-red-600 text-white' : 'bg-green-100 text-green-800'} border-l">
+                            <td data-label="L" class="text-center">${g.L||'-'}</td>
+                            <td data-label="M" class="text-center">${g.M||'-'}</td>
+                            <td data-label="Mi" class="text-center">${g.Mi||'-'}</td>
+                            <td data-label="J" class="text-center">${g.J||'-'}</td>
+                            <td data-label="V" class="text-center">${g.V||'-'}</td>
+                            <td data-label="S" class="text-center">${g.S||'-'}</td>
+                            <td data-label="D" class="text-center">${g.D||'-'}</td>
+                            <td data-label="Asig." class="p-2 text-center font-black ${esExcepcion ? 'bg-blue-100 text-blue-800' : 'bg-gray-50'} border-l">
+                                ${esP ? asig.toFixed(2) : '-'}
+                            </td>
+                            <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">
+                            ${esP ? `
+                            <span>${cons.toFixed(2)}</span>
+                            ${g.totalManual > 0 ? `<i class="fas fa-hand-holding-usd text-[9px] ml-1 text-orange-400" title="Incluye vales manuales"></i>` : ''}
+                            ` : '-'}
+                            </td>
+                            <td data-label="Saldo" class="p-2 text-center font-black ${saldo < 2 && esP ? 'bg-red-600 text-white animate-pulse':'bg-green-100 text-green-800'} border-l">
                                 ${esP ? saldo.toFixed(2) : '-'}
                             </td>
                         </tr>`;
                 });
             });
-            cuerpo.innerHTML = html;
             actualizarResumen(tA, tC);
         }
 
@@ -438,43 +385,44 @@
             document.querySelectorAll('#cuerpoTabla tr').forEach(r => r.style.display = r.innerText.toUpperCase().includes(q) ? "" : "none");
         }
 
-        function gestionarCambioSemana() {
-            lunesReferencia = new Date(document.getElementById('selectorSemanas').value + "T12:00:00");
-            mostrarEstadoSemana();
-            sincronizarDesdeNube();
-        }
-
-        function esSemanaBloqueada() {
-            return lunesReferencia < getLunesActual(new Date());
-        }
-
-        // MODALES ACCIONES
+        // --- FUNCIONES DE MODALES ---
         function abrirModalRegistro() { document.getElementById('modalRegistro').style.display = 'flex'; }
         function cerrarModalRegistro() { document.getElementById('modalRegistro').style.display = 'none'; }
         function abrirModalConsulta() { document.getElementById('modalConsulta').style.display = 'flex'; }
         function cerrarModalConsulta() { document.getElementById('modalConsulta').style.display = 'none'; }
-        
+        function abrirModalConfig() { document.getElementById('modalConfig').style.display = 'flex'; renderListaConfig(); }
+        function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
         function abrirEditarFlota(placa, dotActual) {
-            if (esSemanaBloqueada()) return alert("🔒 Semana cerrada.");
             document.getElementById('editPlaca').value = placa;
             document.getElementById('editDotacion').value = dotActual;
             document.getElementById('modalEditarFlota').style.display = 'flex';
         }
         function cerrarModalEditarFlota() { document.getElementById('modalEditarFlota').style.display = 'none'; }
 
+        // --- ACCIONES NUBE ---
         async function guardarExcepcionSemanal() {
             const placa = document.getElementById('editPlaca').value;
-            const dot = document.getElementById('editDotacion').value;
-            const sem = document.getElementById('selectorSemanas').value;
+            const nuevaDot = parseFloat(document.getElementById('editDotacion').value);
+            const placaNorm = placa.toUpperCase().replace(/-/g, "");
+            
+            // Buscar dotación previa para el mensaje
+            const infoActual = ESTRUCTURA_FLOTA.find(g => g.p.includes(placa));
+            const dotAnterior = infoActual ? infoActual.a : 0;
+            const semana = document.getElementById('selectorSemanas').value;
+
+            if(!nuevaDot || isNaN(nuevaDot)) return alert("Ingrese un monto válido.");
+
             try {
-                const res = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: "saveExcepcion", semana: sem, placa, dotacion: dot })
-                });
-                alert("✅ Guardado correctamente");
+                const payload = { action: "saveExcepcion", semana, placa: placaNorm, dotacion: nuevaDot };
+                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                
+                const diff = nuevaDot - dotAnterior;
+                if (diff > 0) alert(`✅ ASIGNACIÓN EXITOSA\nUnidad: ${placa}\nSe han asignado ${diff.toFixed(2)} GLN adicionales.`);
+                else alert("✅ Ajuste realizado correctamente.");
+
                 cerrarModalEditarFlota();
                 sincronizarDesdeNube();
-            } catch (e) { alert("Error al guardar"); }
+            } catch (e) { alert("Error al conectar."); }
         }
 
         async function ejecutarConsultaOrden() {
@@ -484,262 +432,225 @@
     
     if(!input) return alert("Por favor, ingrese al menos un número de orden.");
 
-    // Elementos visuales de estado
-    const loader = document.getElementById('cargaConsulta'); 
-    const resumen = document.getElementById('resumenConsultaOrden'); 
-    const container = document.getElementById('tablaConsultaContainer'); 
-    const estado = document.getElementById('estadoConsulta'); 
-    const tbody = document.querySelector('#tablaResultadoOrden tbody');
+    const loader = document.getElementById('cargaConsulta');
+    const resumen = document.getElementById('resumenConsultaOrden');
+    const container = document.getElementById('tablaConsultaContainer');
+    const estado = document.getElementById('estadoConsulta');
 
-    // 1. Mostrar estado de "Cargando"
+    // Mostrar cargando
     loader.classList.remove('hidden');
-    estado.classList.add('hidden');
-    container.classList.add('hidden');
     resumen.classList.add('hidden');
-    tbody.innerHTML = ""; 
+    container.classList.add('hidden');
+    estado.classList.add('hidden');
 
     try {
-        const url = `${WEB_APP_URL}?action=getDetalleOrden&orden=${encodeURIComponent(input)}&desde=${fD}&hasta=${fH}`;
-        const res = await fetch(url);
+        const res = await fetch(`${WEB_APP_URL}?action=getDetalleOrden&orden=${encodeURIComponent(input)}&desde=${fD}&hasta=${fH}`);
         const data = await res.json();
         
-        if(data.status === "OK" && data.items.length > 0) {
-            let totalSoles = 0;
+        const tbody = document.querySelector('#tablaResultadoOrden tbody');
+        tbody.innerHTML = "";
+
+        if(data.status === "OK") {
+            let totalImporte = 0;
             
             data.items.forEach(i => {
-                totalSoles += parseFloat(i.importe || 0);
+                totalImporte += i.importe;
                 tbody.innerHTML += `
-                    <tr class="hover:bg-indigo-50 transition-colors border-b">
-                        <td class="p-2 whitespace-nowrap">${i.fecha}</td>
+                    <tr class="hover:bg-gray-50 border-b">
+                        <td class="p-2">${i.fecha}</td>
                         <td class="p-2">${i.tipo}</td>
-                        <td class="p-2 font-bold text-indigo-700">${i.placa}</td>
-                        <td class="p-2 text-right font-bold text-gray-800">${parseFloat(i.cantidad).toFixed(2)}</td>
-                        <td class="p-2 text-right font-bold text-green-700">${parseFloat(i.importe).toFixed(2)}</td>
-                        <td class="p-2 text-center text-gray-400">${i.orden}</td>
+                        <td class="p-2 font-bold text-blue-700">${i.placa}</td>
+                        <td class="p-2">${i.documento}</td>
+                        <td class="p-2 font-bold">${i.cantidad.toFixed(2)}</td>
+                        <td class="p-2 text-green-700 font-bold">${i.importe.toFixed(2)}</td>
+                        <td class="p-2 text-gray-400">${i.orden}</td>
                     </tr>`;
             });
 
-            // Actualizar totales en la cabecera del modal
-            document.getElementById('totalGlnOrden').innerText = parseFloat(data.total).toFixed(2);
-            document.getElementById('totalSolesOrden').innerText = totalSoles.toFixed(2);
+            // Actualizar totalizadores
+            document.getElementById('totalGlnOrden').innerText = data.total.toFixed(2);
+            document.getElementById('totalSolesOrden').innerText = totalImporte.toFixed(2);
             
-            // 2. Mostrar la tabla y los resultados
-            container.classList.remove('hidden');
+            // Mostrar resultados
             resumen.classList.remove('hidden');
+            container.classList.remove('hidden');
         } else {
-            // 3. Mostrar estado de "Sin resultados"
-            estado.innerHTML = `<i class="fas fa-exclamation-circle text-orange-400 text-2xl mb-2"></i><p>${data.msg || "No se encontraron registros."}</p>`;
+            estado.innerText = "No se encontraron registros para los filtros seleccionados.";
             estado.classList.remove('hidden');
         }
     } catch (e) {
-        console.error(e);
         alert("Error en la conexión con el servidor.");
         estado.classList.remove('hidden');
     } finally {
-        // Ocultar siempre el cargador al final
         loader.classList.add('hidden');
     }
 }
 
-        function abrirModalConfig() { 
-            document.getElementById('modalConfig').style.display = 'flex'; 
-            renderListaConfig(); 
-        }
-        function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
-
-        function cambiarTabConfig(tab) {
-    const isLista = tab === 'lista';
+        async function guardarRegistroManual() {
+    const payload = {
+        action: 'saveTemporal',
+        placa: document.getElementById('regPlaca').value.toUpperCase(),
+        fecha: document.getElementById('regFecha').value,
+        tipo: document.getElementById('regTipo').value,
+        cantidad: parseFloat(document.getElementById('regCant').value)
+    };
     
-    // Alternar visibilidad de paneles
-    document.getElementById('panelListaConfig').classList.toggle('hidden', !isLista);
-    document.getElementById('panelAltaConfig').classList.toggle('hidden', isLista);
+    document.getElementById('indicadorCarga').classList.remove('hidden');
     
-    // Estilos de botones (Tabs)
-    const btnLista = document.getElementById('btnTabLista');
-    const btnAlta = document.getElementById('btnTabAlta');
+    try {
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        alert("✅ Registro manual enviado. Sincronizando datos...");
+        cerrarModalRegistro();
+        
+        // RECARGA AUTOMÁTICA
+        sincronizarDesdeNube(); 
+        
+    } catch (e) {
+        alert("Error al enviar el registro.");
+    } finally {
+        document.getElementById('indicadorCarga').classList.add('hidden');
+    }
+}
+        async function limpiarValesManuales() {
+    // Preguntamos para evitar borrar por error
+    if (!confirm("¿Deseas eliminar todos los registros manuales (vales)?\nUsa esto solo si ya subiste los datos a SAP para evitar duplicados.")) return;
 
-    if (isLista) {
-        btnLista.className = "flex-1 py-3 text-[11px] font-extrabold transition-all border-b-4 border-green-600 text-green-700";
-        btnAlta.className = "flex-1 py-3 text-[11px] font-extrabold text-gray-400 hover:bg-gray-100 transition-all border-b-4 border-transparent";
-        renderListaConfig(); // Refrescar la lista al volver
+    const ind = document.getElementById('indicadorCarga');
+    ind.classList.remove('hidden');
+
+    try {
+        const payload = { action: 'limpiarTemporales' };
+        
+        // Enviamos la orden a la nube
+        await fetch(WEB_APP_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify(payload) 
+        });
+
+        alert("✅ Registros manuales eliminados. La tabla se actualizará ahora.");
+        sincronizarDesdeNube(); // Refrescamos la tabla para que el consumo vuelva a la normalidad
+
+    } catch (e) {
+        alert("Error al intentar limpiar los datos.");
+        console.error(e);
+    } finally {
+        ind.classList.add('hidden');
+    }
+}
+        function verificarRolAdmin(rol) {
+    const contenedor = document.getElementById('contenedorAdmin');
+    if (rol === "ADMINISTRADOR") {
+        contenedor.innerHTML = `
+            <button onclick="limpiarValesManuales()" title="Solo Administradores" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                <i class="fas fa-broom mr-1"></i> LIMPIAR VALES
+            </button>
+        `;
     } else {
-        btnAlta.className = "flex-1 py-3 text-[11px] font-extrabold transition-all border-b-4 border-green-600 text-green-700";
-        btnLista.className = "flex-1 py-3 text-[11px] font-extrabold text-gray-400 hover:bg-gray-100 transition-all border-b-4 border-transparent";
+        contenedor.innerHTML = ""; // Limpia si no es admin
     }
 }
 
-        function renderListaConfig() {
-            const div = document.getElementById('panelListaConfig');
-            div.innerHTML = ESTRUCTURA_FLOTA.map(g => `
-                <div class="flex justify-between items-center py-2 border-b">
-                    <span class="text-xs font-bold">${g.p[0]} - ${g.r}</span>
-                    <button onclick="ejecutarBaja('${g.p[0]}')" class="text-red-600 text-[10px] font-bold">DAR DE BAJA</button>
-                </div>
-            `).join('');
-        }
+// Función para ejecutar la limpieza
+async function limpiarValesManuales() {
+    if (!confirm("⚠️ ATENCIÓN: ¿Deseas eliminar todos los registros manuales (vales)?\nConfirma que estos datos ya fueron procesados en SAP.")) return;
 
-        async function guardarRegistroManual() {
-            const placa = document.getElementById('regPlaca').value;
-            const fecha = document.getElementById('regFecha').value;
-            const cant = document.getElementById('regCant').value;
-            const tipo = document.getElementById('regTipo').value;
+    document.getElementById('indicadorCarga').classList.remove('hidden');
 
-            if (esSemanaBloqueada()) return alert("🔒 Semana cerrada.");
+    try {
+        const payload = { action: 'limpiarTemporales' };
+        await fetch(WEB_APP_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify(payload) 
+        });
 
-            try {
-                const res = await fetch(`${WEB_APP_URL}?action=saveTemporal&placa=${placa}&fecha=${fecha}&tipo=${tipo}&cantidad=${cant}`);
-                const data = await res.json();
-                if(data.status === "OK") {
-                    alert("✅ Registro exitoso");
-                    cerrarModalRegistro();
-                    sincronizarDesdeNube();
-                } else {
-                    alert("❌ " + data.msg);
-                }
-            } catch (e) { alert("Error de conexión"); }
-        }
-
-        async function limpiarValesManuales() {
-            if(!confirm("¿Eliminar todos los registros manuales?")) return;
-            try {
-                await fetch(`${WEB_APP_URL}?action=limpiarTemporales`);
-                alert("🧹 Limpieza completada");
-                sincronizarDesdeNube();
-            } catch (e) { alert("Error"); }
-        }
+        alert("✅ Hoja temporal de vales limpiada con éxito.");
+        sincronizarDesdeNube();
+    } catch (e) {
+        alert("Error al intentar limpiar los datos.");
+    } finally {
+        document.getElementById('indicadorCarga').classList.add('hidden');
+    }
+}
         function exportarConsultaExcel() {
     // 1. Obtener la tabla de resultados
     const tabla = document.getElementById("tablaResultadoOrden");
     
-    // Validar si tiene filas (sin contar el encabezado)
-    if (tabla.rows.length <= 1) {
-        return alert("No hay datos para exportar.");
-    }
-
-    // 2. Crear el libro de Excel
-    const wb = XLSX.utils.table_to_book(tabla, { sheet: "Consulta SAP - ACP" });
+    // 2. Crear un libro de trabajo (workbook) a partir de la tabla
+    const wb = XLSX.utils.table_to_book(tabla, { sheet: "Consulta de Ordenes" });
     
-    // 3. Generar nombre de archivo con fecha y hora
-    const ahora = new Date();
-    const timestamp = ahora.toISOString().slice(0,10) + "_" + ahora.getHours() + ahora.getMinutes();
-    const nombreArchivo = `Reporte_SAP_ACP_${timestamp}.xlsx`;
+    // 3. Generar el nombre del archivo con la fecha actual
+    const fecha = new Date().toISOString().split('T')[0];
+    const nombreArchivo = `Reporte_Ordenes_ACP_${fecha}.xlsx`;
     
-    // 4. Descargar
+    // 4. Descargar el archivo
     XLSX.writeFile(wb, nombreArchivo);
 }
-       async function registrarAltaMaestro() {
-    const placa = document.getElementById('newPlaca').value.trim().toUpperCase();
-    const idVinculo = document.getElementById('newIdVinculo').value.trim().toUpperCase();
-    const fechaAlta = document.getElementById('newFechaAlta').value;
+        function cambiarTabConfig(tab) {
+    const isLista = tab === 'lista';
+    document.getElementById('panelListaConfig').classList.toggle('hidden', !isLista);
+    document.getElementById('panelAltaConfig').classList.toggle('hidden', isLista);
     
-    // 1. 🔒 BLOQUEO VISUAL (Opcional pero recomendado)
-    if (esSemanaBloqueada()) {
-        return alert("🔒 No se puede dar de alta en semanas pasadas desde el selector actual.");
-    }
-
-    const data = {
-        action: "insertFlota",
-        placa: placa,
-        id_vinculo: idVinculo, 
-        dotacion: document.getElementById('newDot').value,
-        responsable: document.getElementById('newResp').value.toUpperCase(),
-        area: document.getElementById('newArea').value.toUpperCase(),
-        fechaAlta: fechaAlta
-    };
-
-    if(!data.placa || !data.fechaAlta) return alert("Placa y Fecha son obligatorios.");
-
-    document.getElementById('indicadorCarga').classList.remove('hidden');
-
-    try {
-        const res = await fetch(WEB_APP_URL, { 
-            method: 'POST', 
-            body: JSON.stringify(data) 
-        });
-        const result = await res.json();
-        
-        // 2. 🛡️ LEER BLOQUEO DEL SERVIDOR (Paso 3)
-        if (result.status === "BLOCKED") {
-            alert(`❌ OPERACIÓN DENEGADA: ${result.msg}`);
-            return; // Detenemos aquí
-        }
-        
-        if(result.status === "OK") {
-            alert(`✅ Unidad registrada.\nID Vínculo asignado: ${result.idAsignado}`);
-            cerrarModalConfig();
-            sincronizarDesdeNube();
-        }
-    } catch(e) {
-        console.error(e);
-        alert("Error de conexión.");
-    } finally {
-        document.getElementById('indicadorCarga').classList.add('hidden');
-    }
+    // Estilos de botones
+    document.getElementById('btnTabLista').className = isLista ? 'flex-1 py-3 text-[10px] font-bold border-b-2 border-green-600 text-green-700' : 'flex-1 py-3 text-[10px] font-bold text-gray-400 hover:bg-gray-100';
+    document.getElementById('btnTabAlta').className = !isLista ? 'flex-1 py-3 text-[10px] font-bold border-b-2 border-green-600 text-green-700' : 'flex-1 py-3 text-[10px] font-bold text-gray-400 hover:bg-gray-100';
+    
+    if(isLista) renderListaConfig();
 }
-        async function ejecutarBajaMaestro(placa) {
-    // 1. 🔒 BLOQUEO PREVENTIVO: Si la semana seleccionada en el sistema ya pasó
-    if (esSemanaBloqueada()) {
-        return alert("🔒 No se puede procesar bajas en semanas cerradas. Cambie a la semana actual.");
-    }
 
-    const fechaBaja = prompt(`Confirme la fecha de BAJA para ${placa} (AAAA-MM-DD):`, new Date().toISOString().split('T')[0]);
-    
-    if (!fechaBaja) return; // Si cancela el prompt, no hace nada
-
-    document.getElementById('indicadorCarga').classList.remove('hidden');
-
-    try {
-        const payload = { 
-            action: "updateFlota", 
-            placa: placa, 
-            fechaBaja: fechaBaja 
-        };
-
-        const res = await fetch(WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
-        
-        const result = await res.json();
-
-        // 2. 🛡️ LEER BLOQUEO DEL SERVIDOR
-        if (result.status === "BLOCKED") {
-            alert(`❌ OPERACIÓN DENEGADA: ${result.msg}`);
-            return;
-        }
-
-        if (result.status === "OK") {
-            alert(`✅ La unidad ${placa} ha sido dada de baja correctamente.`);
-            cerrarModalConfig();
-            sincronizarDesdeNube();
-        } else {
-            alert("⚠️ No se pudo encontrar la unidad o hubo un error en el servidor.");
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Error de conexión al intentar procesar la baja.");
-    } finally {
-        document.getElementById('indicadorCarga').classList.add('hidden');
-    }
-}
-        function mostrarAyudaIds() {
-    const listaHtml = document.getElementById('listaIdsExistentes');
-    listaHtml.innerHTML = "<p class='text-[10px] text-center p-4'>Cargando IDs...</p>";
-    document.getElementById('modalAyudaIds').classList.remove('hidden');
-    
-    // Extraemos IDs únicos de la estructura que ya cargó la tabla principal
-    const idsUnicos = [...new Set(ESTRUCTURA_FLOTA.map(g => g.id))];
-    
-    listaHtml.innerHTML = idsUnicos.map(id => `
-        <div onclick="seleccionarId('${id}')" class="p-2 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-lg border border-blue-100 cursor-pointer hover:bg-blue-600 hover:text-white transition-colors">
-            <i class="fas fa-link mr-2"></i> ${id}
+function renderListaConfig() {
+    const contenedor = document.getElementById('listaConfigFlota');
+    contenedor.innerHTML = ESTRUCTURA_FLOTA.map(g => `
+        <div class="flex justify-between items-center py-3">
+            <div>
+                <span class="font-bold text-xs text-blue-900">${g.p[0]}</span>
+                <p class="text-[10px] text-gray-400">${g.r} | ${g.area}</p>
+            </div>
+            <button onclick="ejecutarBajaMaestro('${g.p[0]}')" class="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1 rounded text-[9px] font-bold transition border border-red-100">
+                <i class="fas fa-arrow-down mr-1"></i> DAR DE BAJA
+            </button>
         </div>
     `).join('');
 }
 
-function seleccionarId(id) {
-    document.getElementById('newIdVinculo').value = id;
-    document.getElementById('modalAyudaIds').classList.add('hidden');
+async function registrarAltaMaestro() {
+    const data = {
+        action: "insertFlota",
+        placa: document.getElementById('newPlaca').value,
+        dotacion: document.getElementById('newDot').value,
+        responsable: document.getElementById('newResp').value,
+        area: document.getElementById('newArea').value,
+        fechaAlta: document.getElementById('newFechaAlta').value
+    };
+
+    if(!data.placa || !data.fechaAlta) return alert("Placa y Fecha de Alta son obligatorios.");
+
+    document.getElementById('indicadorCarga').classList.remove('hidden');
+    try {
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+        alert("✅ Unidad registrada exitosamente en el Maestro.");
+        cerrarModalConfig();
+        sincronizarDesdeNube();
+    } catch (e) { alert("Error al registrar."); }
+    finally { document.getElementById('indicadorCarga').classList.add('hidden'); }
+}
+
+async function ejecutarBajaMaestro(placa) {
+    const fechaBaja = prompt(`Confirme la fecha de BAJA para ${placa} (AAAA-MM-DD):`, new Date().toISOString().split('T')[0]);
+    if(!fechaBaja) return;
+
+    if(!confirm(`¿Está seguro? La unidad dejará de aparecer después del ${fechaBaja}`)) return;
+
+    document.getElementById('indicadorCarga').classList.remove('hidden');
+    try {
+        const payload = { action: "updateFlota", placa, fechaBaja };
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        alert("✅ Baja procesada. El histórico se mantendrá intacto.");
+        cerrarModalConfig();
+        sincronizarDesdeNube();
+    } catch (e) { alert("Error al procesar baja."); }
+    finally { document.getElementById('indicadorCarga').classList.add('hidden'); }
 }
     </script>
 </body>
