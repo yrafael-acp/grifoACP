@@ -296,11 +296,12 @@
         let lunesReferencia = new Date();
 
         window.onload = () => {
-            poblarAnios();
-            poblarSemanasPorAnio(new Date().getFullYear());
-            lunesReferencia = getLunesActual(new Date());
-            sincronizarDesdeNube();
-        };
+    poblarAnios();
+    poblarSemanasPorAnio(new Date().getFullYear());
+    lunesReferencia = getLunesActual(new Date());
+    mostrarEstadoSemana(); // 👈 agrégalo
+    sincronizarDesdeNube();
+};
         function mostrarEstadoSemana() {
     let aviso = document.getElementById("estadoSemana");
 
@@ -355,7 +356,6 @@
     mostrarEstadoSemana();
     sincronizarDesdeNube();
 }
-        }
 
         async function sincronizarDesdeNube() {
             const ind = document.getElementById('indicadorCarga');
@@ -465,11 +465,12 @@
         function cerrarModalConsulta() { document.getElementById('modalConsulta').style.display = 'none'; }
         function abrirModalConfig() { document.getElementById('modalConfig').style.display = 'flex'; renderListaConfig(); }
         function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
-        function abrirEditarFlota(placa, dotActual) {
+        function abrirEditarFlota(placa, dotActual) 
+        {if (esSemanaBloqueada()) {
+        return alert("🔒 Semana cerrada. No se puede editar.");}
             document.getElementById('editPlaca').value = placa;
             document.getElementById('editDotacion').value = dotActual;
-            document.getElementById('modalEditarFlota').style.display = 'flex';
-        }
+            document.getElementById('modalEditarFlota').style.display = 'flex';}
         function cerrarModalEditarFlota() { document.getElementById('modalEditarFlota').style.display = 'none'; }
 
         // --- ACCIONES NUBE ---
@@ -701,7 +702,7 @@ async function registrarAltaMaestro() {
         const res = await fetch(WEB_APP_URL, {
   method: 'POST',
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload)
+  body: JSON.stringify(data)
 });
 
 const data = await res.json();
@@ -742,15 +743,6 @@ const data = await res.json();
     const lunesActual = getLunesActual(hoy);
 
     return lunesReferencia < lunesActual;
-}
-        function abrirEditarFlota(placa, dotActual) {
-    if (esSemanaBloqueada()) {
-        return alert("🔒 Semana cerrada. No se puede editar.");
-    }
-
-    document.getElementById('editPlaca').value = placa;
-    document.getElementById('editDotacion').value = dotActual;
-    document.getElementById('modalEditarFlota').style.display = 'flex';
 }
     </script>
 </body>
