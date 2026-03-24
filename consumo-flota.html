@@ -551,6 +551,84 @@
     // 4. Descargar
     XLSX.writeFile(wb, nombreArchivo);
 }
+        async function registrarAltaMaestro() {
+    // 1. Validación visual previa en el navegador
+    if (esSemanaBloqueada()) {
+        return alert("🔒 No se puede dar de alta en semanas pasadas desde esta interfaz.");
+    }
+
+    const data = {
+        action: "insertFlota",
+        placa: document.getElementById('newPlaca').value,
+        dotacion: document.getElementById('newDot').value,
+        responsable: document.getElementById('newResp').value,
+        area: document.getElementById('newArea').value,
+        fechaAlta: document.getElementById('newFechaAlta').value
+    };
+
+    if(!data.placa || !data.fechaAlta) return alert("Placa y Fecha de Alta son obligatorios.");
+
+    document.getElementById('indicadorCarga').classList.remove('hidden');
+
+    try {
+        const res = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+
+        // --- VALIDACIÓN DEL PASO 3 ---
+        if (result.status === "BLOCKED") {
+            alert("❌ ERROR DEL SERVIDOR: " + result.msg);
+            return; // Detenemos el proceso
+        }
+
+        if (result.status === "OK") {
+            alert("✅ Unidad registrada exitosamente en el Maestro.");
+            cerrarModalConfig();
+            sincronizarDesdeNube();
+        }
+    } catch (e) { 
+        alert("Error de conexión con el servidor."); 
+    } finally { 
+        document.getElementById('indicadorCarga').classList.add('hidden'); 
+    }
+}
+        async function ejecutarBajaMaestro(placa) {
+    if (esSemanaBloqueada()) {
+        return alert("🔒 No se puede procesar bajas en semanas cerradas.");
+    }
+
+    const fechaBaja = prompt(`Confirme la fecha de BAJA para ${placa} (AAAA-MM-DD):`, new Date().toISOString().split('T')[0]);
+    if(!fechaBaja) return;
+
+    document.getElementById('indicadorCarga').classList.remove('hidden');
+
+    try {
+        const payload = { action: "updateFlota", placa: placa, fechaBaja: fechaBaja };
+        const res = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+
+        // --- VALIDACIÓN DEL PASO 3 ---
+        if (result.status === "BLOCKED") {
+            alert("❌ OPERACIÓN DENEGADA: " + result.msg);
+            return;
+        }
+
+        if (result.status === "OK") {
+            alert("✅ Baja procesada correctamente.");
+            cerrarModalConfig();
+            sincronizarDesdeNube();
+        }
+    } catch (e) { 
+        alert("Error al procesar la baja."); 
+    } finally { 
+        document.getElementById('indicadorCarga').classList.add('hidden'); 
+    }
+}
     </script>
 </body>
 </html>
