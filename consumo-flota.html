@@ -447,7 +447,18 @@
         }
 
         // --- FUNCIONES DE MODALES ---
-        function abrirModalRegistro() { document.getElementById('modalRegistro').style.display = 'flex'; }
+        function abrirModalRegistro() { 
+    // 1. Mostrar el modal
+    document.getElementById('modalRegistro').style.display = 'flex'; 
+    
+    // 2. Bloqueo visual en el calendario (Solo permite desde el lunes actual)
+    const lunes = getLunesActual(new Date());
+    const fechaMin = lunes.toISOString().split('T')[0];
+    document.getElementById('regFecha').setAttribute('min', fechaMin);
+    
+    // 3. Poner la fecha de hoy por defecto para agilizar el registro
+    document.getElementById('regFecha').value = new Date().toISOString().split('T')[0];
+}
         function cerrarModalRegistro() { document.getElementById('modalRegistro').style.display = 'none'; }
         function abrirModalConsulta() { document.getElementById('modalConsulta').style.display = 'flex'; }
         function cerrarModalConsulta() { document.getElementById('modalConsulta').style.display = 'none'; }
@@ -564,28 +575,63 @@
 }
 
         async function guardarRegistroManual() {
+    const regPlaca = document.getElementById('regPlaca').value.toUpperCase().trim();
+    const regFechaInput = document.getElementById('regFecha').value; // Formato YYYY-MM-DD
+    const regTipo = document.getElementById('regTipo').value;
+    const regCant = parseFloat(document.getElementById('regCant').value);
+
+    if (!regPlaca || !regFechaInput || isNaN(regCant)) {
+        return alert("⚠️ Completa todos los campos correctamente.");
+    }
+
+    // --- NUEVA VALIDACIÓN: SOLO SEMANA ACTUAL ---
+    const hoy = new Date();
+    // Obtenemos el lunes de la semana actual (hoy)
+    const lunesActual = getLunesActual(hoy);
+    lunesActual.setHours(0,0,0,0);
+    
+    // Obtenemos la fecha que el usuario intenta registrar
+    const fechaRegistro = new Date(regFechaInput + "T12:00:00");
+    fechaRegistro.setHours(0,0,0,0);
+
+    // Si la fecha es menor al lunes de esta semana, bloqueamos
+    if (fechaRegistro < lunesActual) {
+        return alert("🚫 BLOQUEADO: No puedes registrar despachos de semanas pasadas. Solo se permiten registros desde el lunes " + lunesActual.toLocaleDateString());
+    }
+    
+    // Si la fecha es a futuro (opcional, por si quieres bloquearlo también)
+    if (fechaRegistro > hoy) {
+        // return alert("🚫 No puedes registrar consumos con fecha futura."); 
+    }
+
+    // --- CONTINÚA EL PROCESO NORMAL SI PASA LA VALIDACIÓN ---
     const payload = {
         action: 'saveTemporal',
-        placa: document.getElementById('regPlaca').value.toUpperCase(),
-        fecha: document.getElementById('regFecha').value,
-        tipo: document.getElementById('regTipo').value,
-        cantidad: parseFloat(document.getElementById('regCant').value)
+        placa: regPlaca,
+        fecha: regFechaInput,
+        tipo: regTipo,
+        cantidad: regCant
     };
     
-    document.getElementById('indicadorCarga').classList.remove('hidden');
+    const ind = document.getElementById('indicadorCarga');
+    ind.classList.remove('hidden');
     
     try {
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        alert("✅ Registro manual enviado. Sincronizando datos...");
+        alert("✅ Registro exitoso. Sincronizando consumos...");
         cerrarModalRegistro();
         
-        // RECARGA AUTOMÁTICA
-        sincronizarDesdeNube(); 
+        // Limpiar campos
+        document.getElementById('regPlaca').value = "";
+        document.getElementById('regCant').value = "";
+
+        // Sincronización automática
+        await sincronizarDesdeNube();
         
     } catch (e) {
-        alert("Error al enviar el registro.");
+        alert("❌ Error de conexión.");
     } finally {
-        document.getElementById('indicadorCarga').classList.add('hidden');
+        ind.classList.add('hidden');
     }
 }
         async function limpiarValesManuales() {
