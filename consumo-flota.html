@@ -578,92 +578,71 @@
 }
 
         async function guardarRegistroManual() {
-    const regPlaca = document.getElementById('regPlaca').value.toUpperCase().trim();
-    const regFechaInput = document.getElementById('regFecha').value; // Formato YYYY-MM-DD
-    const regTipo = document.getElementById('regTipo').value;
-    const regCant = parseFloat(document.getElementById('regCant').value);
+            const regPlaca = document.getElementById('regPlaca').value.toUpperCase().trim();
+            const regFechaInput = document.getElementById('regFecha').value;
+            const regTipo = document.getElementById('regTipo').value;
+            const regCant = parseFloat(document.getElementById('regCant').value);
 
-    if (!regPlaca || !regFechaInput || isNaN(regCant)) {
-        return alert("⚠️ Completa todos los campos correctamente.");
-    }
+            if (!regPlaca || !regFechaInput || isNaN(regCant)) {
+                return alert("⚠️ Completa todos los campos correctamente.");
+            }
 
-    // --- NUEVA VALIDACIÓN: SOLO SEMANA ACTUAL ---
-    const hoy = new Date();
-    const lunesActual = getLunesActual(hoy);
-    lunesActual.setHours(0,0,0,0);
-    
-    const fechaRegistro = new Date(regFechaInput + "T12:00:00");
-    fechaRegistro.setHours(0,0,0,0);
+            const hoy = new Date();
+            const lunesActual = getLunesActual(hoy);
+            lunesActual.setHours(0,0,0,0);
+            const fechaRegistro = new Date(regFechaInput + "T12:00:00");
+            fechaRegistro.setHours(0,0,0,0);
 
-    if (fechaRegistro < lunesActual) {
-        return alert("🚫 BLOQUEADO: No puedes registrar despachos de semanas pasadas. Solo se permiten registros desde el lunes " + lunesActual.toLocaleDateString());
-    }
+            if (fechaRegistro < lunesActual) {
+                return alert("🚫 BLOQUEADO: No puedes registrar despachos de semanas pasadas. Solo se permiten registros desde el lunes " + lunesActual.toLocaleDateString());
+            }
 
-    const payload = {
-        action: 'saveTemporal',
-        placa: regPlaca,
-        fecha: regFechaInput,
-        tipo: regTipo,
-        cantidad: regCant
-    };
-    
-    const ind = document.getElementById('indicadorCarga');
-    
-    // --- CAMBIO AQUÍ: Personalizamos el aviso de envío ---
-    ind.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin mr-1"></i> ENVIANDO AL SERVIDOR...';
-    ind.classList.remove('hidden');
-    
-    try {
-        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            const payload = {
+                action: 'saveTemporal',
+                placa: regPlaca,
+                fecha: regFechaInput,
+                tipo: regTipo,
+                cantidad: regCant
+            };
+            
+            const ind = document.getElementById('indicadorCarga');
+            
+            // --- MEJORA AQUÍ: Cambiamos el texto y forzamos la visibilidad ---
+            ind.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin mr-1"></i> ENVIANDO AL SERVIDOR...';
+            ind.classList.remove('hidden');
+            
+            try {
+                // Enviamos los datos
+                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                
+                // --- TRUCO VISUAL: Esperamos 600ms para que el usuario vea el mensaje de envío ---
+                await new Promise(resolve => setTimeout(resolve, 600));
+
+                // Cambiamos el texto para la fase de actualización
+                ind.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-1"></i> ACTUALIZANDO CONSUMOS...';
+                
+                // Cerramos el modal para que el usuario vea la tabla actualizándose
+                cerrarModalRegistro();
+                
+                // Limpiar campos
+                document.getElementById('regPlaca').value = "";
+                document.getElementById('regCant').value = "";
+
+                // Sincronización automática (esto también quita el 'hidden' pero con su texto original)
+                await sincronizarDesdeNube();
+                
+                // Alert al final para no interrumpir las animaciones
+                console.log("Registro exitoso");
+                
+            } catch (e) {
+                alert("❌ Error de conexión.");
+            } finally {
+                ind.classList.add('hidden');
+                // Restauramos el texto original para el buscador y otras funciones
+                ind.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO DATOS...';
+            }
+        }
         
-        // --- CAMBIO AQUÍ: Cambiamos el texto para la sincronización ---
-        ind.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-1"></i> ACTUALIZANDO CONSUMOS...';
-        
-        alert("✅ Registro exitoso. Sincronizando consumos...");
-        cerrarModalRegistro();
-        
-        // Limpiar campos
-        document.getElementById('regPlaca').value = "";
-        document.getElementById('regCant').value = "";
-
-        // Sincronización automática
-        await sincronizarDesdeNube();
-        
-    } catch (e) {
-        alert("❌ Error de conexión.");
-    } finally {
-        ind.classList.add('hidden');
-        // --- CAMBIO AQUÍ: Restauramos el texto original para el resto de la App ---
-        ind.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO DATOS...';
-    }
-}
-        async function limpiarValesManuales() {
-    // Preguntamos para evitar borrar por error
-    if (!confirm("¿Deseas eliminar todos los registros manuales (vales)?\nUsa esto solo si ya subiste los datos a SAP para evitar duplicados.")) return;
-
-    const ind = document.getElementById('indicadorCarga');
-    ind.classList.remove('hidden');
-
-    try {
-        const payload = { action: 'limpiarTemporales' };
-        
-        // Enviamos la orden a la nube
-        await fetch(WEB_APP_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify(payload) 
-        });
-
-        alert("✅ Registros manuales eliminados. La tabla se actualizará ahora.");
-        sincronizarDesdeNube(); // Refrescamos la tabla para que el consumo vuelva a la normalidad
-
-    } catch (e) {
-        alert("Error al intentar limpiar los datos.");
-        console.error(e);
-    } finally {
-        ind.classList.add('hidden');
-    }
-}
         function verificarRolAdmin(rol) {
     const contenedor = document.getElementById('contenedorAdmin');
     if (rol === "ADMINISTRADOR") {
