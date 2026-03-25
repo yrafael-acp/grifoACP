@@ -324,54 +324,72 @@
         }
 
         function renderTabla(datos) {
-            const cuerpo = document.getElementById('cuerpoTabla');
-            cuerpo.innerHTML = "";
-            let tA = 0, tC = 0;
-            datos.forEach(g => {
-                const asig = g.a, cons = g.total, saldo = asig - cons;
-                const esExcepcion = g.isEx;
+    const cuerpo = document.getElementById('cuerpoTabla');
+    cuerpo.innerHTML = "";
+    
+    let tA = 0; // Total Asignado Global
+    let tC = 0; // Total Consumido Global
+    
+    // Objeto para controlar que el saldo/asignación se sume y muestre UNA sola vez por grupo
+    const vinculosMostrados = {};
 
-                g.p.forEach((placa, idx) => {
-                    const esP = idx === 0;
-                    if(esP) { tA += asig; tC += cons; }
-                    cuerpo.innerHTML += `
-                        <tr class="${g.p.length > 1 ? 'bg-gray-50' : ''} hover:bg-yellow-50">
-                            <td data-label="Placa" class="p-2 font-bold ${saldo < 2 ? 'text-red-600':'text-blue-800'}">
-                                <div class="flex items-center justify-between">
-                                    <span>${placa} ${esExcepcion ? '<i class="fas fa-star text-yellow-500 ml-1"></i>' : ''}</span>
-                                    <button onclick="abrirEditarFlota('${placa}', ${asig})" class="text-gray-400 hover:text-green-600 ml-2">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </div>
-                            </td>
-                            <td data-label="Responsable" class="p-2 border-r">
-                                <span class="font-bold block">${g.r}</span>
-                                <span class="text-[9px] text-gray-400 uppercase">${g.area}</span>
-                            </td>
-                            <td data-label="L" class="text-center">${g.L||'-'}</td>
-                            <td data-label="M" class="text-center">${g.M||'-'}</td>
-                            <td data-label="Mi" class="text-center">${g.Mi||'-'}</td>
-                            <td data-label="J" class="text-center">${g.J||'-'}</td>
-                            <td data-label="V" class="text-center">${g.V||'-'}</td>
-                            <td data-label="S" class="text-center">${g.S||'-'}</td>
-                            <td data-label="D" class="text-center">${g.D||'-'}</td>
-                            <td data-label="Asig." class="p-2 text-center font-black ${esExcepcion ? 'bg-blue-100 text-blue-800' : 'bg-gray-50'} border-l">
-                                ${esP ? asig.toFixed(2) : '-'}
-                            </td>
-                            <td data-label="Cons." class="p-2 text-center font-black bg-orange-50 text-orange-700">
-                            ${esP ? `
-                            <span>${cons.toFixed(2)}</span>
-                            ${g.totalManual > 0 ? `<i class="fas fa-hand-holding-usd text-[9px] ml-1 text-orange-400" title="Incluye vales manuales"></i>` : ''}
-                            ` : '-'}
-                            </td>
-                            <td data-label="Saldo" class="p-2 text-center font-black ${saldo < 2 && esP ? 'bg-red-600 text-white animate-pulse':'bg-green-100 text-green-800'} border-l">
-                                ${esP ? saldo.toFixed(2) : '-'}
-                            </td>
-                        </tr>`;
-                });
-            });
-            actualizarResumen(tA, tC);
+    datos.forEach(g => {
+        const idVinculo = g.id;
+        const yaMostrado = vinculosMostrados[idVinculo];
+        
+        const asig = g.a;
+        const totalGrupo = g.totalGrupo;
+        const saldoGrupo = asig - totalGrupo;
+
+        // --- LÓGICA DE RESUMEN GLOBAL (Los cuadros de arriba) ---
+        // Solo sumamos al resumen si es la placa principal o la primera vez que vemos el vínculo
+        if (!yaMostrado) {
+            tA += asig;
+            tC += totalGrupo;
+            vinculosMostrados[idVinculo] = true;
         }
+
+        // --- CONSTRUCCIÓN DE LA FILA ---
+        // Usamos opacity-0 en lugar de borrar el texto para mantener el ancho de las columnas
+        cuerpo.innerHTML += `
+            <tr class="${yaMostrado ? 'bg-gray-50/30' : 'bg-white'} hover:bg-yellow-50 border-b transition-colors">
+                <td data-label="Placa" class="p-2 font-bold ${saldoGrupo < 2 ? 'text-red-600':'text-blue-800'}">
+                    <div class="flex items-center justify-between">
+                        <span>${g.p[0]}</span>
+                        <button onclick="abrirEditarFlota('${g.p[0]}', ${asig})" class="text-gray-400 hover:text-green-600 ml-2">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                </td>
+                <td data-label="Responsable" class="p-2 border-r">
+                    <span class="font-bold block">${g.r}</span>
+                    <span class="text-[9px] text-gray-400 uppercase">${g.area}</span>
+                </td>
+                
+                <td data-label="L" class="text-center">${g.L || '-'}</td>
+                <td data-label="M" class="text-center">${g.M || '-'}</td>
+                <td data-label="Mi" class="text-center">${g.Mi || '-'}</td>
+                <td data-label="J" class="text-center">${g.J || '-'}</td>
+                <td data-label="V" class="text-center">${g.V || '-'}</td>
+                <td data-label="S" class="text-center">${g.S || '-'}</td>
+                <td data-label="D" class="text-center">${g.D || '-'}</td>
+
+                <td data-label="Asig." class="p-2 text-center font-black border-l ${yaMostrado ? 'opacity-0 select-none' : 'bg-blue-50 text-blue-900'}">
+                    ${yaMostrado ? '' : asig.toFixed(2)}
+                </td>
+                <td data-label="Cons." class="p-2 text-center font-black ${yaMostrado ? 'opacity-0 select-none' : 'bg-orange-50 text-orange-700'}">
+                    ${yaMostrado ? '' : totalGrupo.toFixed(2)}
+                </td>
+                <td data-label="Saldo" class="p-2 text-center font-black border-l ${yaMostrado ? 'opacity-0 select-none' : (saldoGrupo < 2 ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800')}">
+                    ${yaMostrado ? '' : saldoGrupo.toFixed(2)}
+                </td>
+            </tr>
+        `;
+    });
+
+    // Actualiza los paneles superiores con los totales sin duplicados
+    actualizarResumen(tA, tC);
+}
 
         function actualizarResumen(tA, tC) {
             document.getElementById('resumenAsignado').innerText = tA.toFixed(2);
