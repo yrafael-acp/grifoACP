@@ -299,6 +299,7 @@
 </div>
 
     <script>
+        const LLAVE_MAESTRA = "@Shelby12032020";
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyznJML-_JIaxXzggVrViaMlw4J7N_MGCYeuPPRJ8xE29W4k-LxwGedRnasteqTvPmfFA/exec';
         let ESTRUCTURA_FLOTA = [];
         let lunesReferencia = new Date();
@@ -476,9 +477,8 @@
 }
         function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
         function abrirEditarFlota(placa, dotActual) {
-    if (esSemanaPasada()) {
-        return alert("🚫 BLOQUEADO: No puedes editar dotaciones de semanas pasadas. Selecciona la semana actual.");
-    }
+    if (!tienePermisoEspecial()) return; // <--- EL CANDADO
+
     document.getElementById('editPlaca').value = placa;
     document.getElementById('editDotacion').value = dotActual;
     document.getElementById('modalEditarFlota').style.display = 'flex';
@@ -759,14 +759,13 @@ function renderListaConfig() {
 }
 
 async function registrarAltaMaestro() {
-    if (esSemanaPasada()) {
-        return alert("🚫 BLOQUEADO: Para dar de alta una unidad, sitúate en la semana actual.");
-    }
+    if (!tienePermisoEspecial()) return; // <--- EL CANDADO
+
     const data = {
         action: "insertFlota",
         placa: document.getElementById('newPlaca').value,
         dotacion: document.getElementById('newDot').value,
-        idVinculo: document.getElementById('newIdVinculo').value, // <--- LÍNEA AÑADIDA
+        idVinculo: document.getElementById('newIdVinculo').value,
         responsable: document.getElementById('newResp').value,
         area: document.getElementById('newArea').value,
         fechaAlta: document.getElementById('newFechaAlta').value
@@ -777,7 +776,7 @@ async function registrarAltaMaestro() {
     document.getElementById('indicadorCarga').classList.remove('hidden');
     try {
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-        alert("✅ Unidad registrada exitosamente en el Maestro.");
+        alert("✅ Unidad registrada exitosamente.");
         cerrarModalConfig();
         sincronizarDesdeNube();
     } catch (e) { alert("Error al registrar."); }
@@ -785,22 +784,19 @@ async function registrarAltaMaestro() {
 }
 
 async function ejecutarBajaMaestro(placa) {
-    if (esSemanaPasada()) {
-        return alert("🚫 BLOQUEADO: No puedes procesar bajas desde una vista de semana pasada.");
-    }
-    const fechaBaja = prompt(`Confirme la fecha de BAJA para ${placa} (AAAA-MM-DD):`, new Date().toISOString().split('T')[0]);
-    if(!fechaBaja) return;
+    if (!tienePermisoEspecial()) return; // <--- EL CANDADO
 
-    if(!confirm(`¿Está seguro? La unidad dejará de aparecer después del ${fechaBaja}`)) return;
+    const fechaBaja = prompt(`Confirme la fecha de BAJA para ${placa}:`, new Date().toISOString().split('T')[0]);
+    if(!fechaBaja) return;
 
     document.getElementById('indicadorCarga').classList.remove('hidden');
     try {
         const payload = { action: "updateFlota", placa, fechaBaja };
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        alert("✅ Baja procesada. El histórico se mantendrá intacto.");
+        alert("✅ Baja procesada correctamente.");
         cerrarModalConfig();
         sincronizarDesdeNube();
-    } catch (e) { alert("Error al procesar baja."); }
+    } catch (e) { alert("Error al procesar."); }
     finally { document.getElementById('indicadorCarga').classList.add('hidden'); }
 }
         function esSemanaPasada() {
@@ -813,6 +809,20 @@ async function ejecutarBajaMaestro(placa) {
     fechaSeleccionada.setHours(0, 0, 0, 0);
 
     return fechaSeleccionada < lunesActual;
+}
+        function tienePermisoEspecial() {
+    // 1. Si la semana NO es pasada, tiene permiso total (es lo normal)
+    if (!esSemanaPasada()) return true;
+
+    // 2. Si es semana pasada, pedimos la llave
+    const pass = prompt("⚠️ ESTA SEMANA YA CERRÓ.\nIngrese la Llave Maestra para editar:");
+    
+    if (pass === LLAVE_MAESTRA) {
+        return true;
+    } else {
+        alert("❌ Llave incorrecta. Acción cancelada.");
+        return false;
+    }
 }
     </script>
 </body>
