@@ -374,9 +374,12 @@
                 ops.push({ val: f.toISOString().split('T')[0], text: `Sem: ${f.toLocaleDateString()} al ${fin.toLocaleDateString()}` });
                 f.setDate(f.getDate() + 7);
             }
+            
+            // Invertimos para ver lo más reciente arriba
             ops.reverse().forEach(op => {
                 const opt = new Option(op.text, op.val);
-                if (op.val === hoyL) opt.selected = true;
+                // ESTA LÍNEA ES CLAVE: Marca la semana de hoy
+                if (op.val === hoyL) opt.selected = true; 
                 sel.add(opt);
             });
         }
