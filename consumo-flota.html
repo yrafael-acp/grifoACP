@@ -391,7 +391,9 @@
         const filasDelMismoGrupo = datos.filter(d => (d.id || d.p[0]) === idVinculo);
         const miIndiceEnGrupo = filasDelMismoGrupo.indexOf(g);
 
-        // --- CAMBIO AQUÍ: Celda de Placa con botón de edición ---
+        // --- MEJORA: ETIQUETA DE BAJA ---
+        const labelBaja = g.baja ? '<span class="text-[8px] text-red-600 font-bold ml-1 bg-red-50 px-1 rounded border border-red-200 animate-pulse">[BAJA]</span>' : '';
+
         let htmlFila = `<tr class="hover:bg-yellow-50 border-b">
             <td class="p-2 font-bold">
                 <button onclick="abrirEditarFlota('${g.p[0]}', ${asig})" 
@@ -400,7 +402,7 @@
                 </button>
             </td>
             <td class="p-2 border-r">
-                <span class="font-bold block text-[10px]">${g.r}</span>
+                <span class="font-bold block text-[10px]">${g.r}${labelBaja}</span>
                 <span class="text-[9px] text-gray-400 uppercase">${g.area}</span>
             </td>
             <td class="text-center border-r">${g.L || '-'}</td>
@@ -412,7 +414,6 @@
             <td class="text-center border-r">${g.D || '-'}</td>`;
 
         if (miIndiceEnGrupo === 0) {
-            // --- CAMBIO AQUÍ: Si es excepción (g.exc), añadimos un icono visual ---
             const iconoExc = g.exc ? '<i class="fas fa-bolt text-yellow-500 mr-1" title="Excepción Semanal"></i>' : '';
             
             htmlFila += `
