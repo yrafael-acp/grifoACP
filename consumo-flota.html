@@ -447,16 +447,19 @@
         }
 
         // --- FUNCIONES DE MODALES ---
-        function abrirModalRegistro() { 
-    // 1. Mostrar el modal
-    document.getElementById('modalRegistro').style.display = 'flex'; 
+        function abrirModalRegistro() {
+    document.getElementById('modalRegistro').style.display = 'flex';
     
-    // 2. Bloqueo visual en el calendario (Solo permite desde el lunes actual)
+    // 1. Limpiar campos de la placa y cantidad del registro anterior
+    document.getElementById('regPlaca').value = "";
+    document.getElementById('regCant').value = "";
+
+    // 2. Bloqueo visual en el calendario (Solo desde el lunes)
     const lunes = getLunesActual(new Date());
     const fechaMin = lunes.toISOString().split('T')[0];
     document.getElementById('regFecha').setAttribute('min', fechaMin);
     
-    // 3. Poner la fecha de hoy por defecto para agilizar el registro
+    // 3. Fecha de hoy por defecto
     document.getElementById('regFecha').value = new Date().toISOString().split('T')[0];
 }
         function cerrarModalRegistro() { document.getElementById('modalRegistro').style.display = 'none'; }
