@@ -41,6 +41,7 @@
             <select id="selectorAnio" onchange="cambiarAnio()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30"></select>
             <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
                 <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30 outline-none w-full sm:w-auto"></select>
+                <span id="estadoSemana" class="text-[10px] font-bold px-2 py-1 rounded-lg"></span>
                 <div class="flex flex-wrap justify-center gap-2">
                     <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
@@ -304,13 +305,31 @@
         let ESTRUCTURA_FLOTA = [];
         let lunesReferencia = new Date();
 
-        window.onload = () => {
-            poblarAnios();
-            poblarSemanasPorAnio(new Date().getFullYear());
-            lunesReferencia = getLunesActual(new Date());
-            sincronizarDesdeNube();
-        };
+      function gestionarCambioSemana() {
+    const selector = document.getElementById('selectorSemanas');
+    if (!selector || !selector.value) return; 
 
+    // 1. Actualizamos la fecha global con lo que eligió el jefe
+    lunesReferencia = new Date(selector.value + "T12:00:00");
+
+    // 2. Pintamos si está ACTIVO o BLOQUEADO
+    actualizarEtiquetaEstado();
+
+    // 3. Refrescamos la tabla con la data de esa semana
+    sincronizarDesdeNube();
+}
+        function actualizarEtiquetaEstado() {
+    const el = document.getElementById('estadoSemana');
+    if (!el) return;
+
+    if (esSemanaPasada()) {
+        el.innerHTML = '<i class="fas fa-lock mr-1"></i> BLOQUEADO';
+        el.className = "text-[10px] font-bold px-2 py-1 rounded-lg bg-red-600 text-white shadow-sm animate-pulse";
+    } else {
+        el.innerHTML = '<i class="fas fa-lock-open mr-1"></i> ACTIVO';
+        el.className = "text-[10px] font-bold px-2 py-1 rounded-lg bg-yellow-400 text-green-900 shadow-sm";
+    }
+}
         function getLunesActual(f) {
             const d = new Date(f); d.setHours(12,0,0,0);
             const day = d.getDay();
@@ -347,9 +366,40 @@
 }
 
         function gestionarCambioSemana() {
-            lunesReferencia = new Date(document.getElementById('selectorSemanas').value + "T12:00:00");
-            sincronizarDesdeNube();
-        }
+    const selector = document.getElementById('selectorSemanas');
+    if (!selector || !selector.value) return; // Evita errores si el selector está vacío
+
+    // 1. Actualizamos la referencia global
+    lunesReferencia = new Date(selector.value + "T12:00:00");
+
+    // 2. Disparamos la actualización visual del estado (Bloqueado/Activo)
+    actualizarEtiquetaEstado();
+
+    // 3. Traemos los datos frescos de la nube
+    sincronizarDesdeNube();
+}
+
+// --- FUNCIÓN COMPLEMENTARIA PARA EL ESTADO ---
+function actualizarEtiquetaEstado() {
+    // Primero, asegúrate de tener este ID en tu HTML cerca del selector de semanas
+    let el = document.getElementById('estadoSemana');
+    
+    // Si no existe el elemento, lo creamos dinámicamente al costado del selector
+    if (!el) {
+        const selector = document.getElementById('selectorSemanas');
+        el = document.createElement('span');
+        el.id = 'estadoSemana';
+        selector.parentNode.insertBefore(el, selector.nextSibling);
+    }
+
+    if (esSemanaPasada()) {
+        el.innerHTML = '<i class="fas fa-lock mr-1"></i> BLOQUEADO';
+        el.className = "ml-2 text-[10px] font-bold px-2 py-1 rounded-lg bg-red-600 text-white shadow-sm animate-pulse";
+    } else {
+        el.innerHTML = '<i class="fas fa-lock-open mr-1"></i> ACTIVO';
+        el.className = "ml-2 text-[10px] font-bold px-2 py-1 rounded-lg bg-yellow-400 text-green-900 shadow-sm";
+    }
+}
 
         async function sincronizarDesdeNube() {
             const ind = document.getElementById('indicadorCarga');
