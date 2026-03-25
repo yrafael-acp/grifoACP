@@ -340,6 +340,11 @@
                 sel.add(opt);
             });
         }
+        function cambiarAnio() {
+    const anio = document.getElementById('selectorAnio').value;
+    poblarSemanasPorAnio(anio);
+    gestionarCambioSemana(); // Esto hace que refresque la tabla automáticamente
+}
 
         function gestionarCambioSemana() {
             lunesReferencia = new Date(document.getElementById('selectorSemanas').value + "T12:00:00");
