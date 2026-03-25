@@ -324,75 +324,76 @@
         }
 
         function renderTabla(datos) {
-    console.log("Datos recibidos para renderizar:", datos); // Esto te servirá para ver en F12 si llega algo
-    
     const cuerpo = document.getElementById('cuerpoTabla');
-    if (!cuerpo) return;
-    
     cuerpo.innerHTML = "";
     
-    // Si no hay datos, detenemos la función para que no de error
-    if (!datos || datos.length === 0) {
-        actualizarResumen(0, 0);
-        return;
-    }
+    if (!datos || datos.length === 0) return actualizarResumen(0, 0);
 
-    let tA = 0; 
-    let tC = 0; 
+    let tA = 0, tC = 0;
     const vinculosMostrados = {};
 
+    // 1. Contamos cuántas placas tiene cada vínculo para saber cuánto estirar la "celda combinada"
+    const conteoVinculos = {};
     datos.forEach(g => {
-        // SEGURIDAD: Si g.id no existe, usamos la placa como identificador
-        const idVinculo = g.id || (g.p && g.p[0]) || "sin-id";
+        const id = g.id || g.p[0];
+        conteoVinculos[id] = (conteoVinculos[id] || 0) + 1;
+    });
+
+    // 2. Renderizamos
+    datos.forEach(g => {
+        const idVinculo = g.id || g.p[0];
         const yaMostrado = vinculosMostrados[idVinculo];
         
         const asig = parseFloat(g.a) || 0;
         const totalGrupo = parseFloat(g.totalGrupo) || 0;
         const saldoGrupo = asig - totalGrupo;
 
+        // Sumar al resumen solo una vez por grupo
         if (!yaMostrado) {
             tA += asig;
             tC += totalGrupo;
             vinculosMostrados[idVinculo] = true;
         }
 
-        // Si g.p no existe o está vacío, saltamos esta fila para evitar error
-        if (!g.p || !g.p[0]) return;
+        // Definimos el "estiramiento" (rowspan)
+        const rowspan = conteoVinculos[idVinculo];
+        // Solo la primera fila del grupo llevará las celdas de saldo
+        const esPrimeraFila = !g.yaImpresoSaldo; 
+        
+        // Marcamos para que la siguiente placa del mismo grupo sepa que no debe imprimir saldo
+        const filasDelMismoGrupo = datos.filter(d => (d.id || d.p[0]) === idVinculo);
+        const miIndiceEnGrupo = filasDelMismoGrupo.indexOf(g);
 
-        cuerpo.innerHTML += `
-            <tr class="${yaMostrado ? 'bg-gray-50/30' : 'bg-white'} hover:bg-yellow-50 border-b transition-colors">
-                <td data-label="Placa" class="p-2 font-bold ${saldoGrupo < 2 ? 'text-red-600':'text-blue-800'}">
-                    <div class="flex items-center justify-between">
-                        <span>${g.p[0]}</span>
-                        <button onclick="abrirEditarFlota('${g.p[0]}', ${asig})" class="text-gray-400 hover:text-green-600 ml-2">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </div>
-                </td>
-                <td data-label="Responsable" class="p-2 border-r">
-                    <span class="font-bold block">${g.r || ''}</span>
-                    <span class="text-[9px] text-gray-400 uppercase">${g.area || ''}</span>
-                </td>
-                
-                <td data-label="L" class="text-center">${g.L || '-'}</td>
-                <td data-label="M" class="text-center">${g.M || '-'}</td>
-                <td data-label="Mi" class="text-center">${g.Mi || '-'}</td>
-                <td data-label="J" class="text-center">${g.J || '-'}</td>
-                <td data-label="V" class="text-center">${g.V || '-'}</td>
-                <td data-label="S" class="text-center">${g.S || '-'}</td>
-                <td data-label="D" class="text-center">${g.D || '-'}</td>
+        let htmlFila = `<tr class="hover:bg-yellow-50 border-b">
+            <td class="p-2 font-bold text-blue-800">${g.p[0]}</td>
+            <td class="p-2 border-r">
+                <span class="font-bold block text-[10px]">${g.r}</span>
+                <span class="text-[9px] text-gray-400 uppercase">${g.area}</span>
+            </td>
+            <td class="text-center border-r">${g.L || '-'}</td>
+            <td class="text-center border-r">${g.M || '-'}</td>
+            <td class="text-center border-r">${g.Mi || '-'}</td>
+            <td class="text-center border-r">${g.J || '-'}</td>
+            <td class="text-center border-r">${g.V || '-'}</td>
+            <td class="text-center border-r">${g.S || '-'}</td>
+            <td class="text-center border-r">${g.D || '-'}</td>`;
 
-                <td data-label="Asig." class="p-2 text-center font-black border-l ${yaMostrado ? 'opacity-0' : 'bg-blue-50 text-blue-900'}">
-                    ${yaMostrado ? '' : asig.toFixed(2)}
+        // AQUÍ ESTÁ EL EFECTO DE CELDA COMBINADA
+        if (miIndiceEnGrupo === 0) {
+            htmlFila += `
+                <td rowspan="${rowspan}" class="p-2 text-center font-black border-l border-r bg-blue-50 text-blue-900 align-middle">
+                    ${asig.toFixed(2)}
                 </td>
-                <td data-label="Cons." class="p-2 text-center font-black ${yaMostrado ? 'opacity-0' : 'bg-orange-50 text-orange-700'}">
-                    ${yaMostrado ? '' : totalGrupo.toFixed(2)}
+                <td rowspan="${rowspan}" class="p-2 text-center font-black border-r bg-orange-50 text-orange-700 align-middle">
+                    ${totalGrupo.toFixed(2)}
                 </td>
-                <td data-label="Saldo" class="p-2 text-center font-black border-l ${yaMostrado ? 'opacity-0' : (saldoGrupo < 2 ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800')}">
-                    ${yaMostrado ? '' : saldoGrupo.toFixed(2)}
-                </td>
-            </tr>
-        `;
+                <td rowspan="${rowspan}" class="p-2 text-center font-black border-r align-middle ${saldoGrupo < 2 ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800'}">
+                    ${saldoGrupo.toFixed(2)}
+                </td>`;
+        }
+
+        htmlFila += `</tr>`;
+        cuerpo.innerHTML += htmlFila;
     });
 
     actualizarResumen(tA, tC);
