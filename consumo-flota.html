@@ -589,25 +589,16 @@
 
     // --- NUEVA VALIDACIÓN: SOLO SEMANA ACTUAL ---
     const hoy = new Date();
-    // Obtenemos el lunes de la semana actual (hoy)
     const lunesActual = getLunesActual(hoy);
     lunesActual.setHours(0,0,0,0);
     
-    // Obtenemos la fecha que el usuario intenta registrar
     const fechaRegistro = new Date(regFechaInput + "T12:00:00");
     fechaRegistro.setHours(0,0,0,0);
 
-    // Si la fecha es menor al lunes de esta semana, bloqueamos
     if (fechaRegistro < lunesActual) {
         return alert("🚫 BLOQUEADO: No puedes registrar despachos de semanas pasadas. Solo se permiten registros desde el lunes " + lunesActual.toLocaleDateString());
     }
-    
-    // Si la fecha es a futuro (opcional, por si quieres bloquearlo también)
-    if (fechaRegistro > hoy) {
-        // return alert("🚫 No puedes registrar consumos con fecha futura."); 
-    }
 
-    // --- CONTINÚA EL PROCESO NORMAL SI PASA LA VALIDACIÓN ---
     const payload = {
         action: 'saveTemporal',
         placa: regPlaca,
@@ -617,10 +608,17 @@
     };
     
     const ind = document.getElementById('indicadorCarga');
+    
+    // --- CAMBIO AQUÍ: Personalizamos el aviso de envío ---
+    ind.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin mr-1"></i> ENVIANDO AL SERVIDOR...';
     ind.classList.remove('hidden');
     
     try {
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        
+        // --- CAMBIO AQUÍ: Cambiamos el texto para la sincronización ---
+        ind.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-1"></i> ACTUALIZANDO CONSUMOS...';
+        
         alert("✅ Registro exitoso. Sincronizando consumos...");
         cerrarModalRegistro();
         
@@ -635,6 +633,8 @@
         alert("❌ Error de conexión.");
     } finally {
         ind.classList.add('hidden');
+        // --- CAMBIO AQUÍ: Restauramos el texto original para el resto de la App ---
+        ind.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO DATOS...';
     }
 }
         async function limpiarValesManuales() {
