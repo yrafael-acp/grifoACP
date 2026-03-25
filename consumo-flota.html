@@ -324,33 +324,41 @@
         }
 
         function renderTabla(datos) {
+    console.log("Datos recibidos para renderizar:", datos); // Esto te servirá para ver en F12 si llega algo
+    
     const cuerpo = document.getElementById('cuerpoTabla');
+    if (!cuerpo) return;
+    
     cuerpo.innerHTML = "";
     
-    let tA = 0; // Total Asignado Global
-    let tC = 0; // Total Consumido Global
-    
-    // Objeto para controlar que el saldo/asignación se sume y muestre UNA sola vez por grupo
+    // Si no hay datos, detenemos la función para que no de error
+    if (!datos || datos.length === 0) {
+        actualizarResumen(0, 0);
+        return;
+    }
+
+    let tA = 0; 
+    let tC = 0; 
     const vinculosMostrados = {};
 
     datos.forEach(g => {
-        const idVinculo = g.id;
+        // SEGURIDAD: Si g.id no existe, usamos la placa como identificador
+        const idVinculo = g.id || (g.p && g.p[0]) || "sin-id";
         const yaMostrado = vinculosMostrados[idVinculo];
         
-        const asig = g.a;
-        const totalGrupo = g.totalGrupo;
+        const asig = parseFloat(g.a) || 0;
+        const totalGrupo = parseFloat(g.totalGrupo) || 0;
         const saldoGrupo = asig - totalGrupo;
 
-        // --- LÓGICA DE RESUMEN GLOBAL (Los cuadros de arriba) ---
-        // Solo sumamos al resumen si es la placa principal o la primera vez que vemos el vínculo
         if (!yaMostrado) {
             tA += asig;
             tC += totalGrupo;
             vinculosMostrados[idVinculo] = true;
         }
 
-        // --- CONSTRUCCIÓN DE LA FILA ---
-        // Usamos opacity-0 en lugar de borrar el texto para mantener el ancho de las columnas
+        // Si g.p no existe o está vacío, saltamos esta fila para evitar error
+        if (!g.p || !g.p[0]) return;
+
         cuerpo.innerHTML += `
             <tr class="${yaMostrado ? 'bg-gray-50/30' : 'bg-white'} hover:bg-yellow-50 border-b transition-colors">
                 <td data-label="Placa" class="p-2 font-bold ${saldoGrupo < 2 ? 'text-red-600':'text-blue-800'}">
@@ -362,8 +370,8 @@
                     </div>
                 </td>
                 <td data-label="Responsable" class="p-2 border-r">
-                    <span class="font-bold block">${g.r}</span>
-                    <span class="text-[9px] text-gray-400 uppercase">${g.area}</span>
+                    <span class="font-bold block">${g.r || ''}</span>
+                    <span class="text-[9px] text-gray-400 uppercase">${g.area || ''}</span>
                 </td>
                 
                 <td data-label="L" class="text-center">${g.L || '-'}</td>
@@ -374,20 +382,19 @@
                 <td data-label="S" class="text-center">${g.S || '-'}</td>
                 <td data-label="D" class="text-center">${g.D || '-'}</td>
 
-                <td data-label="Asig." class="p-2 text-center font-black border-l ${yaMostrado ? 'opacity-0 select-none' : 'bg-blue-50 text-blue-900'}">
+                <td data-label="Asig." class="p-2 text-center font-black border-l ${yaMostrado ? 'opacity-0' : 'bg-blue-50 text-blue-900'}">
                     ${yaMostrado ? '' : asig.toFixed(2)}
                 </td>
-                <td data-label="Cons." class="p-2 text-center font-black ${yaMostrado ? 'opacity-0 select-none' : 'bg-orange-50 text-orange-700'}">
+                <td data-label="Cons." class="p-2 text-center font-black ${yaMostrado ? 'opacity-0' : 'bg-orange-50 text-orange-700'}">
                     ${yaMostrado ? '' : totalGrupo.toFixed(2)}
                 </td>
-                <td data-label="Saldo" class="p-2 text-center font-black border-l ${yaMostrado ? 'opacity-0 select-none' : (saldoGrupo < 2 ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800')}">
+                <td data-label="Saldo" class="p-2 text-center font-black border-l ${yaMostrado ? 'opacity-0' : (saldoGrupo < 2 ? 'bg-red-600 text-white animate-pulse' : 'bg-green-100 text-green-800')}">
                     ${yaMostrado ? '' : saldoGrupo.toFixed(2)}
                 </td>
             </tr>
         `;
     });
 
-    // Actualiza los paneles superiores con los totales sin duplicados
     actualizarResumen(tA, tC);
 }
 
