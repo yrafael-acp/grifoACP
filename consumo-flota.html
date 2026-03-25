@@ -233,32 +233,41 @@
             </div>
 
             <div id="panelAltaConfig" class="hidden space-y-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-[9px] font-bold text-gray-400 uppercase">Placa</label>
-                        <input type="text" id="newPlaca" class="w-full p-2 border rounded text-xs uppercase font-bold" placeholder="ABC-123">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[9px] font-bold text-gray-400 uppercase">Dotación (GLN)</label>
-                        <input type="number" id="newDot" class="w-full p-2 border rounded text-xs" placeholder="0.00">
-                    </div>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-gray-400 uppercase">Responsable</label>
-                    <input type="text" id="newResp" class="w-full p-2 border rounded text-xs uppercase" placeholder="NOMBRE DEL CONDUCTOR">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-gray-400 uppercase">Área / Fundo</label>
-                    <input type="text" id="newArea" class="w-full p-2 border rounded text-xs uppercase" placeholder="EJ: CERRO LA PATA">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[9px] font-bold text-gray-400 uppercase">Fecha de Inicio (Alta)</label>
-                    <input type="date" id="newFechaAlta" class="w-full p-2 border rounded text-xs">
-                </div>
-                <button onclick="registrarAltaMaestro()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-lg font-bold text-xs shadow-lg transition">
-                    <i class="fas fa-plus-circle mr-1"></i> GUARDAR EN MAESTRO
-                </button>
-            </div>
+    <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1">
+            <label class="text-[9px] font-bold text-gray-400 uppercase">Placa</label>
+            <input type="text" id="newPlaca" class="w-full p-2 border rounded text-xs uppercase font-bold" placeholder="ABC-123">
+        </div>
+        <div class="space-y-1">
+            <label class="text-[9px] font-bold text-gray-400 uppercase">Dotación (GLN)</label>
+            <input type="number" id="newDot" class="w-full p-2 border rounded text-xs" placeholder="0.00">
+        </div>
+    </div>
+    
+    <div class="space-y-1 bg-blue-50 p-2 rounded border border-blue-100">
+        <label class="text-[9px] font-bold text-blue-700 uppercase flex items-center">
+            <i class="fas fa-link mr-1"></i> ID Vínculo (Saldo Compartido)
+        </label>
+        <input type="text" id="newIdVinculo" class="w-full p-2 border rounded text-xs uppercase" placeholder="Ej: LUIS MACHER">
+        <p class="text-[8px] text-blue-500 italic mt-1">* Deja vacío para asignar un nuevo correlativo automático.</p>
+    </div>
+
+    <div class="space-y-1">
+        <label class="text-[9px] font-bold text-gray-400 uppercase">Responsable</label>
+        <input type="text" id="newResp" class="w-full p-2 border rounded text-xs uppercase" placeholder="NOMBRE DEL CONDUCTOR">
+    </div>
+    <div class="space-y-1">
+        <label class="text-[9px] font-bold text-gray-400 uppercase">Área / Fundo</label>
+        <input type="text" id="newArea" class="w-full p-2 border rounded text-xs uppercase" placeholder="EJ: CERRO LA PATA">
+    </div>
+    <div class="space-y-1">
+        <label class="text-[9px] font-bold text-gray-400 uppercase">Fecha de Inicio (Alta)</label>
+        <input type="date" id="newFechaAlta" class="w-full p-2 border rounded text-xs">
+    </div>
+    <button onclick="registrarAltaMaestro()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-lg font-bold text-xs shadow-lg transition">
+        <i class="fas fa-plus-circle mr-1"></i> GUARDAR EN MAESTRO
+    </button>
+</div>
         </div>
     </div>
 </div>
@@ -645,6 +654,7 @@ async function registrarAltaMaestro() {
         action: "insertFlota",
         placa: document.getElementById('newPlaca').value,
         dotacion: document.getElementById('newDot').value,
+        idVinculo: document.getElementById('newIdVinculo').value, // <--- LÍNEA AÑADIDA
         responsable: document.getElementById('newResp').value,
         area: document.getElementById('newArea').value,
         fechaAlta: document.getElementById('newFechaAlta').value
