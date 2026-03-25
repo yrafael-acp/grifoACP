@@ -444,16 +444,37 @@ function actualizarEtiquetaEstado() {
     
     if (!datos || datos.length === 0) return actualizarResumen(0, 0);
 
+    // --- CÁLCULO DEL FIN DE LA SEMANA SELECCIONADA ---
+    const fechaFinSemana = new Date(lunesReferencia);
+    fechaFinSemana.setDate(lunesReferencia.getDate() + 6);
+    fechaFinSemana.setHours(23, 59, 59, 999);
+
+    // 1. Filtramos los datos antes de procesar cualquier otra cosa
+    // Solo se quedan las unidades que entraron ANTES o DURANTE esta semana
+    const datosFiltrados = datos.filter(g => {
+        if (!g.fAlta) return true; // Si no hay fecha de alta, la mostramos por si las dudas
+        
+        const [dia, mes, anio] = g.fAlta.split('/');
+        const fechaAltaUnidad = new Date(anio, mes - 1, dia);
+        fechaAltaUnidad.setHours(0, 0, 0, 0);
+
+        return fechaAltaUnidad <= fechaFinSemana;
+    });
+
+    if (datosFiltrados.length === 0) return actualizarResumen(0, 0);
+
     let tA = 0, tC = 0;
     const vinculosMostrados = {};
-
     const conteoVinculos = {};
-    datos.forEach(g => {
+
+    // 2. Contamos vínculos solo sobre los datos ya filtrados
+    datosFiltrados.forEach(g => {
         const id = g.id || g.p[0];
         conteoVinculos[id] = (conteoVinculos[id] || 0) + 1;
     });
 
-    datos.forEach(g => {
+    // 3. Dibujamos la tabla solo con las unidades vigentes
+    datosFiltrados.forEach(g => {
         const idVinculo = g.id || g.p[0];
         const yaMostrado = vinculosMostrados[idVinculo];
         
@@ -468,12 +489,10 @@ function actualizarEtiquetaEstado() {
         }
 
         const rowspan = conteoVinculos[idVinculo];
-        const filasDelMismoGrupo = datos.filter(d => (d.id || d.p[0]) === idVinculo);
-        const miIndiceEnGrupo = filasDelMismoGrupo.indexOf(g);
+        const miIndiceEnGrupo = datosFiltrados.filter(d => (d.id || d.p[0]) === idVinculo).indexOf(g);
 
-        // --- MEJORA: ETIQUETA DE BAJA ---
-    const labelBaja = (g.baja && g.baja !== "null" && g.baja !== "") ? 
-    '<span class="text-[8px] text-red-600 font-bold ml-1 bg-red-50 px-1 rounded border border-red-200 animate-pulse">[BAJA]</span>' : '';
+        const labelBaja = (g.baja && g.baja !== "null" && g.baja !== "") ? 
+        '<span class="text-[8px] text-red-600 font-bold ml-1 bg-red-50 px-1 rounded border border-red-200 animate-pulse">[BAJA]</span>' : '';
 
         let htmlFila = `<tr class="hover:bg-yellow-50 border-b">
             <td class="p-2 font-bold">
