@@ -367,14 +367,12 @@
     let tA = 0, tC = 0;
     const vinculosMostrados = {};
 
-    // 1. Contamos cuántas placas tiene cada vínculo para saber cuánto estirar la "celda combinada"
     const conteoVinculos = {};
     datos.forEach(g => {
         const id = g.id || g.p[0];
         conteoVinculos[id] = (conteoVinculos[id] || 0) + 1;
     });
 
-    // 2. Renderizamos
     datos.forEach(g => {
         const idVinculo = g.id || g.p[0];
         const yaMostrado = vinculosMostrados[idVinculo];
@@ -383,24 +381,24 @@
         const totalGrupo = parseFloat(g.totalGrupo) || 0;
         const saldoGrupo = asig - totalGrupo;
 
-        // Sumar al resumen solo una vez por grupo
         if (!yaMostrado) {
             tA += asig;
             tC += totalGrupo;
             vinculosMostrados[idVinculo] = true;
         }
 
-        // Definimos el "estiramiento" (rowspan)
         const rowspan = conteoVinculos[idVinculo];
-        // Solo la primera fila del grupo llevará las celdas de saldo
-        const esPrimeraFila = !g.yaImpresoSaldo; 
-        
-        // Marcamos para que la siguiente placa del mismo grupo sepa que no debe imprimir saldo
         const filasDelMismoGrupo = datos.filter(d => (d.id || d.p[0]) === idVinculo);
         const miIndiceEnGrupo = filasDelMismoGrupo.indexOf(g);
 
+        // --- CAMBIO AQUÍ: Celda de Placa con botón de edición ---
         let htmlFila = `<tr class="hover:bg-yellow-50 border-b">
-            <td class="p-2 font-bold text-blue-800">${g.p[0]}</td>
+            <td class="p-2 font-bold">
+                <button onclick="abrirEditarFlota('${g.p[0]}', ${asig})" 
+                        class="text-blue-800 hover:text-blue-600 hover:underline flex items-center gap-1 text-left">
+                    <i class="fas fa-edit text-[9px] opacity-30"></i> ${g.p[0]}
+                </button>
+            </td>
             <td class="p-2 border-r">
                 <span class="font-bold block text-[10px]">${g.r}</span>
                 <span class="text-[9px] text-gray-400 uppercase">${g.area}</span>
@@ -413,11 +411,13 @@
             <td class="text-center border-r">${g.S || '-'}</td>
             <td class="text-center border-r">${g.D || '-'}</td>`;
 
-        // AQUÍ ESTÁ EL EFECTO DE CELDA COMBINADA
         if (miIndiceEnGrupo === 0) {
+            // --- CAMBIO AQUÍ: Si es excepción (g.exc), añadimos un icono visual ---
+            const iconoExc = g.exc ? '<i class="fas fa-bolt text-yellow-500 mr-1" title="Excepción Semanal"></i>' : '';
+            
             htmlFila += `
                 <td rowspan="${rowspan}" class="p-2 text-center font-black border-l border-r bg-blue-50 text-blue-900 align-middle">
-                    ${asig.toFixed(2)}
+                    ${iconoExc}${asig.toFixed(2)}
                 </td>
                 <td rowspan="${rowspan}" class="p-2 text-center font-black border-r bg-orange-50 text-orange-700 align-middle">
                     ${totalGrupo.toFixed(2)}
@@ -476,29 +476,57 @@
 
         // --- ACCIONES NUBE ---
         async function guardarExcepcionSemanal() {
-            const placa = document.getElementById('editPlaca').value;
-            const nuevaDot = parseFloat(document.getElementById('editDotacion').value);
-            const placaNorm = placa.toUpperCase().replace(/-/g, "");
-            
-            // Buscar dotación previa para el mensaje
-            const infoActual = ESTRUCTURA_FLOTA.find(g => g.p.includes(placa));
-            const dotAnterior = infoActual ? infoActual.a : 0;
-            const semana = document.getElementById('selectorSemanas').value;
+    const placa = document.getElementById('editPlaca').value;
+    const nuevaDot = parseFloat(document.getElementById('editDotacion').value);
+    // Normalizamos la placa (sin guiones) para que el .gs la encuentre fácil
+    const placaNorm = placa.toUpperCase().replace(/-/g, "");
+    
+    const infoActual = ESTRUCTURA_FLOTA.find(g => g.p.includes(placa));
+    const dotAnterior = infoActual ? infoActual.a : 0;
+    const semana = document.getElementById('selectorSemanas').value;
 
-            if(!nuevaDot || isNaN(nuevaDot)) return alert("Ingrese un monto válido.");
+    if (isNaN(nuevaDot)) return alert("⚠️ Ingrese un monto válido.");
 
-            try {
-                const payload = { action: "saveExcepcion", semana, placa: placaNorm, dotacion: nuevaDot };
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                
-                const diff = nuevaDot - dotAnterior;
-                if (diff > 0) alert(`✅ ASIGNACIÓN EXITOSA\nUnidad: ${placa}\nSe han asignado ${diff.toFixed(2)} GLN adicionales.`);
-                else alert("✅ Ajuste realizado correctamente.");
+    // --- ACTIVAR INDICADOR VISUAL ---
+    const ind = document.getElementById('indicadorCarga');
+    ind.innerHTML = '<i class="fas fa-bolt fa-spin mr-1"></i> APLICANDO EXCEPCIÓN SEMANAL...';
+    ind.classList.remove('hidden');
 
-                cerrarModalEditarFlota();
-                sincronizarDesdeNube();
-            } catch (e) { alert("Error al conectar."); }
+    try {
+        const payload = { 
+            action: "saveExcepcion", 
+            semana: semana, 
+            placa: placaNorm, 
+            dotacion: nuevaDot 
+        };
+
+        // Enviamos a la nube
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        
+        // Pequeño delay para que se vea el proceso
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const diff = nuevaDot - dotAnterior;
+        if (diff > 0) {
+            alert(`✅ ASIGNACIÓN EXITOSA\nUnidad: ${placa}\nSe han asignado ${diff.toFixed(2)} GLN adicionales.`);
+        } else {
+            alert("✅ Ajuste realizado correctamente.");
         }
+
+        cerrarModalEditarFlota();
+        
+        // Actualizamos el texto para la sincronización
+        ind.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-1"></i> ACTUALIZANDO TABLA...';
+        await sincronizarDesdeNube();
+
+    } catch (e) {
+        alert("❌ Error al conectar con el servidor.");
+        console.error(e);
+    } finally {
+        ind.classList.add('hidden');
+        ind.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO DATOS...';
+    }
+}
 
         async function ejecutarConsultaOrden() {
     const input = document.getElementById('inputOrdenes').value;
