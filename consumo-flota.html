@@ -467,13 +467,22 @@
         function cerrarModalRegistro() { document.getElementById('modalRegistro').style.display = 'none'; }
         function abrirModalConsulta() { document.getElementById('modalConsulta').style.display = 'flex'; }
         function cerrarModalConsulta() { document.getElementById('modalConsulta').style.display = 'none'; }
-        function abrirModalConfig() { document.getElementById('modalConfig').style.display = 'flex'; renderListaConfig(); }
+        function abrirModalConfig() {
+    if (esSemanaPasada()) {
+        alert("⚠️ Estás en modo CONSULTA (Semana Pasada). Las opciones de Alta y Baja están deshabilitadas.");
+    }
+    document.getElementById('modalConfig').style.display = 'flex'; 
+    renderListaConfig(); 
+}
         function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
         function abrirEditarFlota(placa, dotActual) {
-            document.getElementById('editPlaca').value = placa;
-            document.getElementById('editDotacion').value = dotActual;
-            document.getElementById('modalEditarFlota').style.display = 'flex';
-        }
+    if (esSemanaPasada()) {
+        return alert("🚫 BLOQUEADO: No puedes editar dotaciones de semanas pasadas. Selecciona la semana actual.");
+    }
+    document.getElementById('editPlaca').value = placa;
+    document.getElementById('editDotacion').value = dotActual;
+    document.getElementById('modalEditarFlota').style.display = 'flex';
+}
         function cerrarModalEditarFlota() { document.getElementById('modalEditarFlota').style.display = 'none'; }
 
         // --- ACCIONES NUBE ---
@@ -750,6 +759,9 @@ function renderListaConfig() {
 }
 
 async function registrarAltaMaestro() {
+    if (esSemanaPasada()) {
+        return alert("🚫 BLOQUEADO: Para dar de alta una unidad, sitúate en la semana actual.");
+    }
     const data = {
         action: "insertFlota",
         placa: document.getElementById('newPlaca').value,
@@ -773,6 +785,9 @@ async function registrarAltaMaestro() {
 }
 
 async function ejecutarBajaMaestro(placa) {
+    if (esSemanaPasada()) {
+        return alert("🚫 BLOQUEADO: No puedes procesar bajas desde una vista de semana pasada.");
+    }
     const fechaBaja = prompt(`Confirme la fecha de BAJA para ${placa} (AAAA-MM-DD):`, new Date().toISOString().split('T')[0]);
     if(!fechaBaja) return;
 
@@ -787,6 +802,17 @@ async function ejecutarBajaMaestro(placa) {
         sincronizarDesdeNube();
     } catch (e) { alert("Error al procesar baja."); }
     finally { document.getElementById('indicadorCarga').classList.add('hidden'); }
+}
+        function esSemanaPasada() {
+    const hoy = new Date();
+    const lunesActual = getLunesActual(hoy);
+    lunesActual.setHours(0, 0, 0, 0);
+
+    // lunesReferencia es la fecha de la semana seleccionada en el Dashboard
+    const fechaSeleccionada = new Date(lunesReferencia);
+    fechaSeleccionada.setHours(0, 0, 0, 0);
+
+    return fechaSeleccionada < lunesActual;
 }
     </script>
 </body>
