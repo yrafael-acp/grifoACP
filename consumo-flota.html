@@ -392,7 +392,8 @@
         const miIndiceEnGrupo = filasDelMismoGrupo.indexOf(g);
 
         // --- MEJORA: ETIQUETA DE BAJA ---
-        const labelBaja = (g.baja && g.baja !== "") ? '<span class="text-[8px] text-red-600 font-bold ml-1 bg-red-50 px-1 rounded border border-red-200 animate-pulse">[BAJA]</span>' : '';
+    const labelBaja = (g.baja && g.baja !== "null" && g.baja !== "") ? 
+    '<span class="text-[8px] text-red-600 font-bold ml-1 bg-red-50 px-1 rounded border border-red-200 animate-pulse">[BAJA]</span>' : '';
 
         let htmlFila = `<tr class="hover:bg-yellow-50 border-b">
             <td class="p-2 font-bold">
@@ -641,35 +642,35 @@
             ind.classList.remove('hidden');
             
             try {
-                // Enviamos los datos
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                
-                // --- TRUCO VISUAL: Esperamos 600ms para que el usuario vea el mensaje de envío ---
-                await new Promise(resolve => setTimeout(resolve, 600));
+        // 1. Mostramos el mensaje de envío
+        ind.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin mr-1"></i> ENVIANDO AL SERVIDOR...';
+        ind.classList.remove('hidden');
+        
+        // 2. Ejecutamos el envío
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        
+        // 3. RETRASO ARTIFICIAL: Sin esto, el cambio de texto es invisible al ojo humano
+        await new Promise(resolve => setTimeout(resolve, 800));
 
-                // Cambiamos el texto para la fase de actualización
-                ind.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-1"></i> ACTUALIZANDO CONSUMOS...';
-                
-                // Cerramos el modal para que el usuario vea la tabla actualizándose
-                cerrarModalRegistro();
-                
-                // Limpiar campos
-                document.getElementById('regPlaca').value = "";
-                document.getElementById('regCant').value = "";
+        // 4. Cambiamos el texto para la sincronización
+        ind.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-1"></i> ACTUALIZANDO CONSUMOS...';
+        
+        cerrarModalRegistro();
+        
+        // Limpiar campos
+        document.getElementById('regPlaca').value = "";
+        document.getElementById('regCant').value = "";
 
-                // Sincronización automática (esto también quita el 'hidden' pero con su texto original)
-                await sincronizarDesdeNube();
-                
-                // Alert al final para no interrumpir las animaciones
-                console.log("Registro exitoso");
-                
-            } catch (e) {
-                alert("❌ Error de conexión.");
-            } finally {
-                ind.classList.add('hidden');
-                // Restauramos el texto original para el buscador y otras funciones
-                ind.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO DATOS...';
-            }
+        // Sincronización
+        await sincronizarDesdeNube();
+        
+    } catch (e) {
+        alert("❌ Error de conexión.");
+    } finally {
+        ind.classList.add('hidden');
+        // Restauramos el texto base
+        ind.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO DATOS...';
+    }
         }
         
         function verificarRolAdmin(rol) {
