@@ -392,7 +392,7 @@
         const miIndiceEnGrupo = filasDelMismoGrupo.indexOf(g);
 
         // --- MEJORA: ETIQUETA DE BAJA ---
-        const labelBaja = g.baja ? '<span class="text-[8px] text-red-600 font-bold ml-1 bg-red-50 px-1 rounded border border-red-200 animate-pulse">[BAJA]</span>' : '';
+        const labelBaja = (g.baja && g.baja !== "") ? '<span class="text-[8px] text-red-600 font-bold ml-1 bg-red-50 px-1 rounded border border-red-200 animate-pulse">[BAJA]</span>' : '';
 
         let htmlFila = `<tr class="hover:bg-yellow-50 border-b">
             <td class="p-2 font-bold">
