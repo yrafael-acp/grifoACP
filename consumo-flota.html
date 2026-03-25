@@ -298,12 +298,33 @@
         </div>
     </div>
 </div>
-
     <script>
         const LLAVE_MAESTRA = "@Shelby12032020";
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyznJML-_JIaxXzggVrViaMlw4J7N_MGCYeuPPRJ8xE29W4k-LxwGedRnasteqTvPmfFA/exec';
         let ESTRUCTURA_FLOTA = [];
         let lunesReferencia = new Date();
+        
+        window.onload = () => {
+            poblarAnios();
+            
+            // Cargamos semanas y marcamos la actual
+            const anioActual = new Date().getFullYear();
+            poblarSemanasPorAnio(anioActual);
+
+            // Sincronizamos la fecha de referencia con lo que diga el selector
+            const selectorSemanas = document.getElementById('selectorSemanas');
+            if (selectorSemanas && selectorSemanas.value) {
+                lunesReferencia = new Date(selectorSemanas.value + "T12:00:00");
+            } else {
+                lunesReferencia = getLunesActual(new Date());
+            }
+
+            // Mostramos el cartelito de ACTIVO/BLOQUEADO
+            actualizarEtiquetaEstado();
+
+            // ¡CARGA AUTOMÁTICA! (Para que no tengas que dar clic a sincronizar)
+            sincronizarDesdeNube();
+        };
 
       function gestionarCambioSemana() {
     const selector = document.getElementById('selectorSemanas');
