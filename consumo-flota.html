@@ -26,6 +26,23 @@
         .badge-placa { background: #e0e7ff; color: #4338ca; font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: 800; letter-spacing: 0.05em; }
         .badge-orden { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
         .text-soles { color: #059669; font-weight: 800; font-size: 13px; }
+        /* Definición de la animación de pulso */
+        @keyframes pulsoSuave {
+        0% {
+        box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); /* Color amarillo semi-transparente */
+        }
+        70% {
+        box-shadow: 0 0 0 6px rgba(250, 204, 21, 0); /* Se expande y desvanece */
+        }
+        100% {
+        box-shadow: 0 0 0 0 rgba(250, 204, 21, 0);
+        }
+        }
+
+    /* Clase para aplicar la animación */
+    .animacion-pulso {
+    animation: pulsoSuave 1.8s infinite; /* Se repite infinitamente */
+    }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
@@ -46,16 +63,19 @@
                 <span class="text-[8px] font-bold ml-1 text-green-300 uppercase leading-none mb-1">Año</span>
                 <select id="selectorAnio" onchange="cambiarAnio()" class="bg-transparent text-white text-[11px] font-bold px-1 outline-none cursor-pointer hover:text-yellow-400 transition-colors"></select>
             </div>
+            
             <div class="h-6 w-[1px] bg-white/20 mx-1"></div> 
+            
             <div class="flex flex-col">
                 <span class="text-[8px] font-bold ml-1 text-green-300 uppercase leading-none mb-1">Semana de Gestión</span>
-                <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-transparent text-white text-[11px] font-bold px-1 outline-none w-full sm:w-auto cursor-pointer hover:text-yellow-400 transition-colors"></select>
+                <div class="flex items-center gap-2">
+                    <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-transparent text-white text-[11px] font-bold px-1 outline-none w-full sm:w-auto cursor-pointer hover:text-yellow-400 transition-colors"></select>
+                    <span id="estadoSemana" class="flex items-center gap-1"></span>
+                </div>
             </div>
         </div>
 
         <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
-            <span id="estadoSemana" class="text-[10px] font-bold px-2 py-1 rounded-lg"></span>
-            
             <div class="flex flex-wrap justify-center gap-2">
                 <a id="btnCalcFlota" href="Saldo_comb.html" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-calculator mr-1"></i> CALCULADORA VARILLA
@@ -475,12 +495,17 @@ function logout() {
     const el = document.getElementById('estadoSemana');
     if (!el) return;
 
+    // Clases base para que encaje fino en el nuevo contenedor
+    const clasesBase = "text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-sm transition-all";
+
     if (esSemanaPasada()) {
-        el.innerHTML = '<i class="fas fa-lock mr-1"></i> BLOQUEADO';
-        el.className = "text-[10px] font-bold px-2 py-1 rounded-lg bg-red-600 text-white shadow-sm animate-pulse";
+        // --- ESTADO BLOQUEADO ---
+        el.innerHTML = '<i class="fas fa-lock text-[8px]"></i> BLOQUEADO';
+        el.className = clasesBase + " bg-red-600 text-white";
     } else {
-        el.innerHTML = '<i class="fas fa-lock-open mr-1"></i> ACTIVO';
-        el.className = "text-[10px] font-bold px-2 py-1 rounded-lg bg-yellow-400 text-green-900 shadow-sm";
+        // --- ESTADO ACTIVO (CON EL NUEVO PULSO) ---
+        el.innerHTML = '<i class="fas fa-unlock text-[8px]"></i> ACTIVO';
+        el.className = clasesBase + " bg-yellow-400 text-green-900 animacion-pulso";
     }
 }
         function getLunesActual(f) {
