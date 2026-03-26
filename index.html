@@ -75,9 +75,7 @@
         .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
         .calc-res-box { background: #f1f5f9; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #e2e8f0; }
         .calc-val { display: block; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
-        
-       /* --- AJUSTE GLOBAL RESPONSIVE PRO --- */
-        /* --- AJUSTE GLOBAL RESPONSIVE PRO (PÁGINA PRINCIPAL) --- */
+        /* --- AJUSTE GLOBAL RESPONSIVE PRO + TABLE-TO-CARDS --- */
         @media (max-width: 768px) {
             body { 
                 padding: 10px !important; 
@@ -92,33 +90,22 @@
             }
             .full-width { grid-column: span 1 !important; }
 
-            /* EL HEADER: Look 1:1 igual que la flota */
+            /* EL HEADER (Mantenemos tu diseño ganador) */
             .card.full-width[style*="background: var(--primary)"] {
                 flex-direction: column !important;
                 align-items: center !important; 
                 justify-content: center !important;
                 padding: 15px 10px !important;
-                width: 100% !important;
-                box-sizing: border-box;
                 gap: 10px !important;
             }
             .header-content {
                 flex-direction: column !important;
                 align-items: center !important; 
                 text-align: center !important;
-                margin-right: 0 !important;
-                margin-bottom: 5px !important;
             }
-            .app-header-logo {
-                margin: 0 0 5px 0 !important;
-                height: 40px !important; /* Tamaño exacto que funcionó en la otra */
-            }
-            .card.full-width[style*="background: var(--primary)"] h1 {
-                font-size: 1.1rem !important;
-                white-space: nowrap;
-            }
+            .app-header-logo { height: 40px !important; margin: 0 0 5px 0 !important; }
 
-            /* GRILLA DE BOTONES 2x2: Para Calculadora, Flota, Excel y Salir */
+            /* GRILLA DE BOTONES 2x2 */
             .card.full-width[style*="background: var(--primary)"] > div:last-child {
                 display: grid !important;
                 grid-template-columns: 1fr 1fr !important; 
@@ -131,47 +118,59 @@
                 margin: 0 !important;
                 font-size: 0.75rem !important;
                 padding: 10px 5px !important;
-                width: 100% !important;
                 display: flex !important;
                 justify-content: center;
                 align-items: center;
-                border-radius: 8px !important;
             }
 
-            /* MONITOR DE STOCK: Apilado para que no estire la pantalla */
+            /* --- LÓGICA DE TABLAS TIPO "CARDS" (COMO EN LA FLOTA) --- */
+            .table-container { max-height: none; overflow: visible; }
+            
+            thead { display: none; } /* Escondemos los encabezados arriba */
+            
+            tr { 
+                display: block; 
+                margin-bottom: 1.5rem; 
+                border: 2px solid #e5e7eb; 
+                border-radius: 1rem; 
+                background: white; 
+                padding: 1rem; 
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+            }
+            
+            td { 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+                padding: 0.6rem 0 !important; 
+                border: none !important; 
+                border-bottom: 1px solid #f3f4f6 !important; 
+                text-align: right; 
+                font-size: 0.85rem;
+            }
+            
+            td:last-child { border-bottom: none !important; }
+            
+            /* Esto jala el nombre de la columna para ponerlo a la izquierda */
+            td::before { 
+                content: attr(data-label); 
+                font-weight: 800; 
+                text-transform: uppercase; 
+                font-size: 0.7rem; 
+                color: #6b7280; 
+                text-align: left; 
+                margin-right: 15px; 
+            }
+
+            /* MONITOR DE STOCK Y OTROS */
             #monitorCard > div[style*="grid-template-columns: 1fr 1fr"] {
                 grid-template-columns: 1fr !important; 
             }
-            
-            /* TABLAS E HISTORIAL: Scroll horizontal pro */
-            .table-container {
-                width: 100% !important;
-                overflow-x: auto !important; 
-                -webkit-overflow-scrolling: touch;
-            }
-            table {
-                min-width: 550px !important; /* Para que no se amontone la data del historial */
-                font-size: 0.8rem;
-            }
-            
-            /* Filtros e Inputs */
-            .filter-bar {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 10px;
-            }
-            .annual-summary {
+            .filter-bar, .annual-summary {
                 flex-direction: column !important;
                 gap: 10px;
             }
-            input, select {
-                width: 100% !important;
-                font-size: 14px !important; /* Evita el zoom automático de iOS */
-            }
-
-            /* Modal de Calculadora */
-            .calc-grid { grid-template-columns: 1fr !important; }
-            .modal-content { width: 95% !important; padding: 15px !important; }
+            input, select { width: 100% !important; }
         }
     </style>
 </head>
@@ -563,12 +562,17 @@ function actualizarUI(data) {
         let btnReset = "";
         if (USERS[currentUser] === "ADMIN") {
             const tipoFiltro = e.f.includes('CF60') ? 'cf60' : (e.f.includes('CF100') ? 'cf100' : 'malla');
-            btnReset = `<td><button class="btn btn-blue btn-sm" style="padding: 5px 10px; font-size: 0.75rem;" onclick="gestionarFiltros('reset', '${tipoFiltro}', '${e.id}')">Reset</button></td>`;
+            btnReset = `<td data-label="Accion"><button class="btn btn-blue btn-sm" style="padding: 5px 10px; font-size: 0.75rem;" onclick="gestionarFiltros('reset', '${tipoFiltro}', '${e.id}')">Reset</button></td>`;
         }
 
-        return `<tr><td><b>${e.id}</b></td><td>${e.f}</td><td>${e.ult}</td><td>${diff} d</td>
-        <td><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
-        ${btnReset}</tr>`;
+        return `<tr>
+            <td data-label="Equipo"><b>${e.id}</b></td>
+            <td data-label="Filtro">${e.f}</td>
+            <td data-label="Ultima Fecha">${e.ult}</td>
+            <td data-label="Dias Pasados">${diff} d</td>
+            <td data-label="Estado"><span class="status-badge ${color}">${diff>=90?'VENCIDO':'OK'}</span></td>
+            ${btnReset}
+        </tr>`;
     }).join('');
 
     renderHistorial(datosCache);
@@ -611,14 +615,12 @@ function renderHistorial(lista) {
     const desdeRaw = document.getElementById('filtroDesde').value;
     const hastaRaw = document.getElementById('filtroHasta').value;
     
-    // 1. Crear copia y ORDENAR por fecha (más reciente arriba)
     let filtrada = [...lista].sort((a, b) => {
         const fechaA = parseFechaBase(a.fecha);
         const fechaB = parseFechaBase(b.fecha);
         return (fechaB ? fechaB.getTime() : 0) - (fechaA ? fechaA.getTime() : 0);
     });
 
-    // 2. Aplicar filtros de fecha si existen sobre la lista ya ordenada
     if(desdeRaw || hastaRaw) {
         filtrada = filtrada.filter(h => {
             const fechaH = parseFechaBase(h.fecha);
@@ -632,10 +634,15 @@ function renderHistorial(lista) {
         });
     }
 
-    // 3. Dibujar la tabla
     document.getElementById('historialBody').innerHTML = filtrada.map(h => `
-        <tr><td>${h.fecha.replace('T',' ').substring(0,16)}</td><td style="color:${h.mov.toUpperCase().includes('INGRESO')?'green':'red'}"><b>${h.mov}</b></td>
-        <td>${h.prod}</td><td>${h.cant}</td><td>${h.ref}</td><td><b>${h.saldo}</b></td></tr>`).join('');
+        <tr>
+            <td data-label="Fecha">${h.fecha.replace('T',' ').substring(0,16)}</td>
+            <td data-label="Operacion" style="color:${h.mov.toUpperCase().includes('INGRESO')?'green':'red'}"><b>${h.mov}</b></td>
+            <td data-label="Producto">${h.prod}</td>
+            <td data-label="Cantidad">${h.cant}</td>
+            <td data-label="Referencia">${h.ref}</td>
+            <td data-label="Saldo Final"><b>${h.saldo}</b></td>
+        </tr>`).join('');
 }
 
 function llenarSelectorMeses() {
