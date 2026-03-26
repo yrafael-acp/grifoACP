@@ -77,55 +77,78 @@
         .calc-val { display: block; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
 
         /* --- PARCHE RESPONSIVE (CELULARES) --- */
-       @media (max-width: 768px) {
-            body { padding: 10px; } /* Menos margen lateral para ganar espacio */
+        @media (max-width: 768px) {
+            body { padding: 10px; } /* Menos aire a los lados */
             .dashboard { grid-template-columns: 1fr; gap: 10px; }
             .full-width { grid-column: span 1; }
 
-            /* EL HEADER: Forzamos el look de tu captura buena */
+            /* EL HEADER: Forzamos el look de tu perspectiva buena */
             .card.full-width[style*="background: var(--primary)"] {
-                flex-direction: column !important;
-                padding: 12px !important;
-                gap: 8px !important;
+                flex-direction: column !important; /* Apila logo/titulo sobre botones */
+                align-items: center !important; /* Centra todo horizontalmente */
+                justify-content: center !important;
+                padding: 15px !important;
+                gap: 10px !important; /* Separación fija logo-botones */
             }
 
             .header-content {
-                justify-content: center;
+                display: flex !important;
+                flex-direction: column !important; /* Logo arriba, titulo abajo */
+                align-items: center !important; /* Centra logo y titulo entre ellos */
                 margin-bottom: 5px;
+                width: 100%;
             }
 
             .app-header-logo {
-                height: 35px !important; /* Logo más pequeño para que entre el texto */
-                margin-right: 10px !important;
+                height: 40px !important; /* Logo más compacto */
+                margin-right: 0 !important; /* Quita margen que lo descentraba */
+                margin-bottom: 5px; /* Separa logo del título */
             }
 
             .card.full-width[style*="background: var(--primary)"] h1 {
-                font-size: 1rem !important; /* Título pequeño para que no salte de línea */
-                white-space: nowrap; /* Evita que el nombre de usuario mande el título abajo */
+                font-size: 1.1rem !important; /* Título pequeño y pro */
+                margin: 0 !important;
+                text-align: center;
+                white-space: nowrap; /* Título en una sola línea */
             }
 
-            /* GRILLA DE BOTONES: 2x2 exacto */
+            .sync-indicator {
+                font-size: 0.65rem !important; /* Sincro mini */
+                text-align: center;
+                width: 100%;
+                display: block;
+            }
+
+            /* GRILLA DE BOTONES: 2x2 Milimétrico */
+            /* Seleccionamos el contenedor de los 4 botones principales */
             .card.full-width[style*="background: var(--primary)"] > div:last-child {
                 display: grid !important;
-                grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
-                gap: 6px !important;
-                width: 100%;
-                margin: 0 !important;
+                grid-template-columns: 1fr 1fr; /* Dos columnas EXACTAMENTE iguales */
+                gap: 8px !important;
+                width: 100% !important; /* Ocupa todo el ancho disponible */
+                max-width: 320px; /* Limita ancho para que no se estiren feo en pantallas grandes */
+                justify-content: center !important;
+                margin: 0 auto !important; /* Centra la grilla completa */
             }
 
             .btn-calc, .btn-flota, .btn-excel, .btn-logout {
-                margin: 0 !important;
-                padding: 8px 4px !important; /* Botones más chatos para que no ocupen toda la pantalla */
-                font-size: 0.7rem !important;
+                margin: 0 !important; /* Quita márgenes externos */
+                padding: 10px 4px !important; /* Botones chatos y compactos */
+                font-size: 0.75rem !important; /* Texto claro pero pequeño */
+                border-radius: 8px !important;
                 display: flex !important;
                 justify-content: center;
                 align-items: center;
                 text-align: center;
+                gap: 5px; /* Espacio icono-texto */
             }
 
-            /* Tablas con scroll (Lo que hablamos para que no se vea feo) */
-            .table-container { overflow-x: auto; }
-            table { min-width: 500px; font-size: 0.75rem; }
+            /* Tablas con scroll (Mantenemos esto que sí funcionaba) */
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            table { min-width: 500px; font-size: 0.8rem; }
         }
     </style>
 </head>
