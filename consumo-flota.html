@@ -30,49 +30,62 @@
 <body class="bg-gray-100 font-sans text-gray-800">
 
     <header class="bg-acp text-white p-3 shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-3">
-            <div class="flex items-center gap-3 w-full lg:w-auto justify-center lg:justify-start">
-                <i class="fas fa-truck-moving text-2xl text-yellow-400"></i>
-                <div>
-                    <h1 class="text-lg font-bold italic leading-none">FLOTA NUBE</h1>
-                    <span class="text-[10px] uppercase tracking-widest opacity-80">Agrícola Cerro Prieto</span>
-                </div>
-            </div>
-            <select id="selectorAnio" onchange="cambiarAnio()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30"></select>
-            <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
-                <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-green-900 text-white text-[11px] p-2 rounded border border-white/30 outline-none w-full sm:w-auto"></select>
-                <span id="estadoSemana" class="text-[10px] font-bold px-2 py-1 rounded-lg"></span>
-                <div class="flex flex-wrap justify-center gap-2">
-                    <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
-                    </button>
-                    <button onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
-                    </button>
-                    <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
-                    </button>
-                    <button onclick="abrirModalRango()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                    <i class="fas fa-calendar-alt mr-1"></i> RANGO SAP
-                    </button>
-                    <button onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-cog mr-1"></i>
-                        <div id="contenedorAdmin" class="flex gap-2"></div>
-                    </button>
-                    <button onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                        <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
-                    </button>
-                    <button onclick="limpiarValesManuales()" title="Limpiar Vales Manuales" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                    <i class="fas fa-broom mr-1"></i> LIMPIAR VALES
-                    </button>
-                    <button onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
-                        <i class="fas fa-file-excel"></i>
-                    </button>
-                </div>
-                <input type="file" id="uploadExcel" accept=".xlsx, .xls" class="hidden" onchange="leerExcel(this)">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-3">
+        
+        <div class="flex items-center gap-3 w-full lg:w-auto justify-center lg:justify-start">
+            <i class="fas fa-truck-moving text-2xl text-yellow-400"></i>
+            <div>
+                <h1 class="text-lg font-bold italic leading-none">FLOTA NUBE</h1>
+                <span class="text-[10px] uppercase tracking-widest opacity-80">Agrícola Cerro Prieto</span>
             </div>
         </div>
-    </header>
+
+        <div class="flex items-center gap-2 bg-green-900/50 p-1.5 rounded-lg border border-white/20 shadow-inner">
+            <div class="flex flex-col">
+                <span class="text-[8px] font-bold ml-1 text-green-300 uppercase leading-none mb-1">Año</span>
+                <select id="selectorAnio" onchange="cambiarAnio()" class="bg-transparent text-white text-[11px] font-bold px-1 outline-none cursor-pointer hover:text-yellow-400 transition-colors"></select>
+            </div>
+            
+            <div class="h-6 w-[1px] bg-white/20 mx-1"></div> <div class="flex flex-col">
+                <span class="text-[8px] font-bold ml-1 text-green-300 uppercase leading-none mb-1">Semana de Gestión</span>
+                <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-transparent text-white text-[11px] font-bold px-1 outline-none w-full sm:w-auto cursor-pointer hover:text-yellow-400 transition-colors"></select>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
+            <span id="estadoSemana" class="text-[10px] font-bold px-2 py-1 rounded-lg"></span>
+            
+            <div class="flex flex-wrap justify-center gap-2">
+                <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
+                </button>
+                <button onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
+                </button>
+                <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
+                </button>
+                <button onclick="abrirModalRango()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-calendar-alt mr-1"></i> RANGO SAP
+                </button>
+                <button onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-cog mr-1"></i>
+                    <div id="contenedorAdmin" class="flex gap-2"></div>
+                </button>
+                <button onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
+                </button>
+                <button onclick="limpiarValesManuales()" title="Limpiar Vales Manuales" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-broom mr-1"></i> LIMPIAR VALES
+                </button>
+                <button onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
+                    <i class="fas fa-file-excel"></i>
+                </button>
+            </div>
+            <input type="file" id="uploadExcel" accept=".xlsx, .xls" class="hidden" onchange="leerExcel(this)">
+        </div>
+    </div>
+</header>
 
     <main class="max-w-[1580px] mx-auto p-3">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
@@ -389,28 +402,52 @@
         }
 
         function poblarSemanasPorAnio(anio) {
-            const sel = document.getElementById('selectorSemanas'); sel.innerHTML = '';
-            let f = getLunesActual(new Date(`${anio}-01-01T12:00:00`));
-            const hoyL = getLunesActual(new Date()).toISOString().split('T')[0];
-            let ops = [];
-            while (f.getFullYear() <= anio) {
-                let fin = new Date(f); fin.setDate(f.getDate() + 6);
-                ops.push({ val: f.toISOString().split('T')[0], text: `Sem: ${f.toLocaleDateString()} al ${fin.toLocaleDateString()}` });
-                f.setDate(f.getDate() + 7);
-            }
-            
-            // Invertimos para ver lo más reciente arriba
-            ops.reverse().forEach(op => {
-                const opt = new Option(op.text, op.val);
-                // ESTA LÍNEA ES CLAVE: Marca la semana de hoy
-                if (op.val === hoyL) opt.selected = true; 
-                sel.add(opt);
-            });
+    const sel = document.getElementById('selectorSemanas'); 
+    sel.innerHTML = '';
+    
+    // Configuramos el inicio del año correctamente
+    let f = getLunesActual(new Date(`${anio}-01-01T12:00:00`));
+    const hoy = new Date();
+    const hoyL = getLunesActual(hoy).toISOString().split('T')[0];
+    
+    let ops = [];
+    // Generar semanas de todo el año
+    while (f.getFullYear() <= anio) {
+        let fin = new Date(f); 
+        fin.setDate(f.getDate() + 6);
+        ops.push({ 
+            val: f.toISOString().split('T')[0], 
+            text: `Sem: ${f.toLocaleDateString()} al ${fin.toLocaleDateString()}` 
+        });
+        f.setDate(f.getDate() + 7);
+    }
+    
+    ops.reverse().forEach(op => {
+        const opt = new Option(op.text, op.val);
+        
+        // LÓGICA DE SELECCIÓN:
+        // Si el año es el actual, marca la semana de hoy.
+        // Si el año es pasado (2025), marca la última semana de diciembre.
+        if (anio == hoy.getFullYear()) {
+            if (op.val === hoyL) opt.selected = true;
+        } else {
+            // Si es 2025, la primera de la lista (que es la última de dic por el reverse)
+            if (ops.indexOf(op) === 0) opt.selected = true;
         }
-        function cambiarAnio() {
+        sel.add(opt);
+    });
+}
+
+function cambiarAnio() {
     const anio = document.getElementById('selectorAnio').value;
     poblarSemanasPorAnio(anio);
-    gestionarCambioSemana(); // Esto hace que refresque la tabla automáticamente
+    
+    // IMPORTANTE: Forzar que la referencia cambie a la semana seleccionada del nuevo año
+    const selectorSemanas = document.getElementById('selectorSemanas');
+    lunesReferencia = new Date(selectorSemanas.value + "T12:00:00");
+    
+    actualizarEtiquetaEstado();
+    sincronizarDesdeNube();
 }
 
         function gestionarCambioSemana() {
