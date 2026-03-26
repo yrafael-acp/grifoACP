@@ -122,15 +122,69 @@
                 justify-content: center;
                 align-items: center;
             }
+            /* --- LÓGICA DE TABLAS TIPO "CARDS" CON CAJITA MÁGICA --- */
+            @media (max-width: 768px) {
+            body { 
+                padding: 10px !important; 
+                overflow-x: hidden !important; 
+                width: 100vw;
+                box-sizing: border-box;
+            }
+            .dashboard { 
+                grid-template-columns: 1fr !important; 
+                gap: 15px !important;
+                width: 100% !important;
+            }
+            .full-width { grid-column: span 1 !important; }
 
-            /* --- LÓGICA DE TABLAS TIPO "CARDS" (COMO EN LA FLOTA) --- */
-            .table-container { max-height: none; overflow: visible; }
+            /* EL HEADER: Diseño 2x2 centrado */
+            .card.full-width[style*="background: var(--primary)"] {
+                flex-direction: column !important;
+                align-items: center !important; 
+                justify-content: center !important;
+                padding: 15px 10px !important;
+                gap: 10px !important;
+            }
+            .header-content {
+                flex-direction: column !important;
+                align-items: center !important; 
+                text-align: center !important;
+            }
+            .app-header-logo { height: 40px !important; margin: 0 0 5px 0 !important; }
+
+            /* GRILLA DE BOTONES 2x2 */
+            .card.full-width[style*="background: var(--primary)"] > div:last-child {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important; 
+                gap: 8px !important;
+                width: 100% !important;
+                max-width: 320px; 
+                margin: 0 auto !important; 
+            }
+            .btn-calc, .btn-flota, .btn-logout, .btn-excel {
+                margin: 0 !important;
+                font-size: 0.75rem !important;
+                padding: 10px 5px !important;
+                display: flex !important;
+                justify-content: center;
+                align-items: center;
+            }
+
+            /* --- LÓGICA DE TABLAS TIPO "CARDS" CON CAJITA MÁGICA --- */
+            .table-container { 
+                max-height: 550px !important; /* Altura fija para evitar scroll infinito */
+                overflow-y: auto !important; 
+                padding: 5px;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                background: #f8fafc;
+            }
             
-            thead { display: none; } /* Escondemos los encabezados arriba */
+            thead { display: none; } /* Escondemos encabezados */
             
             tr { 
                 display: block; 
-                margin-bottom: 1.5rem; 
+                margin-bottom: 1.2rem; 
                 border: 2px solid #e5e7eb; 
                 border-radius: 1rem; 
                 background: white; 
@@ -151,7 +205,7 @@
             
             td:last-child { border-bottom: none !important; }
             
-            /* Esto jala el nombre de la columna para ponerlo a la izquierda */
+            /* Etiqueta dinámica para el nombre de la columna */
             td::before { 
                 content: attr(data-label); 
                 font-weight: 800; 
@@ -162,7 +216,7 @@
                 margin-right: 15px; 
             }
 
-            /* MONITOR DE STOCK Y OTROS */
+            /* MONITOR DE STOCK Y FILTROS */
             #monitorCard > div[style*="grid-template-columns: 1fr 1fr"] {
                 grid-template-columns: 1fr !important; 
             }
@@ -170,7 +224,10 @@
                 flex-direction: column !important;
                 gap: 10px;
             }
-            input, select { width: 100% !important; }
+            input, select { 
+                width: 100% !important; 
+                font-size: 16px !important; /* Evita zoom automático en iPhone */
+            }
         }
     </style>
 </head>
@@ -327,32 +384,58 @@
         </div>
 
         <div class="card full-width">
-            <h2>Plan Trimestral (Aviso preventivo 85 dias)</h2>
-            <table>
-                <thead>
-                    <tr><th>Equipo</th><th>Filtro</th><th>Ultima Fecha</th><th>Dias Pasados</th><th>Estado</th><th id="thAccion" style="display:none;">Accion</th></tr>
-                </thead>
-                <tbody id="mantoBody"></tbody>
-            </table>
-        </div>
+    <h2>Plan Trimestral (Aviso preventivo 85 dias)</h2>
+    
+    <p class="text-[10px] text-gray-400 italic mb-2 md:hidden">
+        <i class="fas fa-arrows-alt-v mr-1"></i> Desliza dentro de la lista para ver más equipos
+    </p>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Equipo</th>
+                    <th>Filtro</th>
+                    <th>Ultima Fecha</th>
+                    <th>Dias Pasados</th>
+                    <th>Estado</th>
+                    <th id="thAccion" style="display:none;">Accion</th>
+                </tr>
+            </thead>
+            <tbody id="mantoBody"></tbody>
+        </table>
+    </div>
+</div>
 
         <div class="card full-width">
-            <h2>Historial de Movimientos</h2>
-            <div class="filter-bar">
-                <div style="flex:1"><label class="group-label">Desde:</label><input type="date" id="filtroDesde"></div>
-                <div style="flex:1"><label class="group-label">Hasta:</label><input type="date" id="filtroHasta"></div>
-                <button class="btn btn-blue" onclick="aplicarFiltros()">Filtrar Fechas</button>
-                <button class="btn" style="background:#64748b" onclick="limpiarFiltros()">Limpiar</button>
-            </div>
-            <div class="table-container">
-                <table id="tablaHistorialWeb">
-                    <thead>
-                        <tr><th>Fecha</th><th>Operacion</th><th>Producto</th><th>Cantidad</th><th>Referencia</th><th>Saldo Final</th></tr>
-                    </thead>
-                    <tbody id="historialBody"></tbody>
-                </table>
-            </div>
-        </div>
+    <h2>Historial de Movimientos</h2>
+    <div class="filter-bar">
+        <div style="flex:1"><label class="group-label">Desde:</label><input type="date" id="filtroDesde"></div>
+        <div style="flex:1"><label class="group-label">Hasta:</label><input type="date" id="filtroHasta"></div>
+        <button class="btn btn-blue" onclick="aplicarFiltros()">Filtrar Fechas</button>
+        <button class="btn" style="background:#64748b" onclick="limpiarFiltros()">Limpiar</button>
+    </div>
+
+    <p class="text-[10px] text-gray-400 italic mb-2 md:hidden">
+        <i class="fas fa-arrows-alt-v mr-1"></i> Desliza dentro de la lista para ver más registros
+    </p>
+
+    <div class="table-container">
+        <table id="tablaHistorialWeb">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Operacion</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Referencia</th>
+                    <th>Saldo Final</th>
+                </tr>
+            </thead>
+            <tbody id="historialBody"></tbody>
+        </table>
+    </div>
+</div>
     </div>
 </div>
 
