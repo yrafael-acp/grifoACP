@@ -146,19 +146,19 @@
 
 <div id="mainContent">
     <div class="dashboard">
-        <div class="card full-width" style="background: var(--primary); color: white; border:none; display:flex; justify-content:space-between; align-items:center;">
-    <div class="header-content">
+        <div class="header-main full-width">
+    <div class="header-info">
         <img src="logo.png" alt="Logo ACP" class="app-header-logo">
         <div>
-            <h1 style="margin:0; font-size: 1.5rem;">Gestión Corporativa - <span id="displayUser"></span></h1>
-            <span class="sync-indicator">Sistema online | Sinc: <span id="lastUpdate">-</span></span>
+            <h1 style="margin:0; font-size: 1.3rem;">GRIFO ACP - <span id="displayUser"></span></h1>
+            <span style="font-size: 0.7rem; opacity: 0.8;">Sincronizado: <span id="lastUpdate">-</span></span>
         </div>
     </div>
-    <div style="display: flex; align-items: center;">
-        <a href="Saldo_comb.html" class="btn btn-calc">📏 Calculadora Varilla</a>
-        <a href="consumo-flota.html" class="btn btn-flota">🚛 Consumo Flota</a>
-        <button onclick="exportarExcel()" class="btn btn-excel">Exportar Excel</button>
-        <button onclick="logout()" class="btn btn-logout">Salir</button>
+    <div class="header-buttons">
+        <a href="Saldo_comb.html" class="btn btn-calc">📏 Varilla</a>
+        <a href="consumo-flota.html" class="btn btn-flota">🚛 Flota</a>
+        <button onclick="exportarExcel()" class="btn btn-excel">📊 Excel</button>
+        <button onclick="logout()" class="btn btn-logout">🚪 Salir</button>
     </div>
 </div>
 
