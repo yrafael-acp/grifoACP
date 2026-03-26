@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>SISTEMA CORPORATIVO GRIFO ACP</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -77,77 +77,55 @@
         .calc-val { display: block; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
 
         /* --- PARCHE RESPONSIVE (CELULARES) --- */
-        @media (max-width: 768px) {
-            /* 1. Dashboard en una sola columna */
+       @media (max-width: 768px) {
+            body { padding: 10px; } /* Menos margen lateral para ganar espacio */
             .dashboard { grid-template-columns: 1fr; gap: 10px; }
             .full-width { grid-column: span 1; }
-            body { padding: 10px; }
 
-            /* 2. Arreglo del Header (Logo y Título amontonados) */
+            /* EL HEADER: Forzamos el look de tu captura buena */
             .card.full-width[style*="background: var(--primary)"] {
-                flex-direction: column !important; /* Apila logo/titulo sobre botones */
-                align-items: center !important;
-                text-align: center;
-                padding: 15px !important;
-            }
-            .header-content {
-                flex-direction: column; /* Logo arriba, titulo abajo */
-                margin-bottom: 10px;
-            }
-            .app-header-logo {
-                margin-right: 0;
-                margin-bottom: 5px;
-                height: 40px; /* Logo más chico en móvil */
-            }
-            .card.full-width[style*="background: var(--primary)"] h1 {
-                font-size: 1.1rem !important; /* Título más chico */
+                flex-direction: column !important;
+                padding: 12px !important;
+                gap: 8px !important;
             }
 
-            /* 3. Arreglo de los Botones (2x2 y con iconos correctos) */
-            /* Seleccionamos el contenedor de los 4 botones principales */
+            .header-content {
+                justify-content: center;
+                margin-bottom: 5px;
+            }
+
+            .app-header-logo {
+                height: 35px !important; /* Logo más pequeño para que entre el texto */
+                margin-right: 10px !important;
+            }
+
+            .card.full-width[style*="background: var(--primary)"] h1 {
+                font-size: 1rem !important; /* Título pequeño para que no salte de línea */
+                white-space: nowrap; /* Evita que el nombre de usuario mande el título abajo */
+            }
+
+            /* GRILLA DE BOTONES: 2x2 exacto */
             .card.full-width[style*="background: var(--primary)"] > div:last-child {
                 display: grid !important;
-                grid-template-columns: 1fr 1fr; /* Grilla 2x2 */
-                gap: 8px !important;
+                grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+                gap: 6px !important;
                 width: 100%;
-                justify-content: center !important;
+                margin: 0 !important;
             }
-            
-            /* Estilo para los botones dentro de la grilla móvil */
+
             .btn-calc, .btn-flota, .btn-excel, .btn-logout {
-                margin: 0 !important; /* Quita márgenes que descuadran */
-                width: 100%;
-                font-size: 0.75rem !important; /* Texto más chico */
-                padding: 10px 5px !important;
+                margin: 0 !important;
+                padding: 8px 4px !important; /* Botones más chatos para que no ocupen toda la pantalla */
+                font-size: 0.7rem !important;
                 display: flex !important;
-                align-items: center;
                 justify-content: center;
-                gap: 5px; /* Espacio icono-texto */
+                align-items: center;
+                text-align: center;
             }
-            
-            /* Corrección de iconos para que no salgan gigantes o descuadrados */
-            .btn-calc::before { content: "📏 "; font-size: 1rem; }
-            .btn-flota::before { content: "🚛 "; font-size: 1rem; }
-            .btn-excel::before { content: "📊 "; font-size: 1rem; }
-            .btn-logout::before { content: "🚪 "; font-size: 1rem; }
 
-            /* Ocultamos el texto original del icono si ya pusimos el ::before */
-            /* (Esto depende de cómo tengas tus iconos originales, si son texto o <i>) */
-            /* Si son texto directo, déjalo así. Si son <i>, avísame. */
-
-            /* 4. Apilar Monitor de Stock y Resumen */
-            #monitorCard > div[style*="grid-template-columns: 1fr 1fr"] {
-                grid-template-columns: 1fr !important;
-            }
-            .annual-summary { flex-direction: column; gap: 10px; }
-            .filter-bar { flex-direction: column; align-items: stretch; gap: 5px; }
-
-            /* 5. Tablas con scroll horizontal (No se aplastan) */
-            .table-container {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            table { min-width: 600px; } /* Evita que las columnas colapsen */
+            /* Tablas con scroll (Lo que hablamos para que no se vea feo) */
+            .table-container { overflow-x: auto; }
+            table { min-width: 500px; font-size: 0.75rem; }
         }
     </style>
 </head>
