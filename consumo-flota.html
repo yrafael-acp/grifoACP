@@ -93,6 +93,10 @@
                 <button id="btnExcel" onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
                     <i class="fas fa-file-excel"></i>
                 </button>
+
+                <button onclick="logout()" class="bg-red-600 hover:bg-red-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-power-off mr-1"></i> SALIR
+                </button>
             </div>
             <input type="file" id="uploadExcel" accept=".xlsx, .xls" class="hidden" onchange="leerExcel(this)">
         </div>
