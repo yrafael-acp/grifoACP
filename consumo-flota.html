@@ -106,30 +106,29 @@
             <span class="text-[9px] font-bold text-gray-400 uppercase">% Eficiencia</span>
             <p id="resumenEficiencia" class="text-lg font-black text-purple-800">0%</p>
         </div>
-    </div> <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200">
-            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center">
-                <i class="fas fa-chart-bar mr-2 text-blue-600"></i> Consumo por Unidad (Semana Actual)
-            </h3>
-            <div style="height: 300px;">
-                <canvas id="chartConsumo"></canvas>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200 mb-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-2">
+            <div>
+                <h3 class="text-xs font-bold text-red-600 uppercase flex items-center">
+                    <i class="fas fa-satellite-dish mr-2 animate-pulse"></i> Radar de Unidades Sin Consumo
+                </h3>
+                <p id="rangoAuditoria" class="text-[10px] text-gray-400 font-bold italic">Selecciona un periodo para escanear el historial de SAP</p>
+            </div>
+            
+            <div class="flex gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
+                <button id="btnAuditMes" onclick="auditarInactivos('mes')" class="px-5 py-2 text-[10px] font-black rounded-lg hover:bg-white transition-all shadow-sm">ESTE MES</button>
+                <button id="btnAuditAnio" onclick="auditarInactivos('anio')" class="px-5 py-2 text-[10px] font-black rounded-lg hover:bg-white transition-all text-gray-500">TODO EL AÑO</button>
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200">
-    <div class="flex justify-between items-center mb-3">
-        <h3 class="text-xs font-bold text-red-600 uppercase flex items-center">
-            <i class="fas fa-user-slash mr-2"></i> Radar de Inactividad
-        </h3>
-        <div class="flex gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200">
-            <button id="btnAuditMes" onclick="auditarInactivos('mes')" class="px-3 py-1 text-[9px] font-bold rounded-md bg-white shadow-sm text-blue-600 transition-all hover:bg-gray-50">MES</button>
-            <button id="btnAuditAnio" onclick="auditarInactivos('anio')" class="px-3 py-1 text-[9px] font-bold rounded-md text-gray-500 hover:bg-gray-200 transition-all">AÑO</button>
+        <div id="listaInactivos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[400px] overflow-y-auto mt-4 pr-2">
+            <div class="col-span-full text-center py-10 border-2 border-dashed border-gray-100 rounded-2xl">
+                <i class="fas fa-search text-gray-200 text-3xl mb-2"></i>
+                <p class="text-gray-400 text-[11px]">Haz clic en <b>ESTE MES</b> o <b>TODO EL AÑO</b> para detectar unidades sin movimiento.</p>
+            </div>
         </div>
-    </div>
-    <div id="listaInactivos" class="space-y-2 max-h-[300px] overflow-y-auto text-[11px] pr-2">
-        <p class="text-gray-400 italic text-center py-10">Selecciona "MES" o "AÑO" para auditar bajas...</p>
-    </div>
-</div>
     </div>
 
     <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
@@ -1083,49 +1082,45 @@ function actualizarAnalisisGrafico(datos) {
 }
         async function auditarInactivos(rango) {
     const lista = document.getElementById('listaInactivos');
-    const anio = document.getElementById('selectorAnio').value;
-    const btnMes = document.getElementById('btnAuditMes');
-    const btnAnio = document.getElementById('btnAuditAnio');
-
-    // Estilo visual de los botones
-    if(rango === 'mes') {
-        btnMes.className = "px-3 py-1 text-[9px] font-bold rounded-md bg-white shadow-sm text-blue-600";
-        btnAnio.className = "px-3 py-1 text-[9px] font-bold rounded-md text-gray-500 hover:bg-gray-200";
-    } else {
-        btnAnio.className = "px-3 py-1 text-[9px] font-bold rounded-md bg-white shadow-sm text-blue-600";
-        btnMes.className = "px-3 py-1 text-[9px] font-bold rounded-md text-gray-500 hover:bg-gray-200";
-    }
+    const textoRango = document.getElementById('rangoAuditoria');
     
-    lista.innerHTML = `
-        <div class="text-center py-10">
-            <i class="fas fa-satellite-dish fa-spin text-blue-500 text-xl mb-2"></i>
-            <p class="text-blue-600 font-bold text-[10px] uppercase tracking-widest">Escaneando historial ${rango}...</p>
-        </div>`;
+    // Jalamos los valores de tus selectores de arriba
+    const anio = document.getElementById('selectorAnio').value;
+    const fechaSemana = document.getElementById('selectorSemana').value; // YYYY-MM-DD
+    const mesReferencia = fechaSemana.split("-")[1]; // Extrae el mes de la semana elegida
+
+    const nombresMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    
+    if (rango === 'mes') {
+        textoRango.innerText = `Auditando: ${nombresMeses[parseInt(mesReferencia)-1]} ${anio}`;
+    } else {
+        textoRango.innerText = `Auditando: Todo el historial del año ${anio}`;
+    }
+
+    lista.innerHTML = '<div class="col-span-full text-center py-10"><i class="fas fa-spinner fa-spin text-blue-500 text-2xl"></i><p class="text-[10px] font-bold mt-2 text-blue-600">CRUZANDO DATA DE SAP...</p></div>';
 
     try {
-        const res = await fetch(`${WEB_APP_URL}?action=auditar&tipo=${rango}&anio=${anio}`);
+        // Le enviamos el mes exacto de la semana que estás viendo
+        const res = await fetch(`${WEB_APP_URL}?action=auditar&tipo=${rango}&anio=${anio}&mes=${mesReferencia}`);
         const inactivos = await res.json();
 
         if (inactivos.length === 0) {
-            lista.innerHTML = `
-                <div class="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg text-center font-bold">
-                    <i class="fas fa-check-circle mb-1 block text-lg"></i> ¡Toda la flota registra consumos!
-                </div>`;
+            lista.innerHTML = '<div class="col-span-full p-10 text-center text-green-600 font-bold">¡Excelentes noticias! Todas las unidades tienen consumo en este periodo.</div>';
         } else {
             lista.innerHTML = inactivos.map(d => `
-                <div class="flex justify-between items-center p-2.5 bg-red-50 rounded-xl border-l-4 border-red-500 shadow-sm mb-1">
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-red-200 transition-all">
                     <div class="flex flex-col">
-                        <span class="font-black text-gray-800">${d.p}</span>
-                        <span class="text-[9px] text-gray-500 uppercase truncate w-32">${d.r}</span>
+                        <span class="font-black text-gray-800 text-[12px]">${d.p}</span>
+                        <span class="text-[9px] text-gray-500 uppercase truncate w-40">${d.r}</span>
                     </div>
-                    <button onclick="ejecutarBajaMaestro('${d.p}')" class="bg-white text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-[9px] font-black hover:bg-red-600 hover:text-white transition-all shadow-sm">
+                    <button onclick="ejecutarBajaMaestro('${d.p}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-[9px] font-black hover:bg-red-600 hover:text-white transition-all shadow-sm">
                         DAR BAJA
                     </button>
                 </div>
             `).join('');
         }
     } catch (e) {
-        lista.innerHTML = '<p class="text-center py-10 text-red-500 font-bold">Error en la conexión con la nube.</p>';
+        lista.innerHTML = '<p class="col-span-full text-center py-10 text-red-500">Error al conectar con la base de datos.</p>';
     }
 }
     </script>
