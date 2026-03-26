@@ -78,49 +78,76 @@
 
         /* --- PARCHE RESPONSIVE (CELULARES) --- */
         @media (max-width: 768px) {
-            body { padding: 10px; }
-            .dashboard { grid-template-columns: 1fr; }
+            /* 1. Dashboard en una sola columna */
+            .dashboard { grid-template-columns: 1fr; gap: 10px; }
             .full-width { grid-column: span 1; }
-            
-            /* Header ACP Pro */
+            body { padding: 10px; }
+
+            /* 2. Arreglo del Header (Logo y Título amontonados) */
             .card.full-width[style*="background: var(--primary)"] {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 15px;
-                padding: 15px;
+                flex-direction: column !important; /* Apila logo/titulo sobre botones */
+                align-items: center !important;
+                text-align: center;
+                padding: 15px !important;
             }
-            .header-content { flex-direction: column; text-align: center; }
-            .app-header-logo { margin-right: 0; margin-bottom: 5px; height: 40px; }
-            
-            /* Grilla de Botones 2x2 */
-            .card.full-width[style*="background: var(--primary)"] > div:last-child {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr;
-                gap: 8px !important;
+            .header-content {
+                flex-direction: column; /* Logo arriba, titulo abajo */
+                margin-bottom: 10px;
             }
-            .btn-calc, .btn-flota, .btn-logout, .btn-excel {
-                margin: 0 !important;
-                width: 100%;
-                font-size: 0.7rem !important;
-                padding: 10px 2px !important;
+            .app-header-logo {
+                margin-right: 0;
+                margin-bottom: 5px;
+                height: 40px; /* Logo más chico en móvil */
+            }
+            .card.full-width[style*="background: var(--primary)"] h1 {
+                font-size: 1.1rem !important; /* Título más chico */
             }
 
-            /* Monitor de Stock */
+            /* 3. Arreglo de los Botones (2x2 y con iconos correctos) */
+            /* Seleccionamos el contenedor de los 4 botones principales */
+            .card.full-width[style*="background: var(--primary)"] > div:last-child {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr; /* Grilla 2x2 */
+                gap: 8px !important;
+                width: 100%;
+                justify-content: center !important;
+            }
+            
+            /* Estilo para los botones dentro de la grilla móvil */
+            .btn-calc, .btn-flota, .btn-excel, .btn-logout {
+                margin: 0 !important; /* Quita márgenes que descuadran */
+                width: 100%;
+                font-size: 0.75rem !important; /* Texto más chico */
+                padding: 10px 5px !important;
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                gap: 5px; /* Espacio icono-texto */
+            }
+            
+            /* Corrección de iconos para que no salgan gigantes o descuadrados */
+            .btn-calc::before { content: "📏 "; font-size: 1rem; }
+            .btn-flota::before { content: "🚛 "; font-size: 1rem; }
+            .btn-excel::before { content: "📊 "; font-size: 1rem; }
+            .btn-logout::before { content: "🚪 "; font-size: 1rem; }
+
+            /* Ocultamos el texto original del icono si ya pusimos el ::before */
+            /* (Esto depende de cómo tengas tus iconos originales, si son texto o <i>) */
+            /* Si son texto directo, déjalo así. Si son <i>, avísame. */
+
+            /* 4. Apilar Monitor de Stock y Resumen */
             #monitorCard > div[style*="grid-template-columns: 1fr 1fr"] {
                 grid-template-columns: 1fr !important;
             }
-            
-            .annual-summary { flex-direction: column; }
-            .filter-bar { flex-direction: column; align-items: stretch; }
-            
-            /* Tablas con scroll horizontal para que no exploten */
+            .annual-summary { flex-direction: column; gap: 10px; }
+            .filter-bar { flex-direction: column; align-items: stretch; gap: 5px; }
+
+            /* 5. Tablas con scroll horizontal (No se aplastan) */
             .table-container {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
             }
-            table { min-width: 600px; } /* Evita que las columnas se aplasten */
-
-            .calc-grid { grid-template-columns: 1fr; }
+            table { min-width: 600px; } /* Evita que las columnas colapsen */
         }
     </style>
 </head>
@@ -146,19 +173,19 @@
 
 <div id="mainContent">
     <div class="dashboard">
-        <div class="header-main full-width">
-    <div class="header-info">
+        <div class="card full-width" style="background: var(--primary); color: white; border:none; display:flex; justify-content:space-between; align-items:center;">
+    <div class="header-content">
         <img src="logo.png" alt="Logo ACP" class="app-header-logo">
         <div>
-            <h1 style="margin:0; font-size: 1.3rem;">GRIFO ACP - <span id="displayUser"></span></h1>
-            <span style="font-size: 0.7rem; opacity: 0.8;">Sincronizado: <span id="lastUpdate">-</span></span>
+            <h1 style="margin:0; font-size: 1.5rem;">Gestión Corporativa - <span id="displayUser"></span></h1>
+            <span class="sync-indicator">Sistema online | Sinc: <span id="lastUpdate">-</span></span>
         </div>
     </div>
-    <div class="header-buttons">
-        <a href="Saldo_comb.html" class="btn btn-calc">📏 Varilla</a>
-        <a href="consumo-flota.html" class="btn btn-flota">🚛 Flota</a>
-        <button onclick="exportarExcel()" class="btn btn-excel">📊 Excel</button>
-        <button onclick="logout()" class="btn btn-logout">🚪 Salir</button>
+    <div style="display: flex; align-items: center;">
+        <a href="Saldo_comb.html" class="btn btn-calc">📏 Calculadora Varilla</a>
+        <a href="consumo-flota.html" class="btn btn-flota">🚛 Consumo Flota</a>
+        <button onclick="exportarExcel()" class="btn btn-excel">Exportar Excel</button>
+        <button onclick="logout()" class="btn btn-logout">Salir</button>
     </div>
 </div>
 
