@@ -21,13 +21,14 @@
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: auto; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--accent); position: relative; }
         .full-width { grid-column: span 2; }
+        
+        /* BOTONES */
         .btn { cursor: pointer; padding: 12px; border: none; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; text-align: center; text-decoration: none; display: inline-block; }
         .btn-blue { background: var(--accent); }
         .btn-green { background: var(--success); }
         .btn-excel { background: #107c41; }
         .btn-logout { background: var(--danger); font-size: 0.8rem; padding: 8px 15px; margin-left: 10px; }
         .btn-flota { background: var(--acp-green); font-size: 0.85rem; padding: 8px 15px; margin-right: 10px; }
-        /* Estilo nuevo para botón calculadora */
         .btn-calc { background: #6366f1; font-size: 0.85rem; padding: 8px 15px; margin-right: 10px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
@@ -56,7 +57,7 @@
 
         .admin-only { display: none; }
 
-        /* NUEVOS ESTILOS SEGREGADO */
+        /* SEGREGADO */
         .segregated-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .seg-item { text-align: left; }
         .seg-item label { font-size: 0.65rem; font-weight: bold; color: #64748b; text-transform: uppercase; display: block; }
@@ -67,7 +68,7 @@
         .sim-box { background: #fdfcfe; border: 1px dashed var(--accent); padding: 15px; border-radius: 10px; margin-top: 20px; }
         .sim-res { font-weight: bold; color: var(--diesel); font-size: 1.1rem; }
 
-        /* ESTILOS MODAL CALCULADORA */
+        /* CALCULADORA */
         #calcModal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
         .modal-content { background: white; margin: 10% auto; padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
         .close-btn { float: right; font-size: 24px; cursor: pointer; color: #64748b; }
@@ -75,79 +76,51 @@
         .calc-res-box { background: #f1f5f9; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #e2e8f0; }
         .calc-val { display: block; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
 
-        /* --- NUEVO CÓDIGO RESPONSIVE (MÓVILES) --- */
+        /* --- PARCHE RESPONSIVE (CELULARES) --- */
         @media (max-width: 768px) {
-            /* Forzar una sola columna en el dashboard */
+            body { padding: 10px; }
             .dashboard { grid-template-columns: 1fr; }
             .full-width { grid-column: span 1; }
             
-            /* Ajustar la cabecera (logo, titulo) */
+            /* Header ACP Pro */
             .card.full-width[style*="background: var(--primary)"] {
                 flex-direction: column !important;
                 align-items: stretch !important;
                 gap: 15px;
-                text-align: center;
+                padding: 15px;
             }
-            .header-content {
-                flex-direction: column;
-            }
-            .app-header-logo {
-                margin-right: 0;
-                margin-bottom: 10px;
-            }
+            .header-content { flex-direction: column; text-align: center; }
+            .app-header-logo { margin-right: 0; margin-bottom: 5px; height: 40px; }
             
-            /* Envolver y acomodar los botones superiores en grilla para que no se superpongan */
+            /* Grilla de Botones 2x2 */
             .card.full-width[style*="background: var(--primary)"] > div:last-child {
-                flex-wrap: wrap !important;
-                justify-content: center !important;
-                gap: 10px;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px !important;
             }
             .btn-calc, .btn-flota, .btn-logout, .btn-excel {
                 margin: 0 !important;
-                flex: 1 1 calc(50% - 10px); /* Ocupan mitad de pantalla */
-                box-sizing: border-box;
-                font-size: 0.8rem;
-                padding: 10px 5px;
+                width: 100%;
+                font-size: 0.7rem !important;
+                padding: 10px 2px !important;
             }
 
-            /* Apilar tarjetas de stock central (Diesel y Gasohol) */
+            /* Monitor de Stock */
             #monitorCard > div[style*="grid-template-columns: 1fr 1fr"] {
                 grid-template-columns: 1fr !important;
             }
             
-            /* Apilar resumen anual */
-            .annual-summary {
-                flex-direction: column;
-            }
+            .annual-summary { flex-direction: column; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
             
-            /* Apilar filtros del historial (fechas) */
-            .filter-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .filter-bar > div {
-                width: 100%;
-            }
-            
-            /* Darle scroll horizontal a las tablas para evitar que se aplasten */
-            .table-container, .card > table {
-                display: block;
+            /* Tablas con scroll horizontal para que no exploten */
+            .table-container {
                 overflow-x: auto;
-                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
             }
-            
-            /* Ajustar modal de calculadora a una columna */
-            .calc-grid {
-                grid-template-columns: 1fr;
-            }
-            .calc-grid > div {
-                grid-column: span 1 !important;
-            }
+            table { min-width: 600px; } /* Evita que las columnas se aplasten */
 
-            /* Apilar botones de registro de stock de filtros */
-            #registroCard > div[style*="display:flex; gap:10px;"] {
-                flex-direction: column;
-            }
+            .calc-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -174,20 +147,20 @@
 <div id="mainContent">
     <div class="dashboard">
         <div class="card full-width" style="background: var(--primary); color: white; border:none; display:flex; justify-content:space-between; align-items:center;">
-            <div class="header-content">
-                <img src="logo.png" alt="Logo ACP" class="app-header-logo">
-                <div>
-                    <h1 style="margin:0; font-size: 1.5rem;">Gestión Corporativa - <span id="displayUser"></span></h1>
-                    <span class="sync-indicator">Sistema online | Sinc: <span id="lastUpdate">-</span></span>
-                </div>
-            </div>
-            <div style="display: flex; align-items: center;">
-                <a href="Saldo_comb.html" class="btn btn-calc">📏 Calculadora Varilla</a>
-                <a href="consumo-flota.html" class="btn btn-flota">🚛 Consumo Flota</a>
-                <button onclick="exportarExcel()" class="btn btn-excel">Exportar Excel</button>
-                <button onclick="logout()" class="btn btn-logout">Salir</button>
-            </div>
+    <div class="header-content">
+        <img src="logo.png" alt="Logo ACP" class="app-header-logo">
+        <div>
+            <h1 style="margin:0; font-size: 1.5rem;">Gestión Corporativa - <span id="displayUser"></span></h1>
+            <span class="sync-indicator">Sistema online | Sinc: <span id="lastUpdate">-</span></span>
         </div>
+    </div>
+    <div style="display: flex; align-items: center;">
+        <a href="Saldo_comb.html" class="btn btn-calc">📏 Calculadora Varilla</a>
+        <a href="consumo-flota.html" class="btn btn-flota">🚛 Consumo Flota</a>
+        <button onclick="exportarExcel()" class="btn btn-excel">Exportar Excel</button>
+        <button onclick="logout()" class="btn btn-logout">Salir</button>
+    </div>
+</div>
 
         <div class="card admin-only" id="registroCard">
             <h2>Registro de Movimiento</h2>
