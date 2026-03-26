@@ -6,6 +6,7 @@
     <title>ACP - CONTROL DE FLOTA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .bg-acp { background-color: #007d32; }
@@ -88,58 +89,76 @@
 </header>
 
     <main class="max-w-[1580px] mx-auto p-3">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-blue-600 text-center">
-                <span class="text-[9px] font-bold text-gray-400 uppercase">Gln Asignado</span>
-                <p id="resumenAsignado" class="text-lg font-black text-blue-900">0.00</p>
-            </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-orange-500 text-center">
-                <span class="text-[9px] font-bold text-gray-400 uppercase">Gln Consumido</span>
-                <p id="resumenConsumido" class="text-lg font-black text-orange-600">0.00</p>
-            </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-green-600 text-center">
-                <span class="text-[9px] font-bold text-gray-400 uppercase">Saldo Disp.</span>
-                <p id="resumenSaldo" class="text-lg font-black text-green-700">0.00</p>
-            </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-purple-600 text-center">
-                <span class="text-[9px] font-bold text-gray-400 uppercase">% Eficiencia</span>
-                <p id="resumenEficiencia" class="text-lg font-black text-purple-800">0%</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-blue-600 text-center">
+            <span class="text-[9px] font-bold text-gray-400 uppercase">Gln Asignado</span>
+            <p id="resumenAsignado" class="text-lg font-black text-blue-900">0.00</p>
+        </div>
+        <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-orange-500 text-center">
+            <span class="text-[9px] font-bold text-gray-400 uppercase">Gln Consumido</span>
+            <p id="resumenConsumido" class="text-lg font-black text-orange-600">0.00</p>
+        </div>
+        <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-green-600 text-center">
+            <span class="text-[9px] font-bold text-gray-400 uppercase">Saldo Disp.</span>
+            <p id="resumenSaldo" class="text-lg font-black text-green-700">0.00</p>
+        </div>
+        <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-purple-600 text-center">
+            <span class="text-[9px] font-bold text-gray-400 uppercase">% Eficiencia</span>
+            <p id="resumenEficiencia" class="text-lg font-black text-purple-800">0%</p>
+        </div>
+    </div> <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200">
+            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center">
+                <i class="fas fa-chart-bar mr-2 text-blue-600"></i> Consumo por Unidad (Semana Actual)
+            </h3>
+            <div style="height: 300px;">
+                <canvas id="chartConsumo"></canvas>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-            <div class="p-3 border-b bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-3">
-                <div class="relative w-full md:w-96">
-                    <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                    <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa, responsable o área..." class="pl-9 pr-4 py-2 border rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-green-500">
-                </div>
-                <div id="indicadorCarga" class="hidden text-green-600 font-bold animate-pulse text-[10px]">
-                    <i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO DATOS...
-                </div>
-            </div>
-            <div class="table-container">
-                <table class="w-full text-left text-xs border-collapse" id="tablaFlota">
-                    <thead class="bg-gray-800 text-white sticky top-0 z-20">
-                        <tr>
-                            <th class="p-3">PLACA</th>
-                            <th class="p-3">RESPONSABLE / ÁREA</th>
-                            <th class="p-3 text-center bg-blue-900">L</th>
-                            <th class="p-3 text-center bg-blue-900">M</th>
-                            <th class="p-3 text-center bg-blue-900">Mi</th>
-                            <th class="p-3 text-center bg-blue-900">J</th>
-                            <th class="p-3 text-center bg-blue-900">V</th>
-                            <th class="p-3 text-center bg-blue-900">S</th>
-                            <th class="p-3 text-center bg-blue-900">D</th>
-                            <th class="p-3 text-center border-l bg-gray-700">ASIG.</th>
-                            <th class="p-3 text-center bg-orange-700">CONS.</th>
-                            <th class="p-3 text-center bg-green-700">SALDO</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cuerpoTabla" class="divide-y divide-gray-200 text-gray-700"></tbody>
-                </table>
+        <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200">
+            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center text-red-600">
+                <i class="fas fa-user-slash mr-2"></i> Alerta: Unidades sin Consumo
+            </h3>
+            <div id="listaInactivos" class="space-y-2 max-h-[300px] overflow-y-auto text-[11px]">
+                <p class="text-gray-400 italic text-center py-10">Analizando actividad de la flota...</p>
             </div>
         </div>
-    </main>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+        <div class="p-3 border-b bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-3">
+            <div class="relative w-full md:w-96">
+                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+                <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar placa, responsable o área..." class="pl-9 pr-4 py-2 border rounded-lg text-sm w-full outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <div id="indicadorCarga" class="hidden text-green-600 font-bold animate-pulse text-[10px]">
+                <i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO DATOS...
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="w-full text-left text-xs border-collapse" id="tablaFlota">
+                <thead class="bg-gray-800 text-white sticky top-0 z-20">
+                    <tr>
+                        <th class="p-3">PLACA</th>
+                        <th class="p-3">RESPONSABLE / ÁREA</th>
+                        <th class="p-3 text-center bg-blue-900">L</th>
+                        <th class="p-3 text-center bg-blue-900">M</th>
+                        <th class="p-3 text-center bg-blue-900">Mi</th>
+                        <th class="p-3 text-center bg-blue-900">J</th>
+                        <th class="p-3 text-center bg-blue-900">V</th>
+                        <th class="p-3 text-center bg-blue-900">S</th>
+                        <th class="p-3 text-center bg-blue-900">D</th>
+                        <th class="p-3 text-center border-l bg-gray-700">ASIG.</th>
+                        <th class="p-3 text-center bg-orange-700">CONS.</th>
+                        <th class="p-3 text-center bg-green-700">SALDO</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTabla" class="divide-y divide-gray-200 text-gray-700"></tbody>
+            </table>
+        </div>
+    </div>
+</main>
 
     <div id="modalRegistro" class="modal">
         <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[450px] overflow-hidden">
@@ -594,8 +613,8 @@ function actualizarEtiquetaEstado() {
     });
 
     actualizarResumen(tA, tC);
+    actualizarAnalisisGrafico(datos); 
 }
-
         function actualizarResumen(tA, tC) {
             document.getElementById('resumenAsignado').innerText = tA.toFixed(2);
             document.getElementById('resumenConsumido').innerText = tC.toFixed(2);
@@ -1012,6 +1031,48 @@ async function ejecutarSincronizacionRango() {
         alert("Error al conectar con la nube.");
     } finally {
         ind.classList.add('hidden');
+    }
+}
+        let miGrafico = null;
+
+function actualizarAnalisisGrafico(datos) {
+    const ctx = document.getElementById('chartConsumo').getContext('2d');
+    
+    // Filtramos solo los que tienen consumo para el gráfico
+    const conConsumo = datos.filter(d => d.totalGrupo > 0).sort((a,b) => b.totalGrupo - a.totalGrupo).slice(0, 10);
+    const sinConsumo = datos.filter(d => d.totalGrupo === 0);
+
+    // 1. DIBUJAR GRÁFICO
+    if (miGrafico) miGrafico.destroy();
+    miGrafico = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: conConsumo.map(d => d.p[0]),
+            datasets: [{
+                label: 'Galones Consumidos',
+                data: conConsumo.map(d => d.totalGrupo),
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderRadius: 5
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // 2. MOSTRAR INACTIVOS (Para que les des de baja)
+    const lista = document.getElementById('listaInactivos');
+    if (sinConsumo.length === 0) {
+        lista.innerHTML = '<div class="p-4 text-center text-green-600 font-bold">¡Todas las unidades están operativas!</div>';
+    } else {
+        lista.innerHTML = sinConsumo.map(d => `
+            <div class="flex justify-between items-center p-2 bg-red-50 rounded border-l-4 border-red-500">
+                <span><span class="font-bold">${d.p[0]}</span> - ${d.r}</span>
+                <button onclick="ejecutarBajaMaestro('${d.p[0]}')" class="text-red-600 hover:underline font-bold">DAR BAJA</button>
+            </div>
+        `).join('');
     }
 }
     </script>
