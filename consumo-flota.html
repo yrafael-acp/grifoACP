@@ -117,13 +117,19 @@
         </div>
 
         <div class="bg-white p-4 rounded-xl shadow-md border border-gray-200">
-            <h3 class="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center text-red-600">
-                <i class="fas fa-user-slash mr-2"></i> Alerta: Unidades sin Consumo
-            </h3>
-            <div id="listaInactivos" class="space-y-2 max-h-[300px] overflow-y-auto text-[11px]">
-                <p class="text-gray-400 italic text-center py-10">Analizando actividad de la flota...</p>
-            </div>
+    <div class="flex justify-between items-center mb-3">
+        <h3 class="text-xs font-bold text-red-600 uppercase flex items-center">
+            <i class="fas fa-user-slash mr-2"></i> Radar de Inactividad
+        </h3>
+        <div class="flex gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200">
+            <button id="btnAuditMes" onclick="auditarInactivos('mes')" class="px-3 py-1 text-[9px] font-bold rounded-md bg-white shadow-sm text-blue-600 transition-all hover:bg-gray-50">MES</button>
+            <button id="btnAuditAnio" onclick="auditarInactivos('anio')" class="px-3 py-1 text-[9px] font-bold rounded-md text-gray-500 hover:bg-gray-200 transition-all">AÑO</button>
         </div>
+    </div>
+    <div id="listaInactivos" class="space-y-2 max-h-[300px] overflow-y-auto text-[11px] pr-2">
+        <p class="text-gray-400 italic text-center py-10">Selecciona "MES" o "AÑO" para auditar bajas...</p>
+    </div>
+</div>
     </div>
 
     <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
@@ -1073,6 +1079,53 @@ function actualizarAnalisisGrafico(datos) {
                 <button onclick="ejecutarBajaMaestro('${d.p[0]}')" class="text-red-600 hover:underline font-bold">DAR BAJA</button>
             </div>
         `).join('');
+    }
+}
+        async function auditarInactivos(rango) {
+    const lista = document.getElementById('listaInactivos');
+    const anio = document.getElementById('selectorAnio').value;
+    const btnMes = document.getElementById('btnAuditMes');
+    const btnAnio = document.getElementById('btnAuditAnio');
+
+    // Estilo visual de los botones
+    if(rango === 'mes') {
+        btnMes.className = "px-3 py-1 text-[9px] font-bold rounded-md bg-white shadow-sm text-blue-600";
+        btnAnio.className = "px-3 py-1 text-[9px] font-bold rounded-md text-gray-500 hover:bg-gray-200";
+    } else {
+        btnAnio.className = "px-3 py-1 text-[9px] font-bold rounded-md bg-white shadow-sm text-blue-600";
+        btnMes.className = "px-3 py-1 text-[9px] font-bold rounded-md text-gray-500 hover:bg-gray-200";
+    }
+    
+    lista.innerHTML = `
+        <div class="text-center py-10">
+            <i class="fas fa-satellite-dish fa-spin text-blue-500 text-xl mb-2"></i>
+            <p class="text-blue-600 font-bold text-[10px] uppercase tracking-widest">Escaneando historial ${rango}...</p>
+        </div>`;
+
+    try {
+        const res = await fetch(`${WEB_APP_URL}?action=auditar&tipo=${rango}&anio=${anio}`);
+        const inactivos = await res.json();
+
+        if (inactivos.length === 0) {
+            lista.innerHTML = `
+                <div class="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg text-center font-bold">
+                    <i class="fas fa-check-circle mb-1 block text-lg"></i> ¡Toda la flota registra consumos!
+                </div>`;
+        } else {
+            lista.innerHTML = inactivos.map(d => `
+                <div class="flex justify-between items-center p-2.5 bg-red-50 rounded-xl border-l-4 border-red-500 shadow-sm mb-1">
+                    <div class="flex flex-col">
+                        <span class="font-black text-gray-800">${d.p}</span>
+                        <span class="text-[9px] text-gray-500 uppercase truncate w-32">${d.r}</span>
+                    </div>
+                    <button onclick="ejecutarBajaMaestro('${d.p}')" class="bg-white text-red-600 border border-red-200 px-3 py-1.5 rounded-lg text-[9px] font-black hover:bg-red-600 hover:text-white transition-all shadow-sm">
+                        DAR BAJA
+                    </button>
+                </div>
+            `).join('');
+        }
+    } catch (e) {
+        lista.innerHTML = '<p class="text-center py-10 text-red-500 font-bold">Error en la conexión con la nube.</p>';
     }
 }
     </script>
