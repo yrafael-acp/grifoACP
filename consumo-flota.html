@@ -57,7 +57,7 @@
             <span id="estadoSemana" class="text-[10px] font-bold px-2 py-1 rounded-lg"></span>
             
             <div class="flex flex-wrap justify-center gap-2">
-                <a href="Saldo_comb.html" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                <a id="btnCalcFlota" href="Saldo_comb.html" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-calculator mr-1"></i> CALCULADORA VARILLA
                 </a>
 
@@ -82,8 +82,8 @@
                     <div id="contenedorAdmin" class="flex gap-2"></div>
                 </button>
 
-                <button id="btnCerrar" onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                    <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
+                <button id="btnCerrarAdmin" onclick="irAPaginaPrincipal()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center" style="display:none;">
+                    <i class="fas fa-home mr-1"></i> VOLVER A GESTIÓN
                 </button>
 
                 <button id="btnLimpiar" onclick="limpiarValesManuales()" title="Limpiar Vales Manuales" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
@@ -94,7 +94,7 @@
                     <i class="fas fa-file-excel"></i>
                 </button>
 
-                <button onclick="logout()" class="bg-red-600 hover:bg-red-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                <button id="btnSalirFlota" onclick="logout()" class="bg-red-600 hover:bg-red-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-power-off mr-1"></i> SALIR
                 </button>
             </div>
@@ -380,7 +380,7 @@
         let lunesReferencia = new Date();
         
        window.onload = async () => {
-    const rol = sessionStorage.getItem('rolGrifo');
+    const rol = sessionStorage.getItem('rolGrifo'); // Jalamos tu rango de la sesión
     const anioActual = new Date().getFullYear();
     
     // 1. Poblamos los selectores primero (Importante para el orden)
@@ -395,7 +395,21 @@
         lunesReferencia = getLunesActual(new Date());
     }
 
-    // 3. Aplicamos las restricciones de Operador
+    // --- EL PARCHE PARA ADMIN (Tus cambios solicitados) ---
+    const btnCalc = document.getElementById('btnCalcFlota'); // ID de tu calculadora
+    const btnSalir = document.getElementById('btnSalirFlota'); // ID de tu botón salir
+    const btnCerrar = document.getElementById('btnCerrarAdmin'); // ID de tu nuevo botón Cerrar
+
+    if (rol === "ADMIN") {
+        console.log("⚡ Modo Admin: Limpiando herramientas innecesarias...");
+        if (btnCalc) btnCalc.style.display = 'none';   // Vuela calculadora para ti
+        if (btnSalir) btnSalir.style.display = 'none'; // Vuela botón salir para ti
+        if (btnCerrar) btnCerrar.style.display = 'flex'; // Asegura que "Cerrar" esté visible
+    } else {
+        if (btnCerrar) btnCerrar.style.display = 'none'; // El operador no vuelve al búnker
+    }
+
+    // 3. Aplicamos las restricciones de Operador (Tu código original)
     if (rol === "READ") {
         console.log("🚫 Modo Operador: Limpiando herramientas...");
         
@@ -406,7 +420,7 @@
             if (el) el.style.display = 'none';
         });
 
-        // Ocultar Radar de Bajas (Imagen 5ad11e.png)
+        // Ocultar Radar de Bajas
         const paneles = document.querySelectorAll('main > div');
         paneles.forEach(p => {
             if (p.innerHTML.includes("Radar de Unidades Sin Consumo") || p.id === "listaInactivos") {
@@ -430,6 +444,11 @@
         sincronizarDesdeNube();
     }, 400);
 };
+
+// No olvides esta función para que el botón CERRAR funcione
+function irAPaginaPrincipal() {
+    window.location.href = 'index.html'; // Te manda a Gestión Corporativa
+}
 
 // --- FUNCIÓN PARA CERRAR SESIÓN ---
 function logout() {
