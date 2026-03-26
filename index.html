@@ -75,80 +75,93 @@
         .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
         .calc-res-box { background: #f1f5f9; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #e2e8f0; }
         .calc-val { display: block; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
-
-        /* --- PARCHE RESPONSIVE (CELULARES) --- */
+        
+       /* --- AJUSTE GLOBAL RESPONSIVE PRO --- */
         @media (max-width: 768px) {
-            body { padding: 10px; } /* Menos aire a los lados */
-            .dashboard { grid-template-columns: 1fr; gap: 10px; }
-            .full-width { grid-column: span 1; }
+            /* 1. Reset general para que nada se desborde */
+            body { 
+                padding: 10px !important; 
+                overflow-x: hidden !important; /* Prohibido el desborde horizontal */
+                width: 100vw;
+                box-sizing: border-box;
+            }
+            .dashboard { 
+                grid-template-columns: 1fr !important; 
+                gap: 15px !important;
+                width: 100% !important;
+            }
+            .full-width { grid-column: span 1 !important; }
 
-            /* EL HEADER: Forzamos el look de tu perspectiva buena */
+            /* 2. HEADER: Centrado Total */
             .card.full-width[style*="background: var(--primary)"] {
-                flex-direction: column !important; /* Apila logo/titulo sobre botones */
-                align-items: center !important; /* Centra todo horizontalmente */
+                flex-direction: column !important;
+                align-items: center !important; /* CENTRA TODO EL CONTENIDO */
                 justify-content: center !important;
-                padding: 15px !important;
-                gap: 10px !important; /* Separación fija logo-botones */
+                padding: 20px 10px !important;
+                width: 100% !important;
+                box-sizing: border-box;
             }
-
             .header-content {
-                display: flex !important;
-                flex-direction: column !important; /* Logo arriba, titulo abajo */
-                align-items: center !important; /* Centra logo y titulo entre ellos */
-                margin-bottom: 5px;
-                width: 100%;
+                flex-direction: column !important;
+                align-items: center !important; /* Centra logo y texto */
+                text-align: center !important;
+                margin-right: 0 !important;
+                margin-bottom: 15px !important;
             }
-
             .app-header-logo {
-                height: 40px !important; /* Logo más compacto */
-                margin-right: 0 !important; /* Quita margen que lo descentraba */
-                margin-bottom: 5px; /* Separa logo del título */
+                margin: 0 0 10px 0 !important;
+                height: 45px !important;
             }
 
-            .card.full-width[style*="background: var(--primary)"] h1 {
-                font-size: 1.1rem !important; /* Título pequeño y pro */
-                margin: 0 !important;
-                text-align: center;
-                white-space: nowrap; /* Título en una sola línea */
-            }
-
-            .sync-indicator {
-                font-size: 0.65rem !important; /* Sincro mini */
-                text-align: center;
-                width: 100%;
-                display: block;
-            }
-
-            /* GRILLA DE BOTONES: 2x2 Milimétrico */
-            /* Seleccionamos el contenedor de los 4 botones principales */
+            /* 3. BOTONES: Grilla 2x2 Centrada */
             .card.full-width[style*="background: var(--primary)"] > div:last-child {
                 display: grid !important;
-                grid-template-columns: 1fr 1fr; /* Dos columnas EXACTAMENTE iguales */
-                gap: 8px !important;
-                width: 100% !important; /* Ocupa todo el ancho disponible */
-                max-width: 320px; /* Limita ancho para que no se estiren feo en pantallas grandes */
-                justify-content: center !important;
-                margin: 0 auto !important; /* Centra la grilla completa */
+                grid-template-columns: 1fr 1fr !important; /* Dos columnas iguales */
+                gap: 10px !important;
+                width: 100% !important;
+                max-width: 300px; /* Para que no se estiren demasiado */
+                margin: 0 auto !important; /* CENTRA LA GRILLA */
             }
-
             .btn-calc, .btn-flota, .btn-excel, .btn-logout {
-                margin: 0 !important; /* Quita márgenes externos */
-                padding: 10px 4px !important; /* Botones chatos y compactos */
-                font-size: 0.75rem !important; /* Texto claro pero pequeño */
-                border-radius: 8px !important;
+                margin: 0 !important;
+                font-size: 0.75rem !important;
+                padding: 12px 5px !important;
+                width: 100% !important;
                 display: flex !important;
                 justify-content: center;
                 align-items: center;
-                text-align: center;
-                gap: 5px; /* Espacio icono-texto */
             }
 
-            /* Tablas con scroll (Mantenemos esto que sí funcionaba) */
+            /* 4. MONITOR DE STOCK: Apilado para que no ensanche la pantalla */
+            #monitorCard > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important; /* Uno debajo del otro */
+                width: 100% !important;
+            }
+            .segregated-box {
+                grid-template-columns: 1fr 1fr !important; /* Esto sí puede ir 2x2 */
+            }
+
+            /* 5. TABLAS Y FILTROS: Scroll para que no empujen el ancho */
             .table-container {
-                overflow-x: auto;
+                width: 100% !important;
+                overflow-x: auto !important; /* Scroll horizontal si la tabla es grande */
                 -webkit-overflow-scrolling: touch;
             }
-            table { min-width: 500px; font-size: 0.8rem; }
+            table {
+                min-width: 500px !important; /* Mantiene la tabla legible */
+            }
+            .filter-bar {
+                flex-direction: column !important;
+                align-items: stretch !important;
+            }
+            .annual-summary {
+                flex-direction: column !important;
+            }
+            
+            /* Ajuste para que los inputs no se salgan */
+            input, select {
+                width: 100% !important;
+            }
         }
     </style>
 </head>
