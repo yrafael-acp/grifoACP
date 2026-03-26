@@ -1084,43 +1084,74 @@ function actualizarAnalisisGrafico(datos) {
     const lista = document.getElementById('listaInactivos');
     const textoRango = document.getElementById('rangoAuditoria');
     
-    // Jalamos los valores de tus selectores de arriba
+    // 1. Capturamos valores de los selectores
     const anio = document.getElementById('selectorAnio').value;
-    const fechaSemana = document.getElementById('selectorSemana').value; // YYYY-MM-DD
-    const mesReferencia = fechaSemana.split("-")[1]; // Extrae el mes de la semana elegida
+    const fechaSemana = document.getElementById('selectorSemana').value; 
+    const mesReferencia = fechaSemana.split("-")[1]; 
 
     const nombresMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     
+    // 2. Mostramos el rango exacto en el subtítulo
     if (rango === 'mes') {
         textoRango.innerText = `Auditando: ${nombresMeses[parseInt(mesReferencia)-1]} ${anio}`;
     } else {
         textoRango.innerText = `Auditando: Todo el historial del año ${anio}`;
     }
 
-    lista.innerHTML = '<div class="col-span-full text-center py-10"><i class="fas fa-spinner fa-spin text-blue-500 text-2xl"></i><p class="text-[10px] font-bold mt-2 text-blue-600">CRUZANDO DATA DE SAP...</p></div>';
+    // 3. Animación de carga
+    lista.innerHTML = `
+        <div class="col-span-full text-center py-10">
+            <i class="fas fa-satellite-dish fa-spin text-blue-500 text-2xl mb-2"></i>
+            <p class="text-[10px] font-bold text-blue-600 tracking-widest uppercase">Escaneando historial en SAP...</p>
+        </div>`;
 
     try {
-        // Le enviamos el mes exacto de la semana que estás viendo
+        // 4. Petición al servidor (Pasamos acción, tipo, año y mes)
         const res = await fetch(`${WEB_APP_URL}?action=auditar&tipo=${rango}&anio=${anio}&mes=${mesReferencia}`);
         const inactivos = await res.json();
 
         if (inactivos.length === 0) {
-            lista.innerHTML = '<div class="col-span-full p-10 text-center text-green-600 font-bold">¡Excelentes noticias! Todas las unidades tienen consumo en este periodo.</div>';
-        } else {
-            lista.innerHTML = inactivos.map(d => `
-                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-red-200 transition-all">
-                    <div class="flex flex-col">
-                        <span class="font-black text-gray-800 text-[12px]">${d.p}</span>
-                        <span class="text-[9px] text-gray-500 uppercase truncate w-40">${d.r}</span>
+            lista.innerHTML = `
+                <div class="col-span-full p-10 text-center">
+                    <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 text-green-600 rounded-full mb-3">
+                        <i class="fas fa-check-double text-xl"></i>
                     </div>
-                    <button onclick="ejecutarBajaMaestro('${d.p}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-[9px] font-black hover:bg-red-600 hover:text-white transition-all shadow-sm">
+                    <p class="text-green-700 font-bold text-sm">¡Flota al 100%!</p>
+                    <p class="text-gray-400 text-[10px]">Todas las unidades registran consumos en este periodo.</p>
+                </div>`;
+        } else {
+            // 5. Renderizado de la lista con Indicadores de Alta/Baja
+            lista.innerHTML = inactivos.map(d => {
+                // Si la fecha de alta contiene "/26", la pintamos azul por ser nueva
+                const esNueva = d.alta && d.alta.includes("/26");
+                const badgeAlta = esNueva ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500';
+
+                return `
+                <div class="flex justify-between items-center p-3 bg-white rounded-xl border border-gray-100 shadow-sm hover:border-red-200 hover:shadow-md transition-all">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="font-black text-gray-900 text-[12px]">${d.p}</span>
+                            <span class="px-1.5 py-0.5 rounded text-[8px] font-bold ${badgeAlta}">
+                                ALTA: ${d.alta}
+                            </span>
+                            ${d.baja ? `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-red-100 text-red-700">BAJA: ${d.baja}</span>` : ''}
+                        </div>
+                        <span class="text-[10px] text-gray-400 font-medium uppercase truncate w-44">
+                            <i class="fas fa-user text-[8px] mr-1"></i>${d.r}
+                        </span>
+                    </div>
+                    <button onclick="ejecutarBajaMaestro('${d.p}')" class="bg-red-50 text-red-600 px-3 py-2 rounded-lg text-[9px] font-black hover:bg-red-600 hover:text-white transition-all shadow-sm">
                         DAR BAJA
                     </button>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
     } catch (e) {
-        lista.innerHTML = '<p class="col-span-full text-center py-10 text-red-500">Error al conectar con la base de datos.</p>';
+        lista.innerHTML = `
+            <div class="col-span-full text-center py-10 text-red-500">
+                <i class="fas fa-exclamation-triangle text-xl mb-1"></i>
+                <p class="text-[10px] font-bold">Error al conectar con la base de datos.</p>
+            </div>`;
     }
 }
     </script>
