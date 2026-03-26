@@ -567,20 +567,21 @@ async function saveNewPassword() {
 
 function startSession(user) {
     currentUser = user;
+    const rol = USERS[user];
+    
     sessionStorage.setItem('sessionGrifo', user);
+    sessionStorage.setItem('rolGrifo', rol);
+
+    if (rol === "READ") {
+        console.log("🚀 Operador detectado. Destino: Consumo Flota.");
+        window.location.href = "consumo-flota.html"; 
+        return; 
+    }
+    
+    // El ADMIN sigue entrando a su Dashboard principal
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('mainContent').style.display = 'block';
-    document.getElementById('displayUser').innerText = user;
-
-    if (USERS[user] === "ADMIN") {
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-        document.getElementById('thAccion').style.display = 'table-cell';
-    } else {
-        document.getElementById('registroCard').style.display = 'none';
-        document.getElementById('monitorCard').style.gridColumn = "span 2";
-        document.getElementById('thAccion').style.display = 'none';
-    }
-    cargarDatos();
+    // ... resto del código
 }
 
 function logout() {
