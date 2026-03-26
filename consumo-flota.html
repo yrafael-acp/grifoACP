@@ -69,6 +69,9 @@
                 <input type="file" id="uploadExcel" accept=".xlsx, .xls" class="hidden" onchange="leerExcel(this)">
             </div>
         </div>
+        <button onclick="abrirModalRango()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+    <i class="fas fa-calendar-alt mr-1"></i> RANGO SAP
+</button>
     </header>
 
     <main class="max-w-[1580px] mx-auto p-3">
@@ -298,12 +301,27 @@
         </div>
     </div>
 </div>
-    <button onclick="abrirModalRango()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-lg flex items-center gap-2 transition duration-300">
-  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="Date_Range" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-  </svg>
-  Actualizar Rango SAP
-</button>
+    <div id="modalRango" class="modal">
+    <div class="bg-white rounded-xl shadow-2xl w-[90%] md:w-[350px] overflow-hidden">
+        <div class="p-4 bg-blue-700 text-white flex justify-between items-center">
+            <span class="font-bold text-sm">ACTUALIZAR RANGO SAP</span>
+            <button onclick="cerrarModalRango()" class="text-2xl">&times;</button>
+        </div>
+        <div class="p-4 space-y-4">
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase">Fecha Inicio</label>
+                <input type="date" id="rangoDesde" class="w-full p-2 border rounded text-xs">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase">Fecha Fin</label>
+                <input type="date" id="rangoHasta" class="w-full p-2 border rounded text-xs">
+            </div>
+            <button onclick="ejecutarSincronizacionRango()" class="w-full bg-blue-700 text-white py-3 rounded-lg font-bold text-xs shadow-lg">
+                <i class="fas fa-sync-alt mr-1"></i> PROCESAR AHORA
+            </button>
+        </div>
+    </div>
+</div>
     <script>
         const LLAVE_MAESTRA = "@Shelby12032020";
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyznJML-_JIaxXzggVrViaMlw4J7N_MGCYeuPPRJ8xE29W4k-LxwGedRnasteqTvPmfFA/exec';
@@ -928,20 +946,37 @@ async function ejecutarBajaMaestro(placa) {
         return false;
     }
 }
-        function abrirModalRango() {
-    // Llamamos a la función del .gs que acabamos de crear
-    // Usamos confirm para que el usuario no lo apriete por error
-    if(confirm("¿Deseas iniciar la sincronización por rango de fechas? Se abrirá un cuadro en la hoja de cálculo.")){
-      google.script.run
-        .withSuccessHandler(function() {
-          alert("¡Proceso iniciado! Revisa la pestaña del Excel para ingresar las fechas.");
-        })
-        .withFailureHandler(function(err) {
-          alert("Error al conectar: " + err);
-        })
-        .distribuirDataPorRango(); // Nombre exacto de la función en tu .gs
+       function abrirModalRango() { document.getElementById('modalRango').style.display = 'flex'; }
+function cerrarModalRango() { document.getElementById('modalRango').style.display = 'none'; }
+
+async function ejecutarSincronizacionRango() {
+    const desde = document.getElementById('rangoDesde').value;
+    const hasta = document.getElementById('rangoHasta').value;
+
+    if (!desde || !hasta) return alert("Selecciona ambas fechas, trome.");
+
+    const ind = document.getElementById('indicadorCarga');
+    ind.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-1"></i> SINCRONIZANDO RANGO...';
+    ind.classList.remove('hidden');
+    cerrarModalRango();
+
+    const payload = { 
+        action: 'distribuirDataPorRango', 
+        desde: desde, 
+        hasta: hasta 
+    };
+
+    try {
+        // Usamos POST para mandar las fechas directo al .gs
+        await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        alert("✅ Sincronización enviada. En unos segundos la data estará lista.");
+        sincronizarDesdeNube(); // Refresca la tabla
+    } catch (e) {
+        alert("Error al conectar con la nube.");
+    } finally {
+        ind.classList.add('hidden');
     }
-  }
+}
     </script>
 </body>
 </html>
