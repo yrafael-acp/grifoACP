@@ -179,6 +179,28 @@
     const loader = document.getElementById('loader');
     const loaderText = document.getElementById('loaderText');
 
+    // --- BLOQUE DE SEGURIDAD Y REDIRECCIÓN ---
+    window.onload = () => {
+        const rol = sessionStorage.getItem('rolGrifo');
+        const session = sessionStorage.getItem('sessionGrifo');
+
+        // Si no hay sesión, al login de una
+        if (!session) {
+            window.location.href = "index.html";
+            return;
+        }
+
+        // Si es OPERADOR (READ), blindamos el logo para que no vuelva a los tanques
+        if (rol === "READ") {
+            const logoLink = document.querySelector('.header-logo');
+            if (logoLink) {
+                // Si el logo fuera un <a> lo cambiamos, si es <img> le damos función
+                logoLink.style.cursor = "pointer";
+                logoLink.onclick = () => { window.location.href = "consumo-flota.html"; };
+            }
+        }
+    };
+
     // Función para gestionar el estado visual de carga
     function showLoading(text) {
         loaderText.innerText = text || "Procesando...";
@@ -213,7 +235,7 @@
                 document.getElementById('vPetroleo').value = borrador.vPet || "";
                 document.getElementById('operarioSelect').value = borrador.operario || "";
                 document.getElementById('turnoSelect').value = borrador.turno || "DIA";
-                vincularDNI();
+                vincularDNI(); // Actualiza el DNI visual
             }
             
             // 4. Calcular una vez cargado todo
@@ -229,7 +251,6 @@
         const vGas = document.getElementById('vGasolina').value;
         const vPet = document.getElementById('vPetroleo').value;
         
-        // Solo mostrar carga si realmente hay algo que calcular
         if(vGas || vPet) showLoading("Calculando saldos...");
 
         try {
@@ -255,6 +276,11 @@
                     document.getElementById(idTotal).innerText = (s + iso).toFixed(2);
                 }
             } catch (e) { console.error("Error saldo:", e); }
+        } else {
+            // Resetear si borran el valor
+            document.getElementById(idSaldo).innerText = "0.00";
+            const iso = parseFloat(document.getElementById(idIso).value) || 0;
+            document.getElementById(idTotal).innerText = iso.toFixed(2);
         }
     }
 
@@ -263,26 +289,33 @@
             action: 'guardarEstadoBorrador',
             vGas: document.getElementById('vGasolina').value,
             vPet: document.getElementById('vPetroleo').value,
-            operario: document.getElementById('operarioSelect').value,
+            operario: document.getElementById('operarioSelect').options[document.getElementById('operarioSelect').selectedIndex].text,
+            dni: document.getElementById('operarioSelect').value,
             turno: document.getElementById('turnoSelect').value
         };
+        // Enviamos sin esperar respuesta para no trabar la UI
         fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
     }
 
     function vincularDNI() {
-        document.getElementById('dniInput').value = document.getElementById('operarioSelect').value;
+        const select = document.getElementById('operarioSelect');
+        document.getElementById('dniInput').value = select.value; // El value es el DNI
         guardarEnNube();
     }
 
     async function enviarReporteFinal() {
+        if (!document.getElementById('operarioSelect').value) return alert("Selecciona un operario, trome.");
+        
         const btn = document.querySelector('.btn-guardar');
         btn.innerText = "ENVIANDO...";
+        btn.disabled = true;
         showLoading("Guardando reporte final...");
         
-        // Simulación de envío (aquí va tu lógica de envío final)
+        // Aquí puedes añadir tu fetch de guardado final a la base de datos
         setTimeout(() => {
-            alert("Reporte guardado con éxito.");
+            alert("✅ Reporte final enviado con éxito.");
             btn.innerText = "ENVIAR REPORTE FINAL";
+            btn.disabled = false;
             hideLoading();
         }, 1500);
     }
@@ -291,7 +324,7 @@
         const area = document.getElementById('captureArea');
         const btnImg = document.getElementById('btnImg');
         btnImg.innerText = "GENERANDO...";
-        showLoading("Generando imagen...");
+        showLoading("Generando imagen para WhatsApp...");
 
         html2canvas(area, {
             scale: 2,
@@ -305,6 +338,11 @@
             btnImg.innerText = "DESCARGAR COMO IMAGEN";
             hideLoading();
         });
+    }
+    
+    function logout() {
+        sessionStorage.clear();
+        window.location.href = "index.html";
     }
 </script>
 </body>
