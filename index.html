@@ -527,10 +527,27 @@ function startSession(user) {
         return; 
     }
     
-    // El ADMIN sigue entrando a su Dashboard principal
+    // EL JEFE (ADMIN) ENTRA AQUÍ
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('mainContent').style.display = 'block';
-    // ... resto del código
+    
+    // 1. Ponemos tu nombre en el Header
+    const displayUserEl = document.getElementById('displayUser');
+    if (displayUserEl) displayUserEl.innerText = user;
+
+    // 2. LA LLAVE MAESTRA: Mostramos todo lo que es solo para Admin
+    // Buscamos la tarjeta de registro, el simulador y los botones de reset
+    const elementosAdmin = document.querySelectorAll('.admin-only');
+    elementosAdmin.forEach(el => {
+        el.style.display = 'block'; // Esto hace aparecer el panel de ingresos/salidas
+    });
+
+    // 3. Activamos la columna de acción en la tabla de mantenimiento
+    const thAccion = document.getElementById('thAccion');
+    if (thAccion) thAccion.style.display = 'table-cell';
+
+    // 4. Cargamos los datos de la nube
+    cargarDatos();
 }
 
 function logout() {
