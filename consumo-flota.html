@@ -52,6 +52,9 @@
                     <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
                     </button>
+                    <button onclick="abrirModalRango()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-calendar-alt mr-1"></i> RANGO SAP
+                    </button>
                     <button onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                         <i class="fas fa-cog mr-1"></i>
                         <div id="contenedorAdmin" class="flex gap-2"></div>
@@ -69,9 +72,6 @@
                 <input type="file" id="uploadExcel" accept=".xlsx, .xls" class="hidden" onchange="leerExcel(this)">
             </div>
         </div>
-        <button onclick="abrirModalRango()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-    <i class="fas fa-calendar-alt mr-1"></i> RANGO SAP
-</button>
     </header>
 
     <main class="max-w-[1580px] mx-auto p-3">
