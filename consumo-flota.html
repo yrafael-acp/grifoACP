@@ -375,48 +375,65 @@
         let ESTRUCTURA_FLOTA = [];
         let lunesReferencia = new Date();
         
-        window.onload = () => {
+       window.onload = async () => {
     const rol = sessionStorage.getItem('rolGrifo');
+    const anioActual = new Date().getFullYear();
     
+    // 1. Poblamos los selectores primero (Importante para el orden)
+    poblarAnios();
+    poblarSemanasPorAnio(anioActual);
+
+    // 2. Sincronizamos la referencia de fecha con el selector
+    const selectorSemanas = document.getElementById('selectorSemanas');
+    if (selectorSemanas && selectorSemanas.value) {
+        lunesReferencia = new Date(selectorSemanas.value + "T12:00:00");
+    } else {
+        lunesReferencia = getLunesActual(new Date());
+    }
+
+    // 3. Aplicamos las restricciones de Operador
     if (rol === "READ") {
-        console.log("🚫 Modo Operador: Limpiando herramientas de administración...");
-        // 1. Ocultar botones del Header (Los que ya pusimos con ID)
+        console.log("🚫 Modo Operador: Limpiando herramientas...");
+        
+        // Ocultar botones Admin
         const botonesAdmin = ['btnConsulta', 'btnRango', 'btnConfig', 'btnCerrar', 'btnLimpiar', 'btnExcel'];
         botonesAdmin.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
         });
-        // 2. OCULTAR EL PANEL DEL RADAR (El bloque de la imagen 5ad11e.png)
-        // Usamos un selector que busca el div que contiene el texto "Radar"
+
+        // Ocultar Radar de Bajas (Imagen 5ad11e.png)
         const paneles = document.querySelectorAll('main > div');
         paneles.forEach(p => {
-            // Si el div contiene el título del Radar, lo volamos
             if (p.innerHTML.includes("Radar de Unidades Sin Consumo") || p.id === "listaInactivos") {
                 p.style.display = 'none';
             }
         });
 
-        // 3. Seguridad extra: Ocultar columnas de edición en la tabla principal
-        // Esto evita que el operador intente dar click en la placa
+        // Estilo de seguridad para no clickear placas
         const estiloSeguridad = document.createElement('style');
         estiloSeguridad.innerHTML = `
-            button[onclick*="abrirEditarFlota"] { 
-                pointer-events: none !important; 
-                text-decoration: none !important; 
-                color: inherit !important; 
-                cursor: default !important;
-            }
+            button[onclick*="abrirEditarFlota"] { pointer-events: none !important; text-decoration: none !important; color: inherit !important; cursor: default !important; }
             button[onclick*="abrirEditarFlota"] i { display: none !important; }
         `;
         document.head.appendChild(estiloSeguridad);
     }
 
-    // Carga normal del sistema...
-    poblarAnios();
-    const anioActual = new Date().getFullYear();
-    poblarSemanasPorAnio(anioActual);
-    sincronizarDesdeNube();
+    actualizarEtiquetaEstado();
+    
+    // 4. EL PARCHE: Pequeño delay para que el selector esté 100% listo antes de pedir datos
+    setTimeout(() => {
+        sincronizarDesdeNube();
+    }, 400);
 };
+
+// --- FUNCIÓN PARA CERRAR SESIÓN ---
+function logout() {
+    if (confirm("¿Ya terminaste tu turno? Se cerrará la sesión.")) {
+        sessionStorage.clear(); // Borra rol y sesión
+        window.location.href = "index.html"; // Regresa al login
+    }
+}
 
       function gestionarCambioSemana() {
     const selector = document.getElementById('selectorSemanas');
