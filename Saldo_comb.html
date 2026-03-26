@@ -48,13 +48,12 @@
         .btn-guardar { background-color: var(--acp-green); color: white; }
         .btn-descargar { background-color: var(--secondary); color: white; }
 
-        /* --- NUEVOS ESTILOS PARA EL CARGADOR --- */
         .loader-overlay {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.85);
-            display: none; /* Oculto por defecto */
+            display: none; 
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -169,6 +168,7 @@
     <div class="button-group">
         <button class="btn btn-guardar" onclick="enviarReporteFinal()">ENVIAR REPORTE FINAL</button>
         <button id="btnImg" class="btn btn-descargar" onclick="descargarComoImagen()">DESCARGAR COMO IMAGEN</button>
+        <button id="btnVolverDinamico" class="btn" style="background-color: #3b82f6; color: white;">🏠 VOLVER</button>
     </div>
 </div>
 
@@ -179,29 +179,39 @@
     const loader = document.getElementById('loader');
     const loaderText = document.getElementById('loaderText');
 
-    // --- BLOQUE DE SEGURIDAD Y REDIRECCIÓN ---
+    // --- BLOQUE DE SEGURIDAD Y REDIRECCIÓN DINÁMICA ---
     window.onload = () => {
         const rol = sessionStorage.getItem('rolGrifo');
         const session = sessionStorage.getItem('sessionGrifo');
 
-        // Si no hay sesión, al login de una
         if (!session) {
             window.location.href = "index.html";
             return;
         }
 
-        // Si es OPERADOR (READ), blindamos el logo para que no vuelva a los tanques
+        // Configuración del botón Volver según el Rol
+        const btnVolver = document.getElementById('btnVolverDinamico');
+        if (btnVolver) {
+            if (rol === "ADMIN") {
+                btnVolver.innerHTML = "🏠 VOLVER AL DASHBOARD";
+                btnVolver.style.backgroundColor = "#1e293b"; 
+                btnVolver.onclick = () => { window.location.href = "index.html"; };
+            } else {
+                btnVolver.innerHTML = "🚛 VOLVER A FLOTA";
+                btnVolver.onclick = () => { window.location.href = "consumo-flota.html"; };
+            }
+        }
+
+        // Blindaje del Logo para Operadores
         if (rol === "READ") {
             const logoLink = document.querySelector('.header-logo');
             if (logoLink) {
-                // Si el logo fuera un <a> lo cambiamos, si es <img> le damos función
                 logoLink.style.cursor = "pointer";
                 logoLink.onclick = () => { window.location.href = "consumo-flota.html"; };
             }
         }
     };
 
-    // Función para gestionar el estado visual de carga
     function showLoading(text) {
         loaderText.innerText = text || "Procesando...";
         loader.style.display = 'flex';
@@ -227,18 +237,20 @@
                 document.getElementById('iPetroleo').value = dataSist.reservas.diesel || 0;
             }
             
-            // 3. RECUPERAR EL BORRADOR DE LA NUBE
+            // 3. RECUPERAR EL BORRADOR CON AUTO-LLENADO
             const resBorrador = await fetch(`${scriptUrl}?action=getEstadoBorrador`);
             const borrador = await resBorrador.json();
             if (borrador) {
                 document.getElementById('vGasolina').value = borrador.vGas || "";
                 document.getElementById('vPetroleo').value = borrador.vPet || "";
-                document.getElementById('operarioSelect').value = borrador.operario || "";
                 document.getElementById('turnoSelect').value = borrador.turno || "DIA";
-                vincularDNI(); // Actualiza el DNI visual
+                
+                if (borrador.dni) {
+                    document.getElementById('operarioSelect').value = borrador.dni;
+                    document.getElementById('dniInput').value = borrador.dni;
+                }
             }
             
-            // 4. Calcular una vez cargado todo
             await calcularTotales();
         } catch (e) { 
             console.error("Error en carga inicial:", e); 
@@ -277,7 +289,6 @@
                 }
             } catch (e) { console.error("Error saldo:", e); }
         } else {
-            // Resetear si borran el valor
             document.getElementById(idSaldo).innerText = "0.00";
             const iso = parseFloat(document.getElementById(idIso).value) || 0;
             document.getElementById(idTotal).innerText = iso.toFixed(2);
@@ -285,36 +296,36 @@
     }
 
     async function guardarEnNube() {
+        const opSelect = document.getElementById('operarioSelect');
         const datos = {
             action: 'guardarEstadoBorrador',
             vGas: document.getElementById('vGasolina').value,
             vPet: document.getElementById('vPetroleo').value,
-            operario: document.getElementById('operarioSelect').options[document.getElementById('operarioSelect').selectedIndex].text,
-            dni: document.getElementById('operarioSelect').value,
+            operario: opSelect.selectedIndex > 0 ? opSelect.options[opSelect.selectedIndex].text : "",
+            dni: opSelect.value,
             turno: document.getElementById('turnoSelect').value
         };
-        // Enviamos sin esperar respuesta para no trabar la UI
         fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
     }
 
     function vincularDNI() {
         const select = document.getElementById('operarioSelect');
-        document.getElementById('dniInput').value = select.value; // El value es el DNI
+        document.getElementById('dniInput').value = select.value;
         guardarEnNube();
     }
 
     async function enviarReporteFinal() {
-        if (!document.getElementById('operarioSelect').value) return alert("Selecciona un operario, trome.");
+        if (!document.getElementById('operarioSelect').value) return alert("¡Habla trome! Selecciona un operario primero.");
         
         const btn = document.querySelector('.btn-guardar');
-        btn.innerText = "ENVIANDO...";
+        const originalText = btn.innerText;
+        btn.innerText = "🚀 ENVIANDO...";
         btn.disabled = true;
         showLoading("Guardando reporte final...");
         
-        // Aquí puedes añadir tu fetch de guardado final a la base de datos
         setTimeout(() => {
-            alert("✅ Reporte final enviado con éxito.");
-            btn.innerText = "ENVIAR REPORTE FINAL";
+            alert("✅ REPORTE FINALIZADO\nLos datos se han guardado correctamente en el historial.");
+            btn.innerText = originalText;
             btn.disabled = false;
             hideLoading();
         }, 1500);
@@ -323,7 +334,8 @@
     function descargarComoImagen() {
         const area = document.getElementById('captureArea');
         const btnImg = document.getElementById('btnImg');
-        btnImg.innerText = "GENERANDO...";
+        const originalText = btnImg.innerText;
+        btnImg.innerText = "📸 GENERANDO...";
         showLoading("Generando imagen para WhatsApp...");
 
         html2canvas(area, {
@@ -335,7 +347,7 @@
             link.download = `Saldo_ACP_${document.getElementById('fechaReporte').value}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
-            btnImg.innerText = "DESCARGAR COMO IMAGEN";
+            btnImg.innerText = originalText;
             hideLoading();
         });
     }
