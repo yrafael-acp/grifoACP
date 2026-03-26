@@ -46,8 +46,8 @@
                 <span class="text-[8px] font-bold ml-1 text-green-300 uppercase leading-none mb-1">Año</span>
                 <select id="selectorAnio" onchange="cambiarAnio()" class="bg-transparent text-white text-[11px] font-bold px-1 outline-none cursor-pointer hover:text-yellow-400 transition-colors"></select>
             </div>
-            
-            <div class="h-6 w-[1px] bg-white/20 mx-1"></div> <div class="flex flex-col">
+            <div class="h-6 w-[1px] bg-white/20 mx-1"></div> 
+            <div class="flex flex-col">
                 <span class="text-[8px] font-bold ml-1 text-green-300 uppercase leading-none mb-1">Semana de Gestión</span>
                 <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-transparent text-white text-[11px] font-bold px-1 outline-none w-full sm:w-auto cursor-pointer hover:text-yellow-400 transition-colors"></select>
             </div>
@@ -57,29 +57,29 @@
             <span id="estadoSemana" class="text-[10px] font-bold px-2 py-1 rounded-lg"></span>
             
             <div class="flex flex-wrap justify-center gap-2">
-                <button onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                <button id="btnRegistrar" onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
                 </button>
-                <button onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                <button id="btnConsulta" onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
                 </button>
-                <button onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                <button id="btnSincronizar" onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
                 </button>
-                <button onclick="abrirModalRango()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                <button id="btnRango" onclick="abrirModalRango()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-calendar-alt mr-1"></i> RANGO SAP
                 </button>
-                <button onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                <button id="btnConfig" onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-cog mr-1"></i>
                     <div id="contenedorAdmin" class="flex gap-2"></div>
                 </button>
-                <button onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                <button id="btnCerrar" onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
                 </button>
-                <button onclick="limpiarValesManuales()" title="Limpiar Vales Manuales" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                <button id="btnLimpiar" onclick="limpiarValesManuales()" title="Limpiar Vales Manuales" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-broom mr-1"></i> LIMPIAR VALES
                 </button>
-                <button onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
+                <button id="btnExcel" onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
                     <i class="fas fa-file-excel"></i>
                 </button>
             </div>
@@ -365,26 +365,48 @@
         let lunesReferencia = new Date();
         
         window.onload = () => {
-            poblarAnios();
-            
-            // Cargamos semanas y marcamos la actual
-            const anioActual = new Date().getFullYear();
-            poblarSemanasPorAnio(anioActual);
+    // 1. REVISIÓN DE ROL (SEGURIDAD)
+    const rol = sessionStorage.getItem('rolGrifo');
+    console.log("Rol detectado:", rol);
 
-            // Sincronizamos la fecha de referencia con lo que diga el selector
-            const selectorSemanas = document.getElementById('selectorSemanas');
-            if (selectorSemanas && selectorSemanas.value) {
-                lunesReferencia = new Date(selectorSemanas.value + "T12:00:00");
-            } else {
-                lunesReferencia = getLunesActual(new Date());
+    if (rol === "READ") {
+        console.log("🚫 Modo Operador: Ocultando herramientas administrativas.");
+        
+        // IDs de botones que NO debe ver el operador
+        const soloAdmin = ['btnConsulta', 'btnRango', 'btnConfig', 'btnCerrar', 'btnLimpiar', 'btnExcel'];
+        
+        soloAdmin.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+
+        // OCULTAR EL RADAR DE UNIDADES (El panel rojo)
+        // Buscamos el panel que contiene el texto "Radar"
+        const paneles = document.querySelectorAll('main div.bg-white.p-4.rounded-xl');
+        paneles.forEach(p => {
+            if (p.innerText.includes("Radar")) {
+                p.style.display = 'none';
             }
+        });
 
-            // Mostramos el cartelito de ACTIVO/BLOQUEADO
-            actualizarEtiquetaEstado();
+        // NOTA: Como el operador no ve el Radar, no tiene acceso a las BAJAS.
+    }
 
-            // ¡CARGA AUTOMÁTICA! (Para que no tengas que dar clic a sincronizar)
-            sincronizarDesdeNube();
-        };
+    // 2. CARGA NORMAL DEL DASHBOARD
+    poblarAnios();
+    const anioActual = new Date().getFullYear();
+    poblarSemanasPorAnio(anioActual);
+
+    const selectorSemanas = document.getElementById('selectorSemanas');
+    if (selectorSemanas && selectorSemanas.value) {
+        lunesReferencia = new Date(selectorSemanas.value + "T12:00:00");
+    } else {
+        lunesReferencia = getLunesActual(new Date());
+    }
+
+    actualizarEtiquetaEstado();
+    sincronizarDesdeNube();
+};
 
       function gestionarCambioSemana() {
     const selector = document.getElementById('selectorSemanas');
@@ -659,8 +681,17 @@ function actualizarEtiquetaEstado() {
 }
         function cerrarModalConfig() { document.getElementById('modalConfig').style.display = 'none'; }
         function abrirEditarFlota(placa, dotActual) {
-    if (!tienePermisoEspecial()) return; // <--- EL CANDADO
+    // 1. EL PRIMER FILTRO: ¿Es un operador?
+    const rol = sessionStorage.getItem('rolGrifo');
+    if (rol === "READ") {
+        alert("⛔ ACCESO DENEGADO: No tienes permisos para modificar dotaciones de flota.");
+        return; // Se acaba la función aquí para el operador
+    }
 
+    // 2. EL SEGUNDO FILTRO (Tu candado original para semanas cerradas)
+    if (!tienePermisoEspecial()) return; 
+
+    // 3. Si pasó todo, abrimos el modal
     document.getElementById('editPlaca').value = placa;
     document.getElementById('editDotacion').value = dotActual;
     document.getElementById('modalEditarFlota').style.display = 'flex';
