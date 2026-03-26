@@ -57,28 +57,39 @@
             <span id="estadoSemana" class="text-[10px] font-bold px-2 py-1 rounded-lg"></span>
             
             <div class="flex flex-wrap justify-center gap-2">
+                <a href="Saldo_comb.html" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-calculator mr-1"></i> CALCULADORA VARILLA
+                </a>
+
                 <button id="btnRegistrar" onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
                 </button>
+
                 <button id="btnConsulta" onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
                 </button>
+
                 <button id="btnSincronizar" onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
                 </button>
+
                 <button id="btnRango" onclick="abrirModalRango()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-calendar-alt mr-1"></i> RANGO SAP
                 </button>
+
                 <button id="btnConfig" onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-cog mr-1"></i>
                     <div id="contenedorAdmin" class="flex gap-2"></div>
                 </button>
+
                 <button id="btnCerrar" onclick="guardarSemanaCloud()" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-cloud-upload-alt mr-1"></i> CERRAR
                 </button>
+
                 <button id="btnLimpiar" onclick="limpiarValesManuales()" title="Limpiar Vales Manuales" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-broom mr-1"></i> LIMPIAR VALES
                 </button>
+
                 <button id="btnExcel" onclick="document.getElementById('uploadExcel').click()" class="bg-white text-green-800 px-3 py-2 rounded-lg font-bold text-[10px] hover:bg-green-50 border border-green-200 shadow">
                     <i class="fas fa-file-excel"></i>
                 </button>
