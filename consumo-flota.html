@@ -47,7 +47,7 @@
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
 
-    <header class="bg-acp text-white p-3 shadow-lg sticky top-0 z-50">
+     <header class="bg-acp text-white p-3 shadow-lg sticky top-0 z-50">
     <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-3">
         
         <div class="flex items-center gap-3 w-full lg:w-auto justify-center lg:justify-start">
@@ -495,16 +495,16 @@ function logout() {
     const el = document.getElementById('estadoSemana');
     if (!el) return;
 
-    // Clases base para que encaje fino en el nuevo contenedor
-    const clasesBase = "text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-sm transition-all";
+    // Ajuste fino: Bajamos a 8.5px y reducimos el padding lateral para que sea minimalista
+    const clasesBase = "text-[8.5px] font-black px-1.5 py-0.5 rounded flex items-center gap-1 shadow-sm transition-all";
 
     if (esSemanaPasada()) {
         // --- ESTADO BLOQUEADO ---
-        el.innerHTML = '<i class="fas fa-lock text-[8px]"></i> BLOQUEADO';
+        el.innerHTML = '<i class="fas fa-lock text-[7px]"></i> BLOQUEADO';
         el.className = clasesBase + " bg-red-600 text-white";
     } else {
         // --- ESTADO ACTIVO (CON EL NUEVO PULSO) ---
-        el.innerHTML = '<i class="fas fa-unlock text-[8px]"></i> ACTIVO';
+        el.innerHTML = '<i class="fas fa-unlock text-[7px]"></i> ACTIVO';
         el.className = clasesBase + " bg-yellow-400 text-green-900 animacion-pulso";
     }
 }
