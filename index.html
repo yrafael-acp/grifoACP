@@ -77,11 +77,11 @@
         .calc-val { display: block; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
         
        /* --- AJUSTE GLOBAL RESPONSIVE PRO --- */
+        /* --- AJUSTE GLOBAL RESPONSIVE PRO (PÁGINA PRINCIPAL) --- */
         @media (max-width: 768px) {
-            /* 1. Reset general para que nada se desborde */
             body { 
                 padding: 10px !important; 
-                overflow-x: hidden !important; /* Prohibido el desborde horizontal */
+                overflow-x: hidden !important; 
                 width: 100vw;
                 box-sizing: border-box;
             }
@@ -92,76 +92,86 @@
             }
             .full-width { grid-column: span 1 !important; }
 
-            /* 2. HEADER: Centrado Total */
+            /* EL HEADER: Look 1:1 igual que la flota */
             .card.full-width[style*="background: var(--primary)"] {
                 flex-direction: column !important;
-                align-items: center !important; /* CENTRA TODO EL CONTENIDO */
+                align-items: center !important; 
                 justify-content: center !important;
-                padding: 20px 10px !important;
+                padding: 15px 10px !important;
                 width: 100% !important;
                 box-sizing: border-box;
+                gap: 10px !important;
             }
             .header-content {
                 flex-direction: column !important;
-                align-items: center !important; /* Centra logo y texto */
+                align-items: center !important; 
                 text-align: center !important;
                 margin-right: 0 !important;
-                margin-bottom: 15px !important;
+                margin-bottom: 5px !important;
             }
             .app-header-logo {
-                margin: 0 0 10px 0 !important;
-                height: 45px !important;
+                margin: 0 0 5px 0 !important;
+                height: 40px !important; /* Tamaño exacto que funcionó en la otra */
+            }
+            .card.full-width[style*="background: var(--primary)"] h1 {
+                font-size: 1.1rem !important;
+                white-space: nowrap;
             }
 
-            /* 3. BOTONES: Grilla 2x2 Centrada */
+            /* GRILLA DE BOTONES 2x2: Para Calculadora, Flota, Excel y Salir */
             .card.full-width[style*="background: var(--primary)"] > div:last-child {
                 display: grid !important;
-                grid-template-columns: 1fr 1fr !important; /* Dos columnas iguales */
-                gap: 10px !important;
+                grid-template-columns: 1fr 1fr !important; 
+                gap: 8px !important;
                 width: 100% !important;
-                max-width: 300px; /* Para que no se estiren demasiado */
-                margin: 0 auto !important; /* CENTRA LA GRILLA */
+                max-width: 320px; 
+                margin: 0 auto !important; 
             }
-            .btn-calc, .btn-flota, .btn-excel, .btn-logout {
+            .btn-calc, .btn-flota, .btn-logout, .btn-excel {
                 margin: 0 !important;
                 font-size: 0.75rem !important;
-                padding: 12px 5px !important;
+                padding: 10px 5px !important;
                 width: 100% !important;
                 display: flex !important;
                 justify-content: center;
                 align-items: center;
+                border-radius: 8px !important;
             }
 
-            /* 4. MONITOR DE STOCK: Apilado para que no ensanche la pantalla */
+            /* MONITOR DE STOCK: Apilado para que no estire la pantalla */
             #monitorCard > div[style*="grid-template-columns: 1fr 1fr"] {
-                grid-template-columns: 1fr !important; /* Uno debajo del otro */
-                width: 100% !important;
+                grid-template-columns: 1fr !important; 
             }
-            .segregated-box {
-                grid-template-columns: 1fr 1fr !important; /* Esto sí puede ir 2x2 */
-            }
-
-            /* 5. TABLAS Y FILTROS: Scroll para que no empujen el ancho */
+            
+            /* TABLAS E HISTORIAL: Scroll horizontal pro */
             .table-container {
                 width: 100% !important;
-                overflow-x: auto !important; /* Scroll horizontal si la tabla es grande */
+                overflow-x: auto !important; 
                 -webkit-overflow-scrolling: touch;
             }
             table {
-                min-width: 500px !important; /* Mantiene la tabla legible */
+                min-width: 550px !important; /* Para que no se amontone la data del historial */
+                font-size: 0.8rem;
             }
+            
+            /* Filtros e Inputs */
             .filter-bar {
                 flex-direction: column !important;
                 align-items: stretch !important;
+                gap: 10px;
             }
             .annual-summary {
                 flex-direction: column !important;
+                gap: 10px;
             }
-            
-            /* Ajuste para que los inputs no se salgan */
             input, select {
                 width: 100% !important;
+                font-size: 14px !important; /* Evita el zoom automático de iOS */
             }
+
+            /* Modal de Calculadora */
+            .calc-grid { grid-template-columns: 1fr !important; }
+            .modal-content { width: 95% !important; padding: 15px !important; }
         }
     </style>
 </head>
