@@ -522,7 +522,10 @@ function ejecutarCalculoVarilla() {
 async function handleLogin() {
     const user = document.getElementById('userInput').value.trim().toUpperCase();
     const pass = document.getElementById('passInput').value.trim();
-    if (!USERS[user]) return alert("Usuario no reconocido.");
+    
+    // 1. Obtenemos el rol desde tu objeto USERS local
+    const userRole = USERS[user]; 
+    if (!userRole) return alert("Usuario no reconocido.");
 
     const btn = document.getElementById('btnLogin');
     btn.innerText = "Verificando..."; btn.disabled = true;
@@ -530,8 +533,14 @@ async function handleLogin() {
     try {
         const resp = await fetch(`${WEB_APP_URL}?action=login&user=${user}&pass=${pass}`);
         const res = await resp.json();
+        
         if (res.auth === "OK") {
             currentUser = user;
+            
+            // 2. GUARDAMOS EL ROL EN EL SESSION STORAGE
+            // Esto es vital para que la otra página sepa quién eres
+            sessionStorage.setItem('rolGrifo', userRole); 
+
             if (res.forceChange) {
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('changePassForm').style.display = 'block';
