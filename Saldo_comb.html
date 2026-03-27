@@ -11,88 +11,42 @@
             --danger: #ef4444;
             --secondary: #64748b;
         }
-        
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--acp-light); margin: 0; padding: 10px; }
-        
         .main-wrapper { max-width: 900px; margin: auto; }
-        .container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; overflow: hidden; }
-        
+        .container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; overflow: hidden; margin-bottom: 15px; }
         .header-section { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .header-logo { width: 120px; flex-shrink: 0; }
         .title-bg { background-color: var(--acp-green); color: white; font-size: 1.3rem; font-weight: bold; text-align: center; padding: 15px; flex: 1; border-radius: 4px; text-transform: uppercase; min-width: 200px; }
-        
-        .date-box { background: #f8fafc; border: 1px solid var(--acp-green); padding: 5px; border-radius: 4px; text-align: center; min-width: 140px; flex-shrink: 0; }
+        .date-box { background: #f8fafc; border: 1px solid var(--acp-green); padding: 5px; border-radius: 4px; text-align: center; min-width: 140px; }
         .date-label { display: block; font-size: 0.7em; font-weight: bold; color: var(--acp-green); margin-bottom: 2px; }
-        #fechaReporte { border: none; background: transparent; font-family: inherit; font-weight: bold; font-size: 0.9em; color: #333; cursor: pointer; text-align: center; width: 100%; outline: none; }
-
+        #fechaReporte { border: none; background: transparent; font-weight: bold; text-align: center; width: 100%; outline: none; }
         .user-cards-section { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         .user-card { flex: 1; min-width: calc(33.333% - 10px); background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; }
         .user-card-header { background-color: var(--acp-green); color: white; font-size: 0.85em; font-weight: bold; padding: 5px; text-align: center; text-transform: uppercase; }
         .user-card-body { padding: 10px; text-align: center; }
-        
         input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-size: 1rem; }
         .readonly-field { background-color: #eee; font-weight: bold; color: #333; }
-
         .fuel-table-wrapper { width: 100%; overflow-x: auto; }
         table.fuel-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
         .fuel-table th, .fuel-table td { border: 1px solid #333; padding: 8px 4px; text-align: center; font-size: 0.85em; }
-        .fuel-table th { background-color: var(--acp-green); color: white; text-transform: uppercase; }
-        
+        .fuel-table th { background-color: var(--acp-green); color: white; }
         .gasolina-label { background-color: red; color: white; font-weight: bold; }
         .petroleo-label { background-color: var(--acp-green); color: white; font-weight: bold; }
-        .cell-total { font-size: 1.1em; font-weight: bold; color: #333; }
-
+        .cell-total { font-size: 1.1em; font-weight: bold; }
         .button-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
         .btn { border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; flex: 1; min-width: 200px; }
         .btn-guardar { background-color: var(--acp-green); color: white; }
         .btn-descargar { background-color: var(--secondary); color: white; }
-
-        /* CAMBIO: Loader flotante discreto */
-        .loader-overlay {
-            position: fixed;
-            bottom: 20px; right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            display: none; 
-            align-items: center;
-            gap: 12px;
-            z-index: 9999;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        .spinner {
-            width: 20px; height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--acp-green);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        .loader-text {
-            font-family: sans-serif;
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: white;
-            text-transform: uppercase;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media screen and (max-width: 600px) {
-            .header-section { flex-direction: column; }
-            .user-card { min-width: 100%; }
-        }
+        .loader-overlay { position: fixed; bottom: 20px; right: 20px; background: rgba(0, 0, 0, 0.8); color: white; padding: 10px 20px; border-radius: 50px; display: none; align-items: center; gap: 12px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .spinner { width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid var(--acp-green); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @media screen and (max-width: 600px) { .user-card { min-width: 100%; } }
     </style>
 </head>
 <body>
 
-<div id="loader" class="loader-overlay">
-    <div class="spinner"></div>
-    <div class="loader-text" id="loaderText">Sincronizando...</div>
-</div>
+<div id="loader" class="loader-overlay"><div class="spinner"></div><div class="loader-text" id="loaderText">Sincronizando...</div></div>
 
 <div class="main-wrapper">
     <div class="container" id="captureArea">
@@ -106,63 +60,28 @@
         </div>
 
         <div class="user-cards-section">
-            <div class="user-card">
-                <div class="user-card-header">DNI</div>
-                <div class="user-card-body"><input type="text" id="dniInput" class="readonly-field" readonly></div>
-            </div>
-            <div class="user-card">
-                <div class="user-card-header">OPERARIO</div>
-                <div class="user-card-body">
-                    <select id="operarioSelect" onchange="vincularDNI()">
-                        <option value="">-- Seleccione --</option>
-                        <option value="77103804">WILDER NEYRA PAICO</option>
-                        <option value="76181486">LUIS ANGEL JUAREZ ELIAS</option>
-                        <option value="74308732">CARLOS ORRILLO CRUZADO</option>
-                        <option value="41892133">CRISTIAN GONZALES UCEDA</option>
-                        <option value="76377901">ANGELO SALAZAR DEL AGUILA</option>
-                        <option value="16454237">FELIPE FERNANDEZ TERRONES</option>
-                    </select>
-                </div>
-            </div>
-            <div class="user-card">
-                <div class="user-card-header">TURNO</div>
-                <div class="user-card-body">
-                    <select id="turnoSelect" onchange="guardarEnNube()">
-                        <option value="DIA">DIA</option>
-                        <option value="NOCHE">NOCHE</option>
-                    </select>
-                </div>
-            </div>
+            <div class="user-card"><div class="user-card-header">DNI</div><div class="user-card-body"><input type="text" id="dniInput" class="readonly-field" readonly></div></div>
+            <div class="user-card"><div class="user-card-header">OPERARIO</div><div class="user-card-body"><select id="operarioSelect" onchange="vincularDNI()"><option value="">-- Seleccione --</option><option value="77103804">WILDER NEYRA PAICO</option><option value="76181486">LUIS ANGEL JUAREZ ELIAS</option><option value="74308732">CARLOS ORRILLO CRUZADO</option><option value="41892133">CRISTIAN GONZALES UCEDA</option><option value="76377901">ANGELO SALAZAR DEL AGUILA</option><option value="16454237">FELIPE FERNANDEZ TERRONES</option></select></div></div>
+            <div class="user-card"><div class="user-card-header">TURNO</div><div class="user-card-body"><select id="turnoSelect" onchange="guardarEnNube()"><option value="DIA">DIA</option><option value="NOCHE">NOCHE</option></select></div></div>
         </div>
 
         <div class="fuel-table-wrapper">
             <table class="fuel-table">
-                <thead>
-                    <tr>
-                        <th>PRODUCTO</th>
-                        <th>V. FINAL</th>
-                        <th>SALDO</th>
-                        <th>ISOT.</th>
-                        <th>TOT. GLS</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>PRODUCTO</th><th>V. FINAL</th><th>SALDO</th><th>ISOT.</th><th>TOT. GLS</th></tr></thead>
                 <tbody>
-                    <tr>
-                        <td class="gasolina-label">GASOLINA</td>
-                        <td><input type="number" id="vGasolina" step="0.1" min="0" oninput="calcularTotales()"></td>
-                        <td id="sGasolina" class="readonly-field">0.00</td>
-                        <td><input type="number" id="iGasolina" class="readonly-field" readonly></td>
-                        <td id="tGasolina" class="cell-total">0.00</td>
-                    </tr>
-                    <tr>
-                        <td class="petroleo-label">PETROLEO</td>
-                        <td><input type="number" id="vPetroleo" step="0.1" min="0" oninput="calcularTotales()"></td>
-                        <td id="sPetroleo" class="readonly-field">0.00</td>
-                        <td><input type="number" id="iPetroleo" class="readonly-field" readonly></td>
-                        <td id="tPetroleo" class="cell-total">0.00</td>
-                    </tr>
+                    <tr><td class="gasolina-label">GASOLINA</td><td><input type="number" id="vGasolina" step="0.1" min="0" oninput="calcularTotales()"></td><td id="sGasolina" class="readonly-field">0.00</td><td><input type="number" id="iGasolina" class="readonly-field" readonly></td><td id="tGasolina" class="cell-total">0.00</td></tr>
+                    <tr><td class="petroleo-label">PETROLEO</td><td><input type="number" id="vPetroleo" step="0.1" min="0" oninput="calcularTotales()"></td><td id="sPetroleo" class="readonly-field">0.00</td><td><input type="number" id="iPetroleo" class="readonly-field" readonly></td><td id="tPetroleo" class="cell-total">0.00</td></tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <div class="container" id="seccionBuscador" style="display: none; border: 2px solid var(--acp-green);">
+        <div class="user-card-header">🔍 BUSCADOR DE HISTORIAL (SOLO ADMIN)</div>
+        <div style="display: flex; gap: 10px; padding: 15px; flex-wrap: wrap; background-color: #f8fafc;">
+            <div style="flex: 1; min-width: 150px;"><span class="date-label">FECHA A CONSULTAR</span><input type="date" id="fechaBusqueda"></div>
+            <div style="flex: 1; min-width: 150px;"><span class="date-label">TURNO</span><select id="turnoBusqueda"><option value="DIA">DIA</option><option value="NOCHE">NOCHE</option></select></div>
+            <div style="flex: 0 0 100px; display: flex; align-items: flex-end;"><button class="btn btn-guardar" onclick="consultarHistorial()" style="padding: 10px; font-size: 1rem;">BUSCAR</button></div>
         </div>
     </div>
 
@@ -174,116 +93,51 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 <script>
     const scriptUrl = 'https://script.google.com/macros/s/AKfycbyznJML-_JIaxXzggVrViaMlw4J7N_MGCYeuPPRJ8xE29W4k-LxwGedRnasteqTvPmfFA/exec';
     const loader = document.getElementById('loader');
     const loaderText = document.getElementById('loaderText');
+    let timeoutSaldos;
 
     window.onload = () => {
         const rol = sessionStorage.getItem('rolGrifo');
         const session = sessionStorage.getItem('sessionGrifo');
         if (!session) { window.location.href = "index.html"; return; }
+        if (rol === "ADMIN") document.getElementById('seccionBuscador').style.display = 'block';
 
         const btnVolver = document.getElementById('btnVolverDinamico');
-        if (btnVolver) {
-            if (rol === "ADMIN") {
-                btnVolver.innerHTML = "🏠 VOLVER AL DASHBOARD";
-                btnVolver.style.backgroundColor = "#1e293b"; 
-                btnVolver.onclick = () => { window.location.href = "index.html"; };
-            } else {
-                btnVolver.innerHTML = "🚛 VOLVER A FLOTA";
-                btnVolver.onclick = () => { window.location.href = "consumo-flota.html"; };
-            }
+        if (rol === "ADMIN") {
+            btnVolver.innerHTML = "🏠 VOLVER AL DASHBOARD";
+            btnVolver.onclick = () => { window.location.href = "index.html"; };
+        } else {
+            btnVolver.innerHTML = "🚛 VOLVER A FLOTA";
+            btnVolver.onclick = () => { window.location.href = "consumo-flota.html"; };
         }
     };
 
-    function showLoading(text) {
-        loaderText.innerText = text || "Procesando...";
-        loader.style.display = 'flex';
+    function showLoading(text) { loaderText.innerText = text || "Procesando..."; loader.style.display = 'flex'; }
+    function hideLoading() { loader.style.display = 'none'; }
+
+    async function calcularTotales() {
+        clearTimeout(timeoutSaldos);
+        const vGas = document.getElementById('vGasolina').value;
+        const vPet = document.getElementById('vPetroleo').value;
+        document.getElementById('sGasolina').innerText = "...";
+        document.getElementById('sPetroleo').innerText = "...";
+
+        timeoutSaldos = setTimeout(async () => {
+            if (!vGas && !vPet) { document.getElementById('sGasolina').innerText = "0.00"; document.getElementById('sPetroleo').innerText = "0.00"; return; }
+            showLoading("Sincronizando saldos...");
+            try {
+                await Promise.all([
+                    actualizarSaldo('GASOLINA', vGas, 'sGasolina', 'iGasolina', 'tGasolina'),
+                    actualizarSaldo('PETROLEO', vPet, 'sPetroleo', 'iPetroleo', 'tPetroleo')
+                ]);
+                guardarEnNube(); 
+            } finally { hideLoading(); }
+        }, 1000); 
     }
 
-    function hideLoading() {
-        loader.style.display = 'none';
-    }
-
-    document.addEventListener('DOMContentLoaded', async function() {
-        showLoading("Sincronizando...");
-        try {
-            const resFecha = await fetch(`${scriptUrl}?action=getUltimaFecha`);
-            const dataFecha = await resFecha.json();
-            if (dataFecha.fecha) document.getElementById('fechaReporte').value = dataFecha.fecha;
-
-            const resSist = await fetch(`${scriptUrl}?action=read`);
-            const dataSist = await resSist.json();
-            if (dataSist.reservas) {
-                document.getElementById('iGasolina').value = dataSist.reservas.gasohol || 0;
-                document.getElementById('iPetroleo').value = dataSist.reservas.diesel || 0;
-            }
-            
-            const resBorrador = await fetch(`${scriptUrl}?action=getEstadoBorrador`);
-            const borrador = await resBorrador.json();
-            if (borrador) {
-                document.getElementById('vGasolina').value = borrador.vGas || "";
-                document.getElementById('vPetroleo').value = borrador.vPet || "";
-                document.getElementById('turnoSelect').value = borrador.turno || "DIA";
-                if (borrador.dni) {
-                    document.getElementById('operarioSelect').value = borrador.dni;
-                    document.getElementById('dniInput').value = borrador.dni;
-                }
-            }
-            await calcularTotales();
-        } catch (e) { console.error("Error inicial:", e); } finally { hideLoading(); }
-    });
-
-    // --- VARIABLE GLOBAL PARA EL TEMPORIZADOR ---
-let timeoutSaldos;
-
-async function calcularTotales() {
-    // Si el usuario sigue tecleando, cancelamos el cronómetro anterior
-    clearTimeout(timeoutSaldos);
-
-    const vGas = document.getElementById('vGasolina').value;
-    const vPet = document.getElementById('vPetroleo').value;
-
-    // 1. LIMPIEZA INMEDIATA: Borramos los saldos viejos para que no confundan
-    // Ponemos "..." para indicar que el sistema está procesando la nueva cifra
-    document.getElementById('sGasolina').innerText = "...";
-    document.getElementById('tGasolina').innerText = "...";
-    document.getElementById('sPetroleo').innerText = "...";
-    document.getElementById('tPetroleo').innerText = "...";
-
-    // 2. ESPERA ACTIVA: Aguardamos 1 segundo (1000ms) antes de pedir datos a la nube
-    timeoutSaldos = setTimeout(async () => {
-        // Si no hay valores, reseteamos a 0.00 y salimos
-        if (!vGas && !vPet) {
-            document.getElementById('sGasolina').innerText = "0.00";
-            document.getElementById('sPetroleo').innerText = "0.00";
-            return;
-        }
-
-        showLoading("Sincronizando saldos...");
-
-        try {
-            // 3. LLAMADA A LA NUBE: Recién aquí traemos los datos reales
-            await Promise.all([
-                actualizarSaldo('GASOLINA', vGas, 'sGasolina', 'iGasolina', 'tGasolina'),
-                actualizarSaldo('PETROLEO', vPet, 'sPetroleo', 'iPetroleo', 'tPetroleo')
-            ]);
-            
-            // Guardamos el borrador automáticamente
-            guardarEnNube(); 
-
-        } catch (e) {
-            console.error("Error en sincronización:", e);
-            // Si falla, avisamos en la tabla
-            document.getElementById('sGasolina').innerText = "Error";
-            document.getElementById('sPetroleo').innerText = "Error";
-        } finally {
-            hideLoading();
-        }
-    }, 1000); 
-}
     async function actualizarSaldo(tipo, valor, idSaldo, idIso, idTotal) {
         if (valor && valor >= 0) {
             try {
@@ -298,10 +152,53 @@ async function calcularTotales() {
             } catch (e) { document.getElementById(idSaldo).innerText = "Error"; }
         } else {
             document.getElementById(idSaldo).innerText = "0.00";
-            const iso = parseFloat(document.getElementById(idIso).value) || 0;
-            document.getElementById(idTotal).innerText = iso.toFixed(2);
         }
     }
+
+    async function enviarReporteFinal() {
+        const opSelect = document.getElementById('operarioSelect');
+        if (!opSelect.value) return alert("Selecciona un operario.");
+        if (!confirm("¿Deseas registrar este reporte en el Historial de Excel?")) return;
+
+        showLoading("Registrando reporte final...");
+        const data = {
+            action: 'enviarReporteFinal',
+            fechaReporte: document.getElementById('fechaReporte').value,
+            dni: opSelect.value,
+            operario: opSelect.options[opSelect.selectedIndex].text,
+            turno: document.getElementById('turnoSelect').value,
+            vGas: document.getElementById('vGasolina').value,
+            sGas: document.getElementById('sGasolina').innerText,
+            iGas: document.getElementById('iGasolina').value,
+            tGas: document.getElementById('tGasolina').innerText,
+            vPet: document.getElementById('vPetroleo').value,
+            sPet: document.getElementById('sPetroleo').innerText,
+            iPet: document.getElementById('iPetroleo').value,
+            tPet: document.getElementById('tPetroleo').innerText
+        };
+
+        try {
+            await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+            alert("✅ REPORTE GUARDADO EXITOSAMENTE.");
+        } catch (e) { alert("Error al conectar."); } finally { hideLoading(); }
+    }
+
+    async function consultarHistorial() {
+        const f = document.getElementById('fechaBusqueda').value;
+        const t = document.getElementById('turnoBusqueda').value;
+        if (!f) return alert("Selecciona fecha.");
+        showLoading("Buscando...");
+        try {
+            const res = await fetch(`${scriptUrl}?action=consultarHistorial&fecha=${f}&turno=${t}`);
+            const r = await res.json();
+            if (r.success) {
+                const d = r.data;
+                alert(`✅ ENCONTRADO\nOperario: ${d.operario}\nGas: Var ${d.vGas} | Saldo ${d.sGas}\nPet: Var ${d.vPet} | Saldo ${d.sPet}`);
+            } else alert("❌ " + r.message);
+        } catch (e) { alert("Error."); } finally { hideLoading(); }
+    }
+
+    function vincularDNI() { document.getElementById('dniInput').value = document.getElementById('operarioSelect').value; guardarEnNube(); }
 
     async function guardarEnNube() {
         const opSelect = document.getElementById('operarioSelect');
@@ -316,41 +213,13 @@ async function calcularTotales() {
         fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
     }
 
-    function vincularDNI() {
-        const select = document.getElementById('operarioSelect');
-        document.getElementById('dniInput').value = select.value;
-        guardarEnNube();
-    }
-
-    async function enviarReporteFinal() {
-        if (!document.getElementById('operarioSelect').value) return alert("¡Habla trome! Selecciona un operario primero.");
-        const btn = document.querySelector('.btn-guardar');
-        const originalText = btn.innerText;
-        btn.innerText = "🚀 ENVIANDO...";
-        btn.disabled = true;
-        showLoading("Guardando...");
-        
-        setTimeout(() => {
-            alert("✅ REPORTE FINALIZADO\nLos datos se han guardado correctamente.");
-            btn.innerText = originalText;
-            btn.disabled = false;
-            hideLoading();
-        }, 1500);
-    }
-
     function descargarComoImagen() {
-        const area = document.getElementById('captureArea');
-        const btnImg = document.getElementById('btnImg');
-        const originalText = btnImg.innerText;
-        btnImg.innerText = "📸 GENERANDO...";
         showLoading("Generando imagen...");
-
-        html2canvas(area, { scale: 2, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+        html2canvas(document.getElementById('captureArea'), { scale: 2, useCORS: true }).then(canvas => {
             const link = document.createElement('a');
             link.download = `Saldo_ACP_${document.getElementById('fechaReporte').value}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
-            btnImg.innerText = originalText;
             hideLoading();
         });
     }
