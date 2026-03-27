@@ -118,6 +118,40 @@
     function showLoading(text) { loaderText.innerText = text || "Procesando..."; loader.style.display = 'flex'; }
     function hideLoading() { loader.style.display = 'none'; }
 
+    // --- CARGA INICIAL CORREGIDA PARA JALAR ISOTANQUES ---
+    document.addEventListener('DOMContentLoaded', async function() {
+        showLoading("Sincronizando con la nube...");
+        try {
+            // 1. Cargar fecha
+            const resFecha = await fetch(`${scriptUrl}?action=getUltimaFecha`);
+            const dataFecha = await resFecha.json();
+            if (dataFecha.fecha) document.getElementById('fechaReporte').value = dataFecha.fecha;
+
+            // 2. Cargar Isotanques de la plataforma central
+            const resSist = await fetch(`${scriptUrl}?action=read`);
+            const dataSist = await resSist.json();
+            if (dataSist && dataSist.reservas) {
+                document.getElementById('iGasolina').value = dataSist.reservas.gasohol || 0;
+                document.getElementById('iPetroleo').value = dataSist.reservas.diesel || 0;
+            }
+            
+            // 3. Recuperar borrador
+            const resBorrador = await fetch(`${scriptUrl}?action=getEstadoBorrador`);
+            const borrador = await resBorrador.json();
+            if (borrador) {
+                document.getElementById('vGasolina').value = borrador.vGas || "";
+                document.getElementById('vPetroleo').value = borrador.vPet || "";
+                document.getElementById('turnoSelect').value = borrador.turno || "DIA";
+                if (borrador.dni) {
+                    document.getElementById('operarioSelect').value = borrador.dni;
+                    document.getElementById('dniInput').value = borrador.dni;
+                }
+            }
+            // Disparamos cálculo para que los totales se vean de una vez
+            await calcularTotales();
+        } catch (e) { console.error("Error inicial:", e); } finally { hideLoading(); }
+    });
+
     async function calcularTotales() {
         clearTimeout(timeoutSaldos);
         const vGas = document.getElementById('vGasolina').value;
@@ -126,7 +160,16 @@
         document.getElementById('sPetroleo').innerText = "...";
 
         timeoutSaldos = setTimeout(async () => {
-            if (!vGas && !vPet) { document.getElementById('sGasolina').innerText = "0.00"; document.getElementById('sPetroleo').innerText = "0.00"; return; }
+            // Si no hay valores, mostramos el Isotanque como total
+            if (!vGas && !vPet) { 
+                const iG = parseFloat(document.getElementById('iGasolina').value) || 0;
+                const iP = parseFloat(document.getElementById('iPetroleo').value) || 0;
+                document.getElementById('sGasolina').innerText = "0.00";
+                document.getElementById('tGasolina').innerText = iG.toFixed(2);
+                document.getElementById('sPetroleo').innerText = "0.00";
+                document.getElementById('tPetroleo').innerText = iP.toFixed(2);
+                return; 
+            }
             showLoading("Sincronizando saldos...");
             try {
                 await Promise.all([
@@ -139,6 +182,7 @@
     }
 
     async function actualizarSaldo(tipo, valor, idSaldo, idIso, idTotal) {
+        const iso = parseFloat(document.getElementById(idIso).value) || 0;
         if (valor && valor >= 0) {
             try {
                 const res = await fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=${tipo}&valor=${valor}`);
@@ -146,12 +190,12 @@
                 if (data.saldo !== undefined) {
                     const s = parseFloat(data.saldo);
                     document.getElementById(idSaldo).innerText = s.toFixed(2);
-                    const iso = parseFloat(document.getElementById(idIso).value) || 0;
                     document.getElementById(idTotal).innerText = (s + iso).toFixed(2);
                 }
             } catch (e) { document.getElementById(idSaldo).innerText = "Error"; }
         } else {
             document.getElementById(idSaldo).innerText = "0.00";
+            document.getElementById(idTotal).innerText = iso.toFixed(2);
         }
     }
 
