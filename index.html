@@ -178,6 +178,11 @@
                 font-size: 16px !important;
             }
         }
+        /* Para que el simulador interno no se pegue a los bordes */
+#registroCard .sim-box {
+    margin-top: 20px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
     </style>
 </head>
 <body>
@@ -257,6 +262,45 @@
                     <div id="simResultado" class="sim-res">0.00 gl</div>
                 </div>
             </div>
+            <div class="card admin-only sim-box" style="border: 2px solid var(--diesel); background: #f0f7ff;">
+    <h2 style="color: var(--diesel); margin-top:0;">📋 Simulador de Pedido Semanal</h2>
+    <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 15px;">Calcula cuándo pedir cisterna basándose solo en el <b>Tanque Central</b>.</p>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+            <label class="group-label">Consumo Diario Estimado</label>
+            <input type="number" id="simConsumoDia" placeholder="Ej: 1500" oninput="calcularPedidoSemanal()">
+        </div>
+        <div>
+            <label class="group-label">Cisterna Programada</label>
+            <input type="number" id="simIngresoCis" placeholder="Ej: 3000" oninput="calcularPedidoSemanal()">
+        </div>
+        <div style="grid-column: span 2;">
+            <label class="group-label">Día de Llegada Cisterna</label>
+            <select id="simDiaLlegada" onchange="calcularPedidoSemanal()">
+                <option value="1">Mañana</option>
+                <option value="2">En 2 días</option>
+                <option value="3">En 3 días</option>
+                <option value="4">En 4 días</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-container" style="margin-top: 15px; border: 1px solid #bfdbfe; border-radius: 8px;">
+        <table style="font-size: 0.8rem; background: white;">
+            <thead style="display: table-header-group; background: #e0f2fe;">
+                <tr>
+                    <th>Día</th>
+                    <th>Consumo</th>
+                    <th>Ingreso</th>
+                    <th>Saldo Tanque Central</th>
+                </tr>
+            </thead>
+            <tbody id="bodySimulado">
+                </tbody>
+        </table>
+    </div>
+</div>
         </div>
 
         <div class="card" id="monitorCard">
@@ -885,6 +929,44 @@ setInterval(() => {
 window.onclick = function(event) {
     let modal = document.getElementById('calcModal');
     if (event.target == modal) { modal.style.display = "none"; }
+}
+    function calcularPedidoSemanal() {
+    const ctdConsumo = parseFloat(document.getElementById('simConsumoDia').value) || 0;
+    const ctdIngreso = parseFloat(document.getElementById('simIngresoCis').value) || 0;
+    const diaLlegada = parseInt(document.getElementById('simDiaLlegada').value);
+    const tbody = document.getElementById('bodySimulado');
+    
+    // Jalar Stock Real del Tanque Central (Sin reserva)
+    let saldoSimulado = parseFloat(document.getElementById('tanqueDiesel').innerText) || 0;
+    
+    tbody.innerHTML = "";
+    const diasSemana = ["DOMINGO", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"];
+    const hoy = new Date();
+
+    for (let i = 1; i <= 6; i++) {
+        const fechaSim = new Date();
+        fechaSim.setDate(hoy.getDate() + i);
+        const nombreDia = diasSemana[fechaSim.getDay()];
+        
+        // Verificamos si hoy toca ingreso de cisterna
+        let ingreso = (i === diaLlegada) ? ctdIngreso : 0;
+        
+        // Cálculo del día
+        saldoSimulado = (saldoSimulado - ctdConsumo) + ingreso;
+
+        // Estilo de alerta: Si el saldo es negativo, el Tanque Central se secó
+        let claseSaldo = saldoSimulado < 0 ? 'color: var(--danger); font-weight:bold; background:#fee2e2;' : '';
+        let aviso = saldoSimulado < 0 ? ' 🚨 ¡QUIEBRE!' : '';
+
+        tbody.innerHTML += `
+            <tr style="${claseSaldo}">
+                <td>${nombreDia}</td>
+                <td>-${ctdConsumo}</td>
+                <td>${ingreso > 0 ? '+' + ingreso : '-'}</td>
+                <td>${saldoSimulado.toFixed(2)}${aviso}</td>
+            </tr>
+        `;
+    }
 }
 </script>
 </body>
