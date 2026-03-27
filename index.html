@@ -183,6 +183,21 @@
     margin-top: 20px;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
 }
+        .input-sim {
+    width: 60px !important;
+    padding: 3px;
+    text-align: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    display: block;
+    margin: auto;
+}
+.input-ing {
+    border-color: #10b981 !important;
+    color: #059669;
+    font-weight: bold;
+}
     </style>
 </head>
 <body>
@@ -608,23 +623,15 @@ async function cargarDatos() {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
         
-        // --- NUEVO: SINCRONIZACIÓN DE SIMULACIÓN DESDE LA NUBE ---
-        if (data.sim_guardada) {
-            // Cargamos los arrays que el jefe o tú guardaron antes
-            consumosProyectados = data.sim_guardada.consumos || [1500, 1500, 1500, 1500, 1500, 1500];
-            ingresosProyectados = data.sim_guardada.ingresos || [0, 0, 0, 0, 0, 0];
-            
-            // Ajustamos el selector de producto al que estaba guardado
-            if(document.getElementById('simProducto')) {
-                document.getElementById('simProducto').value = data.sim_guardada.producto || 'DIESEL';
-            }
+        // Sincronización con la nueva estructura Dual
+        if (data.sim_guardada_dual) {
+            proyeccionesDual = data.sim_guardada_dual;
         }
 
         datosCache = data.historial;
         stockTotalDiesel = data.stocks.diesel;
         stockTotalGasohol = data.stocks.gasohol;
         
-        // Jalar reservas de la nube
         document.getElementById('inputIsoDiesel').value = data.reservas ? data.reservas.diesel : 0;
         document.getElementById('inputIsoGasohol').value = data.reservas ? data.reservas.gasohol : 0;
 
@@ -634,14 +641,14 @@ async function cargarDatos() {
         procesarGrafico();
         calcularConsumoAnual();
         
-        // --- NUEVO: REDIBUJAR SIMULADOR CON DATA DE LA NUBE ---
+        // Dibujamos el simulador solo si somos Admin
         if (currentUser === 'ADMIN') {
             renderizarSimuladorBase(); 
         }
 
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
     } catch (e) { 
-        console.log("Error de conexion o sincronización...", e); 
+        console.log("Error de sincronización...", e); 
     }
 }
 
