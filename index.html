@@ -661,32 +661,41 @@ async function cargarDatos() {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
         
-        // Sincronización con la nueva estructura Dual
+        // 1. Sincronización de proyecciones guardadas
         if (data.sim_guardada_dual) {
             proyeccionesDual = data.sim_guardada_dual;
         }
 
-        datosCache = data.historial;
+        // 2. ACTUALIZACIÓN DE MEMORIA (Vital para el historial)
+        datosCache = data.historial || []; 
         stockTotalDiesel = data.stocks.diesel;
         stockTotalGasohol = data.stocks.gasohol;
         
         document.getElementById('inputIsoDiesel').value = data.reservas ? data.reservas.diesel : 0;
         document.getElementById('inputIsoGasohol').value = data.reservas ? data.reservas.gasohol : 0;
 
-        actualizarUI(data);
+        // 3. PROCESOS VISUALES
+        actualizarUI(data); 
         actualizarDesgloseLocal();
         llenarSelectorMeses();
         procesarGrafico();
         calcularConsumoAnual();
         
-        // Dibujamos el simulador solo si somos Admin
+        // 4. INYECCIÓN CLAVE: Forzar renderizado del historial
+        // Esto asegura que al refrescar, la tabla se llene de inmediato
+        if (typeof renderHistorial === "function") {
+            renderHistorial(datosCache);
+            console.log("✅ Historial renderizado con éxito");
+        }
+
+        // 5. Dibujamos el simulador solo si somos Admin
         if (currentUser === 'ADMIN') {
             renderizarSimuladorBase(); 
         }
 
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
     } catch (e) { 
-        console.log("Error de sincronización...", e); 
+        console.error("❌ Error de sincronización:", e); 
     }
 }
 
