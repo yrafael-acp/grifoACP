@@ -899,40 +899,44 @@ function actualizarEtiquetaEstado() {
 }
 
         async function guardarRegistroManual() {
-            const regPlaca = document.getElementById('regPlaca').value.toUpperCase().trim();
-            const regFechaInput = document.getElementById('regFecha').value;
-            const regTipo = document.getElementById('regTipo').value;
-            const regCant = parseFloat(document.getElementById('regCant').value);
+    // 0. Identificamos el botón para bloquearlo
+    const btnRegistro = document.querySelector('button[onclick="guardarRegistroManual()"]');
+    const regPlaca = document.getElementById('regPlaca').value.toUpperCase().trim();
+    const regFechaInput = document.getElementById('regFecha').value;
+    const regTipo = document.getElementById('regTipo').value;
+    const regCant = parseFloat(document.getElementById('regCant').value);
 
-            if (!regPlaca || !regFechaInput || isNaN(regCant)) {
-                return alert("⚠️ Completa todos los campos correctamente.");
-            }
+    // Validación básica
+    if (!regPlaca || !regFechaInput || isNaN(regCant)) {
+        return alert("⚠️ Completa todos los campos correctamente.");
+    }
 
-            const hoy = new Date();
-            const lunesActual = getLunesActual(hoy);
-            lunesActual.setHours(0,0,0,0);
-            const fechaRegistro = new Date(regFechaInput + "T12:00:00");
-            fechaRegistro.setHours(0,0,0,0);
+    const hoy = new Date();
+    const lunesActual = getLunesActual(hoy);
+    lunesActual.setHours(0,0,0,0);
+    const fechaRegistro = new Date(regFechaInput + "T12:00:00");
+    fechaRegistro.setHours(0,0,0,0);
 
-            if (fechaRegistro < lunesActual) {
-                return alert("🚫 BLOQUEADO: No puedes registrar despachos de semanas pasadas. Solo se permiten registros desde el lunes " + lunesActual.toLocaleDateString());
-            }
+    if (fechaRegistro < lunesActual) {
+        return alert("🚫 BLOQUEADO: No puedes registrar despachos de semanas pasadas. Solo se permiten registros desde el lunes " + lunesActual.toLocaleDateString());
+    }
 
-            const payload = {
-                action: 'saveTemporal',
-                placa: regPlaca,
-                fecha: regFechaInput,
-                tipo: regTipo,
-                cantidad: regCant
-            };
-            
-            const ind = document.getElementById('indicadorCarga');
-            
-            // --- MEJORA AQUÍ: Cambiamos el texto y forzamos la visibilidad ---
-            ind.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin mr-1"></i> ENVIANDO AL SERVIDOR...';
-            ind.classList.remove('hidden');
-            
-            try {
+    // --- CIRUGÍA: BLOQUEO ANTI-DOBLE CLIC ---
+    btnRegistro.disabled = true;
+    btnRegistro.style.opacity = "0.5";
+    btnRegistro.innerText = "PROCESANDO...";
+
+    const payload = {
+        action: 'saveTemporal',
+        placa: regPlaca,
+        fecha: regFechaInput,
+        tipo: regTipo,
+        cantidad: regCant
+    };
+    
+    const ind = document.getElementById('indicadorCarga');
+    
+    try {
         // 1. Mostramos el mensaje de envío
         ind.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin mr-1"></i> ENVIANDO AL SERVIDOR...';
         ind.classList.remove('hidden');
@@ -940,29 +944,40 @@ function actualizarEtiquetaEstado() {
         // 2. Ejecutamos el envío
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
         
-        // 3. RETRASO ARTIFICIAL: Sin esto, el cambio de texto es invisible al ojo humano
+        // 3. RETRASO ARTIFICIAL
         await new Promise(resolve => setTimeout(resolve, 800));
 
         // 4. Cambiamos el texto para la sincronización
         ind.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-1"></i> ACTUALIZANDO CONSUMOS...';
         
-        cerrarModalRegistro();
-        
-        // Limpiar campos
+        // --- LIMPIEZA DE CAMPOS ---
         document.getElementById('regPlaca').value = "";
         document.getElementById('regCant').value = "";
+        document.getElementById('regFecha').value = ""; // También limpiamos la fecha
+        
+        cerrarModalRegistro();
 
-        // Sincronización
+        // Sincronización final
         await sincronizarDesdeNube();
         
+        alert("✅ REGISTRO MANUAL GUARDADO EXITOSAMENTE.");
+
     } catch (e) {
         alert("❌ Error de conexión.");
+        // Si falla, rehabilitamos el botón para que pueda intentar de nuevo
+        btnRegistro.disabled = false;
+        btnRegistro.style.opacity = "1";
+        btnRegistro.innerText = "ENVIAR A NUBE";
     } finally {
         ind.classList.add('hidden');
-        // Restauramos el texto base
         ind.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO DATOS...';
+        
+        // --- REHABILITACIÓN DEL BOTÓN AL TERMINAR TODO ---
+        btnRegistro.disabled = false;
+        btnRegistro.style.opacity = "1";
+        btnRegistro.innerText = "ENVIAR A NUBE";
     }
-        }
+}
         
         function verificarRolAdmin(rol) {
     const contenedor = document.getElementById('contenedorAdmin');
