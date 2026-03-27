@@ -285,17 +285,51 @@
     async function consultarHistorial() {
         const f = document.getElementById('fechaBusqueda').value;
         const t = document.getElementById('turnoBusqueda').value;
-        if (!f) return alert("Fecha?");
-        showLoading("Buscando...");
+        if (!f) return alert("¡Habla trome! Selecciona una fecha primero.");
+        
+        showLoading("Buscando en registros...");
         try {
-            const res = await fetch(`${scriptUrl}?action=consultarHistorial&fecha=${f}&turno=${t}`);
-            const r = await res.json();
+            // 1. Traemos la data real del sistema (la que dice 6500)
+            const resSist = await fetch(`${scriptUrl}?action=read`);
+            const dataSist = await resSist.json();
+            const stockRealGas = parseFloat(dataSist.reservas.gasohol) || 0;
+            const stockRealPet = parseFloat(dataSist.reservas.diesel) || 0;
+
+            // 2. Traemos el reporte que guardó el operario
+            const resHist = await fetch(`${scriptUrl}?action=consultarHistorial&fecha=${f}&turno=${t}`);
+            const r = await resHist.json();
+            
             if (r.success) {
                 const d = r.data;
-                let aviso = (parseFloat(d.iGas) !== isoGasOriginal || parseFloat(d.iPet) !== isoPetOriginal) ? "\n\n🚨 ALERTA: Editado manualmente." : "";
-                alert(`✅ REPORTE:\nOperario: ${d.operario}\nGas: Var ${d.vGas} | Iso ${d.iGas}\nPet: Var ${d.vPet} | Iso ${d.iPet}` + aviso);
-            } else alert("❌ No encontrado.");
-        } catch (e) { alert("Error."); } finally { hideLoading(); }
+                const gasHistorial = parseFloat(d.iGas) || 0;
+                const petHistorial = parseFloat(d.iPet) || 0;
+
+                let avisoAdmin = "";
+                // COMPARACIÓN CRÍTICA: Historial vs Sistema Real
+                if (gasHistorial !== stockRealGas || petHistorial !== stockRealPet) {
+                    avisoAdmin = "\n\n🚨 ALERTA DE SEGURIDAD:\nLos Isotanques registrados NO coinciden con el stock real del sistema.";
+                    avisoAdmin += `\n\nRegistrado: G:${gasHistorial} | P:${petHistorial}`;
+                    avisoAdmin += `\nReal Sistema: G:${stockRealGas} | P:${stockRealPet}`;
+                }
+
+                alert(
+                    `✅ REPORTE ENCONTRADO\n` +
+                    `----------------------------\n` +
+                    `Operario: ${d.operario}\n` +
+                    `Turno: ${d.turno}\n` +
+                    `Gasolina: Varilla ${d.vGas} | Saldo ${d.sGas} | Iso ${d.iGas}\n` +
+                    `Petróleo: Varilla ${d.vPet} | Saldo ${d.sPet} | Iso ${d.iPet}\n` +
+                    `----------------------------` + 
+                    avisoAdmin
+                );
+            } else {
+                alert("❌ " + r.message);
+            }
+        } catch (e) { 
+            alert("Error al conectar con el servidor."); 
+        } finally { 
+            hideLoading(); 
+        }
     }
 
     function vincularDNI() { 
