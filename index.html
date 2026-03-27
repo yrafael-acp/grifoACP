@@ -198,6 +198,42 @@
     color: #059669;
     font-weight: bold;
 }
+        /* --- MAQUILLAJE DEL SIMULADOR DUAL --- */
+.input-sim {
+    width: 65px !important;
+    padding: 4px;
+    text-align: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+/* Salidas (Consumo): Azul suave para no estresar */
+.input-cons {
+    background-color: #f0f9ff;
+    color: #0369a1;
+    border-color: #bae6fd;
+}
+
+/* Ingresos (Cisterna): Verde vibrante para que resalte la compra */
+.input-ing {
+    background-color: #f0fdf4;
+    color: #15803d;
+    border-color: #bbf7d0;
+}
+
+.input-sim:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    border-color: var(--accent);
+}
+
+/* Estados de Saldo */
+.saldo-critico { background-color: #fee2e2 !important; color: #dc2626 !important; font-weight: 800; } /* Quiebre */
+.saldo-alerta { background-color: #ffedd5 !important; color: #ea580c !important; font-weight: 700; }  /* Reserva < 2 días */
+.saldo-exceso { background-color: #faf5ff !important; color: #7e22ce !important; font-weight: 700; border: 2px solid #e9d5ff; } /* Sobrecapacidad */
     </style>
 </head>
 <body>
@@ -963,7 +999,7 @@ let proyeccionesDual = {
 let timerGuardado; // AQUÍ SE QUEDA, ES EL GUARDIÁN DE LA NUBE
 
 function renderizarSimuladorBase() {
-    const tbody = document.getElementById('bodySimuladoDual'); // Verifica que este ID coincida con tu HTML
+    const tbody = document.getElementById('bodySimuladoDual'); 
     if (!tbody) return;
     
     tbody.innerHTML = "";
@@ -978,58 +1014,121 @@ function renderizarSimuladorBase() {
         tbody.innerHTML += `
             <tr id="fila_dual_${i}">
                 <td style="padding: 8px; font-weight: bold; background: #f8fafc; border-right: 2px solid #e2e8f0;">${nombreDia}</td>
-                <td style="padding: 2px;"><input type="number" id="d_cons_${i}" value="${proyeccionesDual.DIESEL.cons[i-1]}" class="input-sim" oninput="actualizarCalculosSimulacion()"></td>
-                <td style="padding: 2px;"><input type="number" id="d_ing_${i}" value="${proyeccionesDual.DIESEL.ing[i-1]}" class="input-sim input-ing" oninput="actualizarCalculosSimulacion()"></td>
+                
+                <td style="padding: 2px;">
+                    <input type="number" id="d_cons_${i}" value="${proyeccionesDual.DIESEL.cons[i-1]}" 
+                           class="input-sim input-cons" oninput="actualizarCalculosSimulacion()">
+                </td>
+                <td style="padding: 2px;">
+                    <input type="number" id="d_ing_${i}" value="${proyeccionesDual.DIESEL.ing[i-1]}" 
+                           class="input-sim input-ing" oninput="actualizarCalculosSimulacion()">
+                </td>
                 <td style="padding: 8px; text-align: right; font-weight: bold; border-right: 2px solid #e2e8f0;" id="d_saldo_${i}">0.00</td>
-                <td style="padding: 2px;"><input type="number" id="g_cons_${i}" value="${proyeccionesDual.GASOHOL.cons[i-1]}" class="input-sim" oninput="actualizarCalculosSimulacion()"></td>
-                <td style="padding: 2px;"><input type="number" id="g_ing_${i}" value="${proyeccionesDual.GASOHOL.ing[i-1]}" class="input-sim input-ing" oninput="actualizarCalculosSimulacion()"></td>
+                
+                <td style="padding: 2px;">
+                    <input type="number" id="g_cons_${i}" value="${proyeccionesDual.GASOHOL.cons[i-1]}" 
+                           class="input-sim input-cons" oninput="actualizarCalculosSimulacion()">
+                </td>
+                <td style="padding: 2px;">
+                    <input type="number" id="g_ing_${i}" value="${proyeccionesDual.GASOHOL.ing[i-1]}" 
+                           class="input-sim input-ing" oninput="actualizarCalculosSimulacion()">
+                </td>
                 <td style="padding: 8px; text-align: right; font-weight: bold;" id="g_saldo_${i}">0.00</td>
             </tr>`;
     }
-    actualizarCalculosSimulacion(); // Calculamos el saldo apenas se dibuja
+    actualizarCalculosSimulacion(); 
 }
 
 function actualizarCalculosSimulacion() {
     let totalD = 0; let totalG = 0;
 
-    // CAPTURAR DATOS DEL TABLERO
+    // 1. CAPTURAR DATOS DEL TABLERO
     for (let j = 1; j <= 6; j++) {
         proyeccionesDual.DIESEL.cons[j-1] = parseFloat(document.getElementById(`d_cons_${j}`).value) || 0;
         proyeccionesDual.DIESEL.ing[j-1] = parseFloat(document.getElementById(`d_ing_${j}`).value) || 0;
         proyeccionesDual.GASOHOL.cons[j-1] = parseFloat(document.getElementById(`g_cons_${j}`).value) || 0;
         proyeccionesDual.GASOHOL.ing[j-1] = parseFloat(document.getElementById(`g_ing_${j}`).value) || 0;
+        
         totalD += proyeccionesDual.DIESEL.ing[j-1];
         totalG += proyeccionesDual.GASOHOL.ing[j-1];
+
+        // Maquillaje de inputs: Diferenciamos Salidas (Azul) de Ingresos (Verde)
+        document.getElementById(`d_cons_${j}`).className = "input-sim input-cons";
+        document.getElementById(`g_cons_${j}`).className = "input-sim input-cons";
+        document.getElementById(`d_ing_${j}`).className = "input-sim input-ing";
+        document.getElementById(`g_ing_${j}`).className = "input-sim input-ing";
     }
 
-    // SALDOS INICIALES REALES
+    // 2. SALDOS INICIALES REALES
     let sD = parseFloat(document.getElementById('tanqueDiesel').innerText) || 0;
     let sG = parseFloat(document.getElementById('tanqueGasohol').innerText) || 0;
 
-    // CÁLCULO EN PARALELO
+    // 3. CÁLCULO EN PARALELO CON ALERTAS VISUALES
     for (let i = 1; i <= 6; i++) {
         sD = (sD - proyeccionesDual.DIESEL.cons[i-1]) + proyeccionesDual.DIESEL.ing[i-1];
         sG = (sG - proyeccionesDual.GASOHOL.cons[i-1]) + proyeccionesDual.GASOHOL.ing[i-1];
 
-        document.getElementById(`d_saldo_${i}`).innerText = sD.toFixed(2);
-        document.getElementById(`g_saldo_${i}`).innerText = sG.toFixed(2);
-        
-        // Alertas visuales de quiebre
-        document.getElementById(`d_saldo_${i}`).style.color = sD < 0 ? '#ef4444' : '#1e293b';
-        document.getElementById(`g_saldo_${i}`).style.color = sG < 0 ? '#ef4444' : '#1e293b';
+        // Aplicamos lógica de semáforo para Diesel (Tope 5000)
+        aplicarAlertasVisuales(`d_saldo_${i}`, `fila_dual_${i}`, sD, proyeccionesDual.DIESEL.cons[i-1], 5000);
+        // Aplicamos lógica de semáforo para Gasohol (Tope 1000)
+        aplicarAlertasVisuales(`g_saldo_${i}`, `fila_dual_${i}`, sG, proyeccionesDual.GASOHOL.cons[i-1], 1000);
     }
 
-    // MOSTRAR TOTALES SEMANALES
-    if(document.getElementById('totalIngresoD')) document.getElementById('totalIngresoD').innerText = totalD.toFixed(2) + " gl";
-    if(document.getElementById('totalIngresoG')) document.getElementById('totalIngresoG').innerText = totalG.toFixed(2) + " gl";
+    // 4. MOSTRAR TOTALES SEMANALES
+    if(document.getElementById('totalIngresoD')) {
+        const elTotD = document.getElementById('totalIngresoD');
+        elTotD.innerText = totalD.toFixed(2) + " gl";
+        elTotD.style.color = sD < 0 ? '#dc2626' : '#2563eb'; // Rojo si termina en quiebre
+    }
+    if(document.getElementById('totalIngresoG')) {
+        const elTotG = document.getElementById('totalIngresoG');
+        elTotG.innerText = totalG.toFixed(2) + " gl";
+        elTotG.style.color = sG < 0 ? '#dc2626' : '#059669';
+    }
 
-    // GUARDADO EN NUBE (Espera 2 seg sin escribir)
+    // 5. GUARDADO EN NUBE
     clearTimeout(timerGuardado);
     timerGuardado = setTimeout(() => {
         const payload = { action: 'saveSimDual', user: currentUser, data: proyeccionesDual };
         fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        console.log("☁️ Sincronización dual completada.");
+        console.log("☁️ Sincronización dual con alertas completada.");
     }, 2000);
+}
+
+// FUNCIÓN AUXILIAR PARA EL "MAQUILLAJE" LÓGICO
+function aplicarAlertasVisuales(idSaldo, idFila, saldo, consDia, tope) {
+    const el = document.getElementById(idSaldo);
+    const fila = document.getElementById(idFila);
+    if(!el) return;
+
+    el.innerText = saldo.toFixed(2);
+    el.style.fontWeight = "bold";
+    el.style.borderRadius = "4px";
+    el.style.padding = "2px 6px";
+
+    // 1. Rojo: QUIEBRE (Saldo negativo)
+    if (saldo < 0) {
+        el.innerText += " 🚨";
+        el.style.color = "#dc2626";
+        el.style.backgroundColor = "#fee2e2";
+    } 
+    // 2. Morado: EXCESO (Más de la capacidad del tanque)
+    else if (saldo > tope) {
+        el.innerText += " ⚠️";
+        el.style.color = "#7e22ce";
+        el.style.backgroundColor = "#f3e8ff";
+    }
+    // 3. Naranja: PEDIR YA (Menos de 2 días de stock según consumo proyectado)
+    else if (saldo < (consDia * 2) && consDia > 0) {
+        el.innerText += " ⏳";
+        el.style.color = "#ea580c";
+        el.style.backgroundColor = "#ffedd5";
+    }
+    // 4. Normal
+    else {
+        el.style.color = "#1e293b";
+        el.style.backgroundColor = "transparent";
+    }
 }
 </script>
 </body>
