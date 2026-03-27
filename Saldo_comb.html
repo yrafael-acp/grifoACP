@@ -236,25 +236,54 @@
         } catch (e) { console.error("Error inicial:", e); } finally { hideLoading(); }
     });
 
-    async function calcularTotales() {
-        const vGas = document.getElementById('vGasolina').value;
-        const vPet = document.getElementById('vPetroleo').value;
-        
-        if(vGas || vPet) showLoading("Calculando...");
+    // --- VARIABLE GLOBAL PARA EL TEMPORIZADOR ---
+let timeoutSaldos;
 
-        // CAMBIO: Poner visualmente que está cargando en la tabla
-        if(vGas) document.getElementById('sGasolina').innerText = "...";
-        if(vPet) document.getElementById('sPetroleo').innerText = "...";
+async function calcularTotales() {
+    // Si el usuario sigue tecleando, cancelamos el cronómetro anterior
+    clearTimeout(timeoutSaldos);
+
+    const vGas = document.getElementById('vGasolina').value;
+    const vPet = document.getElementById('vPetroleo').value;
+
+    // 1. LIMPIEZA INMEDIATA: Borramos los saldos viejos para que no confundan
+    // Ponemos "..." para indicar que el sistema está procesando la nueva cifra
+    document.getElementById('sGasolina').innerText = "...";
+    document.getElementById('tGasolina').innerText = "...";
+    document.getElementById('sPetroleo').innerText = "...";
+    document.getElementById('tPetroleo').innerText = "...";
+
+    // 2. ESPERA ACTIVA: Aguardamos 1 segundo (1000ms) antes de pedir datos a la nube
+    timeoutSaldos = setTimeout(async () => {
+        // Si no hay valores, reseteamos a 0.00 y salimos
+        if (!vGas && !vPet) {
+            document.getElementById('sGasolina').innerText = "0.00";
+            document.getElementById('sPetroleo').innerText = "0.00";
+            return;
+        }
+
+        showLoading("Sincronizando saldos...");
 
         try {
+            // 3. LLAMADA A LA NUBE: Recién aquí traemos los datos reales
             await Promise.all([
                 actualizarSaldo('GASOLINA', vGas, 'sGasolina', 'iGasolina', 'tGasolina'),
                 actualizarSaldo('PETROLEO', vPet, 'sPetroleo', 'iPetroleo', 'tPetroleo')
             ]);
+            
+            // Guardamos el borrador automáticamente
             guardarEnNube(); 
-        } finally { hideLoading(); }
-    }
 
+        } catch (e) {
+            console.error("Error en sincronización:", e);
+            // Si falla, avisamos en la tabla
+            document.getElementById('sGasolina').innerText = "Error";
+            document.getElementById('sPetroleo').innerText = "Error";
+        } finally {
+            hideLoading();
+        }
+    }, 1000); 
+}
     async function actualizarSaldo(tipo, valor, idSaldo, idIso, idTotal) {
         if (valor && valor >= 0) {
             try {
