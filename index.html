@@ -956,7 +956,7 @@ let proyeccionesDual = {
 let timerGuardado; // AQUÍ SE QUEDA, ES EL GUARDIÁN DE LA NUBE
 
 function renderizarSimuladorBase() {
-    const tbody = document.getElementById('bodySimulado'); 
+    const tbody = document.getElementById('bodySimuladoDual'); // Verifica que este ID coincida con tu HTML
     if (!tbody) return;
     
     tbody.innerHTML = "";
@@ -970,16 +970,16 @@ function renderizarSimuladorBase() {
         
         tbody.innerHTML += `
             <tr id="fila_dual_${i}">
-                <td style="padding: 5px; font-weight: bold; background: #f8fafc; border-right: 2px solid #e2e8f0;">${nombreDia}</td>
+                <td style="padding: 8px; font-weight: bold; background: #f8fafc; border-right: 2px solid #e2e8f0;">${nombreDia}</td>
                 <td style="padding: 2px;"><input type="number" id="d_cons_${i}" value="${proyeccionesDual.DIESEL.cons[i-1]}" class="input-sim" oninput="actualizarCalculosSimulacion()"></td>
                 <td style="padding: 2px;"><input type="number" id="d_ing_${i}" value="${proyeccionesDual.DIESEL.ing[i-1]}" class="input-sim input-ing" oninput="actualizarCalculosSimulacion()"></td>
-                <td style="padding: 5px; text-align: right; font-weight: bold; border-right: 2px solid #e2e8f0;" id="d_saldo_${i}">0.00</td>
+                <td style="padding: 8px; text-align: right; font-weight: bold; border-right: 2px solid #e2e8f0;" id="d_saldo_${i}">0.00</td>
                 <td style="padding: 2px;"><input type="number" id="g_cons_${i}" value="${proyeccionesDual.GASOHOL.cons[i-1]}" class="input-sim" oninput="actualizarCalculosSimulacion()"></td>
                 <td style="padding: 2px;"><input type="number" id="g_ing_${i}" value="${proyeccionesDual.GASOHOL.ing[i-1]}" class="input-sim input-ing" oninput="actualizarCalculosSimulacion()"></td>
-                <td style="padding: 5px; text-align: right; font-weight: bold;" id="g_saldo_${i}">0.00</td>
+                <td style="padding: 8px; text-align: right; font-weight: bold;" id="g_saldo_${i}">0.00</td>
             </tr>`;
     }
-    actualizarCalculosSimulacion();
+    actualizarCalculosSimulacion(); // Calculamos el saldo apenas se dibuja
 }
 
 function actualizarCalculosSimulacion() {
