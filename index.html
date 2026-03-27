@@ -251,17 +251,47 @@
                 <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf100')">Ingreso CF100</button>
             </div>
 
-            <div class="sim-box">
-                <h3 style="margin-top:0; color:var(--primary); font-size: 0.9rem;">📊 Simulador: Consumo por Varilla</h3>
-                <label class="group-label">Stock Inicial (Monitor)</label>
-                <input type="number" id="simStockIni" step="0.01" placeholder="0.00">
-                <label class="group-label">Lectura Varilla Final</label>
-                <input type="number" id="simVarilla" step="0.01" placeholder="0.00 gl" oninput="ejecutarSimulacion()">
-                <div style="margin-top:10px; padding:10px; background:#eef2ff; border-radius:8px;">
-                    <small class="group-label" style="margin:0">Consumo estimado:</small>
-                    <div id="simResultado" class="sim-res">0.00 gl</div>
-                </div>
-            </div>
+            <div class="card admin-only sim-box" style="border: 2px solid var(--accent); background: #f8fafc;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h2 style="color: var(--primary); margin:0; font-size: 1.1rem;">📋 Simulador de Compra Semanal</h2>
+        <select id="simProducto" onchange="calcularPedidoSemanal()" style="width: auto; margin:0; padding: 5px; font-weight: bold;">
+            <option value="DIESEL">⛽ DIESEL</option>
+            <option value="GASOHOL">🟢 GASOHOL</option>
+        </select>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+        <div>
+            <label class="group-label">Ingreso Cisterna (gl)</label>
+            <input type="number" id="simIngresoCis" placeholder="Ej: 3000" oninput="calcularPedidoSemanal()">
+        </div>
+        <div>
+            <label class="group-label">Día de Llegada</label>
+            <select id="simDiaLlegada" onchange="calcularPedidoSemanal()">
+                <option value="1">Mañana</option>
+                <option value="2">En 2 días</option>
+                <option value="3">En 3 días</option>
+                <option value="4">En 4 días</option>
+                <option value="99">No llega esta semana</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-container" style="max-height: none; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <table style="font-size: 0.85rem; background: white; margin:0;">
+            <thead style="display: table-header-group; background: #f1f5f9;">
+                <tr>
+                    <th style="padding: 8px;">Día</th>
+                    <th style="padding: 8px; width: 80px;">Consumo gl</th>
+                    <th style="padding: 8px;">Saldo Central</th>
+                </tr>
+            </thead>
+            <tbody id="bodySimulado">
+                </tbody>
+        </table>
+    </div>
+    <p style="font-size: 0.7rem; color: #64748b; margin-top: 8px;">* Edita los valores de la columna <b>Consumo</b> para proyectar cada día.</p>
+</div>
             <div class="card admin-only sim-box" style="border: 2px solid var(--diesel); background: #f0f7ff;">
     <h2 style="color: var(--diesel); margin-top:0;">📋 Simulador de Pedido Semanal</h2>
     <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 15px;">Calcula cuándo pedir cisterna basándose solo en el <b>Tanque Central</b>.</p>
@@ -930,15 +960,21 @@ window.onclick = function(event) {
     let modal = document.getElementById('calcModal');
     if (event.target == modal) { modal.style.display = "none"; }
 }
-    function calcularPedidoSemanal() {
-    const ctdConsumo = parseFloat(document.getElementById('simConsumoDia').value) || 0;
+    // Variable para recordar tus consumos editados (para que no se borren al escribir)
+let consumosProyectados = [1500, 1500, 1500, 1500, 1500, 1500]; 
+
+function calcularPedidoSemanal() {
+    const producto = document.getElementById('simProducto').value;
     const ctdIngreso = parseFloat(document.getElementById('simIngresoCis').value) || 0;
     const diaLlegada = parseInt(document.getElementById('simDiaLlegada').value);
     const tbody = document.getElementById('bodySimulado');
     
-    // Jalar Stock Real del Tanque Central (Sin reserva)
-    let saldoSimulado = parseFloat(document.getElementById('tanqueDiesel').innerText) || 0;
+    // JALAMOS STOCK SEGÚN PRODUCTO (Resta automática de Isotanques)
+    let saldoSimulado = (producto === 'DIESEL') ? 
+        parseFloat(document.getElementById('tanqueDiesel').innerText) : 
+        parseFloat(document.getElementById('tanqueGasohol').innerText);
     
+    saldoSimulado = saldoSimulado || 0;
     tbody.innerHTML = "";
     const diasSemana = ["DOMINGO", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"];
     const hoy = new Date();
@@ -948,25 +984,39 @@ window.onclick = function(event) {
         fechaSim.setDate(hoy.getDate() + i);
         const nombreDia = diasSemana[fechaSim.getDay()];
         
-        // Verificamos si hoy toca ingreso de cisterna
+        // El consumo lo tomamos de nuestro array o del input si ya se dibujó
+        let inputVal = document.getElementById(`cons_dia_${i}`);
+        if(inputVal) consumosProyectados[i-1] = parseFloat(inputVal.value) || 0;
+        
+        let consumoDia = consumosProyectados[i-1];
         let ingreso = (i === diaLlegada) ? ctdIngreso : 0;
         
-        // Cálculo del día
-        saldoSimulado = (saldoSimulado - ctdConsumo) + ingreso;
+        saldoSimulado = (saldoSimulado - consumoDia) + ingreso;
 
-        // Estilo de alerta: Si el saldo es negativo, el Tanque Central se secó
-        let claseSaldo = saldoSimulado < 0 ? 'color: var(--danger); font-weight:bold; background:#fee2e2;' : '';
-        let aviso = saldoSimulado < 0 ? ' 🚨 ¡QUIEBRE!' : '';
+        let estiloFila = saldoSimulado < 0 ? 'background: #fee2e2;' : '';
+        let colorTexto = saldoSimulado < 0 ? 'color: #ef4444; font-weight: bold;' : 'color: #1e293b;';
 
         tbody.innerHTML += `
-            <tr style="${claseSaldo}">
-                <td>${nombreDia}</td>
-                <td>-${ctdConsumo}</td>
-                <td>${ingreso > 0 ? '+' + ingreso : '-'}</td>
-                <td>${saldoSimulado.toFixed(2)}${aviso}</td>
+            <tr style="${estiloFila}">
+                <td style="padding: 5px;"><b>${nombreDia}</b></td>
+                <td style="padding: 5px;">
+                    <input type="number" id="cons_dia_${i}" 
+                           value="${consumoDia}" 
+                           style="margin:0; padding:2px; font-size:0.8rem; height:25px;" 
+                           oninput="recalcularTotalesSim()">
+                </td>
+                <td style="padding: 5px; text-align: right; ${colorTexto}">
+                    ${saldoSimulado.toFixed(2)} ${saldoSimulado < 0 ? '🚨' : ''}
+                </td>
             </tr>
         `;
     }
+}
+
+// Función rápida para actualizar sin redibujar toda la tabla (evita que el cursor salte)
+function recalcularTotalesSim() {
+    // Simplemente llamamos a la principal, el array ya se actualizó arriba
+    calcularPedidoSemanal();
 }
 </script>
 </body>
