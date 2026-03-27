@@ -26,24 +26,36 @@
         .badge-placa { background: #e0e7ff; color: #4338ca; font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: 800; letter-spacing: 0.05em; }
         .badge-orden { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
         .text-soles { color: #059669; font-weight: 800; font-size: 13px; }
+        
         /* Definición de la animación de pulso */
         @keyframes pulsoSuave {
-        0% {
-        box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); /* Color amarillo semi-transparente */
-        }
-        70% {
-        box-shadow: 0 0 0 6px rgba(250, 204, 21, 0); /* Se expande y desvanece */
-        }
-        100% {
-        box-shadow: 0 0 0 0 rgba(250, 204, 21, 0);
-        }
+            0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(250, 204, 21, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
         }
 
-    /* Clase para aplicar la animación */
-    .animacion-pulso {
-    animation: pulsoSuave 1.8s infinite; /* Se repite infinitamente */
-    }
-    </style>
+        /* Clase para aplicar la animación */
+        .animacion-pulso {
+            animation: pulsoSuave 1.8s infinite;
+        }
+
+        /* --- CIRUGÍA: ESTILOS PARA EL CHISMOSO (RAYITO AZUL) --- */
+        .fa-bolt.text-blue-500 {
+            color: #3b82f6 !important; /* Azul eléctrico */
+            font-size: 0.85rem;
+            filter: drop-shadow(0 0 2px rgba(59, 130, 246, 0.5));
+        }
+
+        /* Animación específica para el icono de excepción */
+        .animate-pulse-fast {
+            animation: pulseFast 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulseFast {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.9); }
+        }
+</style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
 
@@ -619,20 +631,15 @@ function actualizarEtiquetaEstado() {
     
     if (!datos || datos.length === 0) return actualizarResumen(0, 0);
 
-    // --- CÁLCULO DEL FIN DE LA SEMANA SELECCIONADA ---
     const fechaFinSemana = new Date(lunesReferencia);
     fechaFinSemana.setDate(lunesReferencia.getDate() + 6);
     fechaFinSemana.setHours(23, 59, 59, 999);
 
-    // 1. Filtramos los datos antes de procesar cualquier otra cosa
-    // Solo se quedan las unidades que entraron ANTES o DURANTE esta semana
     const datosFiltrados = datos.filter(g => {
-        if (!g.fAlta) return true; // Si no hay fecha de alta, la mostramos por si las dudas
-        
+        if (!g.fAlta) return true; 
         const [dia, mes, anio] = g.fAlta.split('/');
         const fechaAltaUnidad = new Date(anio, mes - 1, dia);
         fechaAltaUnidad.setHours(0, 0, 0, 0);
-
         return fechaAltaUnidad <= fechaFinSemana;
     });
 
@@ -642,13 +649,11 @@ function actualizarEtiquetaEstado() {
     const vinculosMostrados = {};
     const conteoVinculos = {};
 
-    // 2. Contamos vínculos solo sobre los datos ya filtrados
     datosFiltrados.forEach(g => {
         const id = g.id || g.p[0];
         conteoVinculos[id] = (conteoVinculos[id] || 0) + 1;
     });
 
-    // 3. Dibujamos la tabla solo con las unidades vigentes
     datosFiltrados.forEach(g => {
         const idVinculo = g.id || g.p[0];
         const yaMostrado = vinculosMostrados[idVinculo];
@@ -689,11 +694,16 @@ function actualizarEtiquetaEstado() {
             <td class="text-center border-r">${g.D || '-'}</td>`;
 
         if (miIndiceEnGrupo === 0) {
-            const iconoExc = g.exc ? '<i class="fas fa-bolt text-yellow-500 mr-1" title="Excepción Semanal"></i>' : '';
+            // --- CIRUGÍA AQUÍ: INDICADOR VISUAL DE EXCEPCIÓN ---
+            // Si g.exc existe (es true o tiene valor), pintamos el icono parpadeante
+            const iconoExc = g.exc ? 
+                '<i class="fas fa-bolt text-blue-500 mr-1 animate-pulse" title="Dotación ajustada solo para esta semana"></i>' : '';
             
             htmlFila += `
                 <td rowspan="${rowspan}" class="p-2 text-center font-black border-l border-r bg-blue-50 text-blue-900 align-middle">
-                    ${iconoExc}${asig.toFixed(2)}
+                    <div class="flex items-center justify-center">
+                        ${iconoExc}<span>${asig.toFixed(2)}</span>
+                    </div>
                 </td>
                 <td rowspan="${rowspan}" class="p-2 text-center font-black border-r bg-orange-50 text-orange-700 align-middle">
                     ${totalGrupo.toFixed(2)}
@@ -769,9 +779,10 @@ function actualizarEtiquetaEstado() {
 
         // --- ACCIONES NUBE ---
         async function guardarExcepcionSemanal() {
+    // 0. Identificamos el botón para bloquearlo (Cambiamos el texto y deshabilitamos)
+    const btnAplicar = document.querySelector('button[onclick="guardarExcepcionSemanal()"]');
     const placa = document.getElementById('editPlaca').value;
     const nuevaDot = parseFloat(document.getElementById('editDotacion').value);
-    // Normalizamos la placa (sin guiones) para que el .gs la encuentre fácil
     const placaNorm = placa.toUpperCase().replace(/-/g, "");
     
     const infoActual = ESTRUCTURA_FLOTA.find(g => g.p.includes(placa));
@@ -780,7 +791,13 @@ function actualizarEtiquetaEstado() {
 
     if (isNaN(nuevaDot)) return alert("⚠️ Ingrese un monto válido.");
 
-    // --- ACTIVAR INDICADOR VISUAL ---
+    // --- CIRUGÍA 1: BLOQUEO ANTI-DOBLE CLIC ---
+    if (btnAplicar) {
+        btnAplicar.disabled = true;
+        btnAplicar.style.opacity = "0.5";
+        btnAplicar.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> APLICANDO...';
+    }
+
     const ind = document.getElementById('indicadorCarga');
     ind.innerHTML = '<i class="fas fa-bolt fa-spin mr-1"></i> APLICANDO EXCEPCIÓN SEMANAL...';
     ind.classList.remove('hidden');
@@ -796,8 +813,7 @@ function actualizarEtiquetaEstado() {
         // Enviamos a la nube
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
         
-        // Pequeño delay para que se vea el proceso
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 800));
 
         const diff = nuevaDot - dotAnterior;
         if (diff > 0) {
@@ -808,16 +824,34 @@ function actualizarEtiquetaEstado() {
 
         cerrarModalEditarFlota();
         
-        // Actualizamos el texto para la sincronización
         ind.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-1"></i> ACTUALIZANDO TABLA...';
+        
+        // --- CIRUGÍA 2: GUARDAR MARCA DE EXCEPCIÓN EN MEMORIA LOCAL ---
+        // Esto sirve para que la tabla sepa que debe pintar el indicador azul
+        if (!window.excepcionesActivas) window.excepcionesActivas = new Set();
+        window.excepcionesActivas.add(placaNorm);
+
         await sincronizarDesdeNube();
 
     } catch (e) {
         alert("❌ Error al conectar con el servidor.");
         console.error(e);
+        // Si falla, rehabilitamos el botón
+        if (btnAplicar) {
+            btnAplicar.disabled = false;
+            btnAplicar.style.opacity = "1";
+            btnAplicar.innerHTML = '<i class="far fa-calendar-check mr-1"></i> APLICAR SOLO ESTA SEMANA';
+        }
     } finally {
         ind.classList.add('hidden');
         ind.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> PROCESANDO DATOS...';
+        
+        // Restauramos el botón por si se vuelve a abrir el modal
+        if (btnAplicar) {
+            btnAplicar.disabled = false;
+            btnAplicar.style.opacity = "1";
+            btnAplicar.innerHTML = '<i class="far fa-calendar-check mr-1"></i> APLICAR SOLO ESTA SEMANA';
+        }
     }
 }
 
