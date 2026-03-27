@@ -254,10 +254,10 @@
             <div class="card admin-only sim-box" style="border: 2px solid var(--accent); background: #f8fafc;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <h2 style="color: var(--primary); margin:0; font-size: 1.1rem;">📋 Simulador de Compra Semanal</h2>
-        <select id="simProducto" onchange="calcularPedidoSemanal()" style="width: auto; margin:0; padding: 5px; font-weight: bold;">
-            <option value="DIESEL">⛽ DIESEL</option>
-            <option value="GASOHOL">🟢 GASOHOL</option>
-        </select>
+        <select id="simProducto" onchange="renderizarSimuladorBase()" style="width: auto; margin:0; padding: 5px; font-weight: bold;">
+    <option value="DIESEL">⛽ DIESEL</option>
+    <option value="GASOHOL">🟢 GASOHOL</option>
+</select>
     </div>
     
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
@@ -571,18 +571,23 @@ function startSession(user) {
     if (displayUserEl) displayUserEl.innerText = user;
 
     // 2. LA LLAVE MAESTRA: Mostramos todo lo que es solo para Admin
-    // Buscamos la tarjeta de registro, el simulador y los botones de reset
     const elementosAdmin = document.querySelectorAll('.admin-only');
     elementosAdmin.forEach(el => {
-        el.style.display = 'block'; // Esto hace aparecer el panel de ingresos/salidas
+        el.style.display = 'block'; 
     });
 
     // 3. Activamos la columna de acción en la tabla de mantenimiento
     const thAccion = document.getElementById('thAccion');
     if (thAccion) thAccion.style.display = 'table-cell';
 
-    // 4. Cargamos los datos de la nube
-    cargarDatos();
+    // 4. CARGA DE DATOS Y ACTIVACIÓN DEL SIMULADOR
+    // Usamos .then() para que renderizarSimuladorBase() se ejecute 
+    // solo cuando ya tengamos los stocks reales en pantalla.
+    cargarDatos().then(() => {
+        if (typeof renderizarSimuladorBase === "function") {
+            renderizarSimuladorBase();
+        }
+    });
 }
 
 function logout() {
@@ -925,9 +930,6 @@ window.onclick = function(event) {
     // Variable para recordar tus consumos editados (para que no se borren al escribir)
 let consumosProyectados = [1500, 1500, 1500, 1500, 1500, 1500]; 
 
-// 1. Array global para que tus consumos no se borren
-let consumosProyectados = [1500, 1500, 1500, 1500, 1500, 1500];
-
 // 2. Función que se ejecuta SOLO una vez al cargar o cambiar de producto
 function renderizarSimuladorBase() {
     const tbody = document.getElementById('bodySimulado');
@@ -967,29 +969,38 @@ function actualizarCalculosSimulacion() {
     const ctdIngreso = parseFloat(document.getElementById('simIngresoCis').value) || 0;
     const diaLlegada = parseInt(document.getElementById('simDiaLlegada').value);
     
-    // Jalar saldo inicial real (Diesel o Gasohol)
+    // --- PASO CRÍTICO: Guardar valores actuales en el array global ---
+    // Esto evita que al escribir en el día 2, se resetee el día 1
+    for (let j = 1; j <= 6; j++) {
+        const input = document.getElementById(`cons_dia_${j}`);
+        if (input) {
+            consumosProyectados[j - 1] = parseFloat(input.value) || 0;
+        }
+    }
+
+    // Jalar saldo inicial real (Diesel o Gasohol) desde el Tanque Central
     let saldoSimulado = (producto === 'DIESEL') ? 
         parseFloat(document.getElementById('tanqueDiesel').innerText) : 
         parseFloat(document.getElementById('tanqueGasohol').innerText);
     
     saldoSimulado = saldoSimulado || 0;
 
+    // Bucle de proyección para los 6 días
     for (let i = 1; i <= 6; i++) {
-        const inputConsumo = document.getElementById(`cons_dia_${i}`);
         const celdaSaldo = document.getElementById(`saldo_dia_${i}`);
         const fila = document.getElementById(`fila_sim_${i}`);
         
-        let consumoDia = parseFloat(inputConsumo.value) || 0;
+        let consumoDia = consumosProyectados[i - 1]; // Usamos el valor del array
         let ingreso = (i === diaLlegada) ? ctdIngreso : 0;
         
         saldoSimulado = (saldoSimulado - consumoDia) + ingreso;
         
-        // Actualizar visualmente la fila
+        // Actualización visual y alertas de quiebre
         celdaSaldo.innerText = saldoSimulado.toFixed(2) + (saldoSimulado < 0 ? ' 🚨' : '');
         
         if (saldoSimulado < 0) {
-            fila.style.background = "#fee2e2";
-            celdaSaldo.style.color = "#ef4444";
+            fila.style.background = "#fee2e2"; // Fondo rojo suave
+            celdaSaldo.style.color = "#ef4444"; // Texto rojo alerta
             celdaSaldo.style.fontWeight = "bold";
         } else {
             fila.style.background = "white";
@@ -997,11 +1008,6 @@ function actualizarCalculosSimulacion() {
             celdaSaldo.style.fontWeight = "normal";
         }
     }
-}
-// Función rápida para actualizar sin redibujar toda la tabla (evita que el cursor salte)
-function recalcularTotalesSim() {
-    // Simplemente llamamos a la principal, el array ya se actualizó arriba
-    calcularPedidoSemanal();
 }
 </script>
 </body>
