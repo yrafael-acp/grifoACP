@@ -1050,6 +1050,9 @@ function renderizarSimuladorBase() {
     actualizarCalculosSimulacion(); 
 }
 
+// --- IMPORTANTE: Pon esta variable al inicio de tu <script> fuera de cualquier función ---
+let cargandoDataInicial = true; 
+
 function actualizarCalculosSimulacion() {
     let totalD = 0; let totalG = 0;
 
@@ -1063,7 +1066,7 @@ function actualizarCalculosSimulacion() {
         totalD += proyeccionesDual.DIESEL.ing[j-1];
         totalG += proyeccionesDual.GASOHOL.ing[j-1];
 
-        // Maquillaje de inputs: Diferenciamos Salidas (Azul) de Ingresos (Verde)
+        // Maquillaje de inputs
         document.getElementById(`d_cons_${j}`).className = "input-sim input-cons";
         document.getElementById(`g_cons_${j}`).className = "input-sim input-cons";
         document.getElementById(`d_ing_${j}`).className = "input-sim input-ing";
@@ -1079,9 +1082,7 @@ function actualizarCalculosSimulacion() {
         sD = (sD - proyeccionesDual.DIESEL.cons[i-1]) + proyeccionesDual.DIESEL.ing[i-1];
         sG = (sG - proyeccionesDual.GASOHOL.cons[i-1]) + proyeccionesDual.GASOHOL.ing[i-1];
 
-        // Aplicamos lógica de semáforo para Diesel (Tope 5000)
         aplicarAlertasVisuales(`d_saldo_${i}`, `fila_dual_${i}`, sD, proyeccionesDual.DIESEL.cons[i-1], 5000);
-        // Aplicamos lógica de semáforo para Gasohol (Tope 1000)
         aplicarAlertasVisuales(`g_saldo_${i}`, `fila_dual_${i}`, sG, proyeccionesDual.GASOHOL.cons[i-1], 1000);
     }
 
@@ -1089,7 +1090,7 @@ function actualizarCalculosSimulacion() {
     if(document.getElementById('totalIngresoD')) {
         const elTotD = document.getElementById('totalIngresoD');
         elTotD.innerText = totalD.toFixed(2) + " gl";
-        elTotD.style.color = sD < 0 ? '#dc2626' : '#2563eb'; // Rojo si termina en quiebre
+        elTotD.style.color = sD < 0 ? '#dc2626' : '#2563eb';
     }
     if(document.getElementById('totalIngresoG')) {
         const elTotG = document.getElementById('totalIngresoG');
@@ -1097,13 +1098,24 @@ function actualizarCalculosSimulacion() {
         elTotG.style.color = sG < 0 ? '#dc2626' : '#059669';
     }
 
-    // 5. GUARDADO EN NUBE
-    clearTimeout(timerGuardado);
-    timerGuardado = setTimeout(() => {
-        const payload = { action: 'saveSimDual', user: currentUser, data: proyeccionesDual };
-        fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        console.log("☁️ Sincronización dual con alertas completada.");
-    }, 2000);
+    // 5. GUARDADO INTELIGENTE (Inyección de Seguridad)
+    // Solo mandamos a la nube si NO estamos en el proceso de carga inicial
+    if (!cargandoDataInicial) {
+        clearTimeout(timerGuardado);
+        timerGuardado = setTimeout(() => {
+            // Mandamos Diesel
+            const payloadD = { action: 'saveSimDual', user: currentUser, producto: 'DIESEL', data: proyeccionesDual };
+            fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadD) });
+            
+            // Mandamos Gasohol
+            const payloadG = { action: 'saveSimDual', user: currentUser, producto: 'GASOHOL', data: proyeccionesDual };
+            fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payloadG) });
+            
+            console.log("☁️ Sincronización manual realizada por usuario.");
+        }, 2000);
+    } else {
+        console.log("⏳ Carga inicial detectada: Guardado automático bloqueado.");
+    }
 }
 
 // FUNCIÓN AUXILIAR PARA EL "MAQUILLAJE" LÓGICO
