@@ -48,32 +48,33 @@
         .btn-guardar { background-color: var(--acp-green); color: white; }
         .btn-descargar { background-color: var(--secondary); color: white; }
 
+        /* CAMBIO: Loader flotante discreto */
         .loader-overlay {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.85);
+            bottom: 20px; right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
             display: none; 
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
+            gap: 12px;
             z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--acp-green);
+            width: 20px; height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--acp-green);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
         .loader-text {
-            margin-top: 15px;
             font-family: sans-serif;
+            font-size: 0.85rem;
             font-weight: bold;
-            color: var(--acp-green);
+            color: white;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -90,7 +91,7 @@
 
 <div id="loader" class="loader-overlay">
     <div class="spinner"></div>
-    <div class="loader-text" id="loaderText">Cargando datos...</div>
+    <div class="loader-text" id="loaderText">Sincronizando...</div>
 </div>
 
 <div class="main-wrapper">
@@ -148,14 +149,14 @@
                 <tbody>
                     <tr>
                         <td class="gasolina-label">GASOLINA</td>
-                        <td><input type="number" id="vGasolina" step="0.1" oninput="calcularTotales()"></td>
+                        <td><input type="number" id="vGasolina" step="0.1" min="0" oninput="calcularTotales()"></td>
                         <td id="sGasolina" class="readonly-field">0.00</td>
                         <td><input type="number" id="iGasolina" class="readonly-field" readonly></td>
                         <td id="tGasolina" class="cell-total">0.00</td>
                     </tr>
                     <tr>
                         <td class="petroleo-label">PETROLEO</td>
-                        <td><input type="number" id="vPetroleo" step="0.1" oninput="calcularTotales()"></td>
+                        <td><input type="number" id="vPetroleo" step="0.1" min="0" oninput="calcularTotales()"></td>
                         <td id="sPetroleo" class="readonly-field">0.00</td>
                         <td><input type="number" id="iPetroleo" class="readonly-field" readonly></td>
                         <td id="tPetroleo" class="cell-total">0.00</td>
@@ -179,17 +180,11 @@
     const loader = document.getElementById('loader');
     const loaderText = document.getElementById('loaderText');
 
-    // --- BLOQUE DE SEGURIDAD Y REDIRECCIÓN DINÁMICA ---
     window.onload = () => {
         const rol = sessionStorage.getItem('rolGrifo');
         const session = sessionStorage.getItem('sessionGrifo');
+        if (!session) { window.location.href = "index.html"; return; }
 
-        if (!session) {
-            window.location.href = "index.html";
-            return;
-        }
-
-        // Configuración del botón Volver según el Rol
         const btnVolver = document.getElementById('btnVolverDinamico');
         if (btnVolver) {
             if (rol === "ADMIN") {
@@ -199,15 +194,6 @@
             } else {
                 btnVolver.innerHTML = "🚛 VOLVER A FLOTA";
                 btnVolver.onclick = () => { window.location.href = "consumo-flota.html"; };
-            }
-        }
-
-        // Blindaje del Logo para Operadores
-        if (rol === "READ") {
-            const logoLink = document.querySelector('.header-logo');
-            if (logoLink) {
-                logoLink.style.cursor = "pointer";
-                logoLink.onclick = () => { window.location.href = "consumo-flota.html"; };
             }
         }
     };
@@ -222,14 +208,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', async function() {
-        showLoading("Sincronizando con la nube...");
+        showLoading("Sincronizando...");
         try {
-            // 1. Cargar fecha
             const resFecha = await fetch(`${scriptUrl}?action=getUltimaFecha`);
             const dataFecha = await resFecha.json();
             if (dataFecha.fecha) document.getElementById('fechaReporte').value = dataFecha.fecha;
 
-            // 2. Cargar Isotanque
             const resSist = await fetch(`${scriptUrl}?action=read`);
             const dataSist = await resSist.json();
             if (dataSist.reservas) {
@@ -237,33 +221,30 @@
                 document.getElementById('iPetroleo').value = dataSist.reservas.diesel || 0;
             }
             
-            // 3. RECUPERAR EL BORRADOR CON AUTO-LLENADO
             const resBorrador = await fetch(`${scriptUrl}?action=getEstadoBorrador`);
             const borrador = await resBorrador.json();
             if (borrador) {
                 document.getElementById('vGasolina').value = borrador.vGas || "";
                 document.getElementById('vPetroleo').value = borrador.vPet || "";
                 document.getElementById('turnoSelect').value = borrador.turno || "DIA";
-                
                 if (borrador.dni) {
                     document.getElementById('operarioSelect').value = borrador.dni;
                     document.getElementById('dniInput').value = borrador.dni;
                 }
             }
-            
             await calcularTotales();
-        } catch (e) { 
-            console.error("Error en carga inicial:", e); 
-        } finally {
-            hideLoading();
-        }
+        } catch (e) { console.error("Error inicial:", e); } finally { hideLoading(); }
     });
 
     async function calcularTotales() {
         const vGas = document.getElementById('vGasolina').value;
         const vPet = document.getElementById('vPetroleo').value;
         
-        if(vGas || vPet) showLoading("Calculando saldos...");
+        if(vGas || vPet) showLoading("Calculando...");
+
+        // CAMBIO: Poner visualmente que está cargando en la tabla
+        if(vGas) document.getElementById('sGasolina').innerText = "...";
+        if(vPet) document.getElementById('sPetroleo').innerText = "...";
 
         try {
             await Promise.all([
@@ -271,9 +252,7 @@
                 actualizarSaldo('PETROLEO', vPet, 'sPetroleo', 'iPetroleo', 'tPetroleo')
             ]);
             guardarEnNube(); 
-        } finally {
-            hideLoading();
-        }
+        } finally { hideLoading(); }
     }
 
     async function actualizarSaldo(tipo, valor, idSaldo, idIso, idTotal) {
@@ -287,7 +266,7 @@
                     const iso = parseFloat(document.getElementById(idIso).value) || 0;
                     document.getElementById(idTotal).innerText = (s + iso).toFixed(2);
                 }
-            } catch (e) { console.error("Error saldo:", e); }
+            } catch (e) { document.getElementById(idSaldo).innerText = "Error"; }
         } else {
             document.getElementById(idSaldo).innerText = "0.00";
             const iso = parseFloat(document.getElementById(idIso).value) || 0;
@@ -316,15 +295,14 @@
 
     async function enviarReporteFinal() {
         if (!document.getElementById('operarioSelect').value) return alert("¡Habla trome! Selecciona un operario primero.");
-        
         const btn = document.querySelector('.btn-guardar');
         const originalText = btn.innerText;
         btn.innerText = "🚀 ENVIANDO...";
         btn.disabled = true;
-        showLoading("Guardando reporte final...");
+        showLoading("Guardando...");
         
         setTimeout(() => {
-            alert("✅ REPORTE FINALIZADO\nLos datos se han guardado correctamente en el historial.");
+            alert("✅ REPORTE FINALIZADO\nLos datos se han guardado correctamente.");
             btn.innerText = originalText;
             btn.disabled = false;
             hideLoading();
@@ -336,13 +314,9 @@
         const btnImg = document.getElementById('btnImg');
         const originalText = btnImg.innerText;
         btnImg.innerText = "📸 GENERANDO...";
-        showLoading("Generando imagen para WhatsApp...");
+        showLoading("Generando imagen...");
 
-        html2canvas(area, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: "#ffffff",
-        }).then(canvas => {
+        html2canvas(area, { scale: 2, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
             const link = document.createElement('a');
             link.download = `Saldo_ACP_${document.getElementById('fechaReporte').value}.png`;
             link.href = canvas.toDataURL("image/png");
@@ -350,11 +324,6 @@
             btnImg.innerText = originalText;
             hideLoading();
         });
-    }
-    
-    function logout() {
-        sessionStorage.clear();
-        window.location.href = "index.html";
     }
 </script>
 </body>
