@@ -253,44 +253,30 @@
 
             <div class="card admin-only sim-box" style="border: 2px solid var(--accent); background: #f8fafc;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h2 style="color: var(--primary); margin:0; font-size: 1.1rem;">📋 Simulador de Compra Semanal</h2>
+        <h2 style="color: var(--primary); margin:0; font-size: 1.1rem;">📋 Simulador de Compra (Por Día)</h2>
         <select id="simProducto" onchange="renderizarSimuladorBase()" style="width: auto; margin:0; padding: 5px; font-weight: bold;">
-    <option value="DIESEL">⛽ DIESEL</option>
-    <option value="GASOHOL">🟢 GASOHOL</option>
-</select>
+            <option value="DIESEL">⛽ DIESEL</option>
+            <option value="GASOHOL">🟢 GASOHOL</option>
+        </select>
     </div>
     
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-        <div>
-            <label class="group-label">Ingreso Cisterna (gl)</label>
-            <input type="number" id="simIngresoCis" placeholder="Ej: 3000" oninput="calcularPedidoSemanal()">
-        </div>
-        <div>
-            <label class="group-label">Día de Llegada</label>
-            <select id="simDiaLlegada" onchange="calcularPedidoSemanal()">
-                <option value="1">Mañana</option>
-                <option value="2">En 2 días</option>
-                <option value="3">En 3 días</option>
-                <option value="4">En 4 días</option>
-                <option value="99">No llega esta semana</option>
-            </select>
-        </div>
-    </div>
-
     <div class="table-container" style="max-height: none; border: 1px solid #e2e8f0; border-radius: 8px;">
         <table style="font-size: 0.85rem; background: white; margin:0;">
             <thead style="display: table-header-group; background: #f1f5f9;">
                 <tr>
                     <th style="padding: 8px;">Día</th>
-                    <th style="padding: 8px; width: 80px;">Consumo gl</th>
-                    <th style="padding: 8px;">Saldo Central</th>
+                    <th style="padding: 8px; width: 75px;">Consumo</th>
+                    <th style="padding: 8px; width: 75px;">Ingreso</th>
+                    <th style="padding: 8px;">Saldo Final</th>
                 </tr>
             </thead>
             <tbody id="bodySimulado">
                 </tbody>
         </table>
     </div>
-    <p style="font-size: 0.7rem; color: #64748b; margin-top: 8px;">* Edita los valores de la columna <b>Consumo</b> para proyectar cada día.</p>
+    <p style="font-size: 0.65rem; color: #64748b; margin-top: 8px;">
+        * Saldo calculado post-recepción (tardes). Cierre de turno real: 9:00 AM.
+    </p>
 </div>
         </div>
 
@@ -916,9 +902,11 @@ window.onload = () => {
     // Actualización automática cada 15 segundos
 setInterval(() => {
     if (currentUser) {
-        cargarDatos();
+        cargarDatos().then(() => {
+            // Solo recalculamos los saldos, NO redibujamos la tabla entera
+            actualizarCalculosSimulacion();
+        });
         console.log("Sincronización automática realizada.");
-    renderizarSimuladorBase();
     }
 }, 30000);
 
@@ -927,10 +915,10 @@ window.onclick = function(event) {
     let modal = document.getElementById('calcModal');
     if (event.target == modal) { modal.style.display = "none"; }
 }
-    // Variable para recordar tus consumos editados (para que no se borren al escribir)
-let consumosProyectados = [1500, 1500, 1500, 1500, 1500, 1500]; 
+// --- LÓGICA DEL SIMULADOR V2 (CONSUMO E INGRESO POR DÍA) ---
+let consumosProyectados = [1500, 1500, 1500, 1500, 1500, 1500];
+let ingresosProyectados = [0, 0, 0, 0, 0, 0]; // Array para las cisternas diarias
 
-// 2. Función que se ejecuta SOLO una vez al cargar o cambiar de producto
 function renderizarSimuladorBase() {
     const tbody = document.getElementById('bodySimulado');
     if (!tbody) return;
@@ -946,61 +934,65 @@ function renderizarSimuladorBase() {
         
         tbody.innerHTML += `
             <tr id="fila_sim_${i}">
-                <td style="padding: 8px;"><b>${nombreDia}</b></td>
-                <td style="padding: 8px;">
+                <td style="padding: 5px;"><b>${nombreDia}</b></td>
+                <td style="padding: 5px;">
                     <input type="number" id="cons_dia_${i}" 
                            value="${consumosProyectados[i-1]}" 
-                           class="input-sim-consumo"
-                           style="width: 70px; padding: 2px; text-align: center;"
+                           style="width: 65px; padding: 2px; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px;"
                            oninput="actualizarCalculosSimulacion()">
                 </td>
-                <td style="padding: 8px; text-align: right;" id="saldo_dia_${i}">
+                <td style="padding: 5px;">
+                    <input type="number" id="ing_dia_${i}" 
+                           value="${ingresosProyectados[i-1]}" 
+                           style="width: 65px; padding: 2px; text-align: center; border: 1px solid #10b981; border-radius: 4px; color: #059669; font-weight: bold;"
+                           oninput="actualizarCalculosSimulacion()">
+                </td>
+                <td style="padding: 5px; text-align: right;" id="saldo_dia_${i}">
                     0.00
                 </td>
             </tr>
         `;
     }
-    actualizarCalculosSimulacion(); // Primera corrida
+    actualizarCalculosSimulacion();
 }
 
 // 3. Función que solo actualiza los NUMEROS (sin borrar la tabla)
 function actualizarCalculosSimulacion() {
     const producto = document.getElementById('simProducto').value;
-    const ctdIngreso = parseFloat(document.getElementById('simIngresoCis').value) || 0;
-    const diaLlegada = parseInt(document.getElementById('simDiaLlegada').value);
     
-    // --- PASO CRÍTICO: Guardar valores actuales en el array global ---
-    // Esto evita que al escribir en el día 2, se resetee el día 1
+    // Guardamos lo que escribes en AMBOS arrays para que no se borre
     for (let j = 1; j <= 6; j++) {
-        const input = document.getElementById(`cons_dia_${j}`);
-        if (input) {
-            consumosProyectados[j - 1] = parseFloat(input.value) || 0;
-        }
+        const inputC = document.getElementById(`cons_dia_${j}`);
+        const inputI = document.getElementById(`ing_dia_${j}`);
+        if (inputC) consumosProyectados[j-1] = parseFloat(inputC.value) || 0;
+        if (inputI) ingresosProyectados[j-1] = parseFloat(inputI.value) || 0;
     }
 
-    // Jalar saldo inicial real (Diesel o Gasohol) desde el Tanque Central
+    // Jalamos saldo inicial real (Diesel o Gasohol) desde el Tanque Central
     let saldoSimulado = (producto === 'DIESEL') ? 
         parseFloat(document.getElementById('tanqueDiesel').innerText) : 
         parseFloat(document.getElementById('tanqueGasohol').innerText);
     
     saldoSimulado = saldoSimulado || 0;
 
-    // Bucle de proyección para los 6 días
     for (let i = 1; i <= 6; i++) {
         const celdaSaldo = document.getElementById(`saldo_dia_${i}`);
         const fila = document.getElementById(`fila_sim_${i}`);
         
-        let consumoDia = consumosProyectados[i - 1]; // Usamos el valor del array
-        let ingreso = (i === diaLlegada) ? ctdIngreso : 0;
+        let consumo = consumosProyectados[i-1];
+        let ingreso = ingresosProyectados[i-1];
         
-        saldoSimulado = (saldoSimulado - consumoDia) + ingreso;
+        // --- LÓGICA DE TURNO ---
+        // 1. Restamos consumo (lo que sale de 9am a mediodía)
+        // 2. Sumamos ingreso (lo que llega en la tarde)
+        saldoSimulado = (saldoSimulado - consumo) + ingreso;
         
-        // Actualización visual y alertas de quiebre
         celdaSaldo.innerText = saldoSimulado.toFixed(2) + (saldoSimulado < 0 ? ' 🚨' : '');
         
+        // Estilos de alerta
         if (saldoSimulado < 0) {
-            fila.style.background = "#fee2e2"; // Fondo rojo suave
-            celdaSaldo.style.color = "#ef4444"; // Texto rojo alerta
+            fila.style.background = "#fee2e2";
+            celdaSaldo.style.color = "#ef4444";
             celdaSaldo.style.fontWeight = "bold";
         } else {
             fila.style.background = "white";
