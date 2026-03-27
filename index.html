@@ -597,6 +597,19 @@ async function cargarDatos() {
     try {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
+        
+        // --- NUEVO: SINCRONIZACIÓN DE SIMULACIÓN DESDE LA NUBE ---
+        if (data.sim_guardada) {
+            // Cargamos los arrays que el jefe o tú guardaron antes
+            consumosProyectados = data.sim_guardada.consumos || [1500, 1500, 1500, 1500, 1500, 1500];
+            ingresosProyectados = data.sim_guardada.ingresos || [0, 0, 0, 0, 0, 0];
+            
+            // Ajustamos el selector de producto al que estaba guardado
+            if(document.getElementById('simProducto')) {
+                document.getElementById('simProducto').value = data.sim_guardada.producto || 'DIESEL';
+            }
+        }
+
         datosCache = data.historial;
         stockTotalDiesel = data.stocks.diesel;
         stockTotalGasohol = data.stocks.gasohol;
@@ -610,8 +623,16 @@ async function cargarDatos() {
         llenarSelectorMeses();
         procesarGrafico();
         calcularConsumoAnual();
+        
+        // --- NUEVO: REDIBUJAR SIMULADOR CON DATA DE LA NUBE ---
+        if (currentUser === 'ADMIN') {
+            renderizarSimuladorBase(); 
+        }
+
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
-    } catch (e) { console.log("Error de conexion..."); }
+    } catch (e) { 
+        console.log("Error de conexion o sincronización...", e); 
+    }
 }
 
 function calcularConsumoAnual() {
@@ -956,11 +977,11 @@ function renderizarSimuladorBase() {
     actualizarCalculosSimulacion();
 }
 
-// 3. Función que solo actualiza los NUMEROS (sin borrar la tabla)
+let timerGuardado;
+
 function actualizarCalculosSimulacion() {
     const producto = document.getElementById('simProducto').value;
     
-    // Guardamos lo que escribes en AMBOS arrays para que no se borre
     for (let j = 1; j <= 6; j++) {
         const inputC = document.getElementById(`cons_dia_${j}`);
         const inputI = document.getElementById(`ing_dia_${j}`);
@@ -968,38 +989,27 @@ function actualizarCalculosSimulacion() {
         if (inputI) ingresosProyectados[j-1] = parseFloat(inputI.value) || 0;
     }
 
-    // Jalamos saldo inicial real (Diesel o Gasohol) desde el Tanque Central
-    let saldoSimulado = (producto === 'DIESEL') ? 
-        parseFloat(document.getElementById('tanqueDiesel').innerText) : 
-        parseFloat(document.getElementById('tanqueGasohol').innerText);
-    
-    saldoSimulado = saldoSimulado || 0;
+    // ... (tu lógica de cálculo de saldos que ya tienes) ...
+    // [Pega aquí el bucle de cálculo que ya funciona]
 
-    for (let i = 1; i <= 6; i++) {
-        const celdaSaldo = document.getElementById(`saldo_dia_${i}`);
-        const fila = document.getElementById(`fila_sim_${i}`);
+    // --- LA JUGADA MAESTRA: GUARDADO EN NUBE ---
+    clearTimeout(timerGuardado);
+    timerGuardado = setTimeout(() => {
+        const payload = {
+            action: 'saveSim', // Debes manejar esta acción en tu doPost del .gs
+            user: currentUser,
+            producto: producto,
+            consumos: consumosProyectados,
+            ingresos: ingresosProyectados
+        };
         
-        let consumo = consumosProyectados[i-1];
-        let ingreso = ingresosProyectados[i-1];
-        
-        // --- LÓGICA DE TURNO ---
-        // 1. Restamos consumo (lo que sale de 9am a mediodía)
-        // 2. Sumamos ingreso (lo que llega en la tarde)
-        saldoSimulado = (saldoSimulado - consumo) + ingreso;
-        
-        celdaSaldo.innerText = saldoSimulado.toFixed(2) + (saldoSimulado < 0 ? ' 🚨' : '');
-        
-        // Estilos de alerta
-        if (saldoSimulado < 0) {
-            fila.style.background = "#fee2e2";
-            celdaSaldo.style.color = "#ef4444";
-            celdaSaldo.style.fontWeight = "bold";
-        } else {
-            fila.style.background = "white";
-            celdaSaldo.style.color = "#1e293b";
-            celdaSaldo.style.fontWeight = "normal";
-        }
-    }
+        fetch(WEB_APP_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify(payload) 
+        });
+        console.log("☁️ Simulación sincronizada en la nube para el jefe.");
+    }, 2000); // Espera 2 segundos después de que dejes de escribir
 }
 </script>
 </body>
