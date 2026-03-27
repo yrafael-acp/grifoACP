@@ -937,10 +937,12 @@ window.onclick = function(event) {
     if (event.target == modal) { modal.style.display = "none"; }
 }
 // --- LÓGICA DEL SIMULADOR V2 (CONSUMO E INGRESO POR DÍA) ---
-let consumosProyectados = [1500, 1500, 1500, 1500, 1500, 1500];
-let ingresosProyectados = [0, 0, 0, 0, 0, 0]; // Array para las cisternas diarias
-
+let proyecciones = {
+    "DIESEL": { cons: [1500, 1500, 1500, 1500, 1500, 1500], ing: [0, 0, 0, 0, 0, 0] },
+    "GASOHOL": { cons: [150, 150, 150, 150, 150, 150], ing: [0, 0, 0, 0, 0, 0] }
+};
 function renderizarSimuladorBase() {
+    const producto = document.getElementById('simProducto').value;
     const tbody = document.getElementById('bodySimulado');
     if (!tbody) return;
     
@@ -958,21 +960,18 @@ function renderizarSimuladorBase() {
                 <td style="padding: 5px;"><b>${nombreDia}</b></td>
                 <td style="padding: 5px;">
                     <input type="number" id="cons_dia_${i}" 
-                           value="${consumosProyectados[i-1]}" 
-                           style="width: 65px; padding: 2px; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px;"
+                           value="${proyecciones[producto].cons[i-1]}" 
+                           style="width: 65px; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px;"
                            oninput="actualizarCalculosSimulacion()">
                 </td>
                 <td style="padding: 5px;">
                     <input type="number" id="ing_dia_${i}" 
-                           value="${ingresosProyectados[i-1]}" 
-                           style="width: 65px; padding: 2px; text-align: center; border: 1px solid #10b981; border-radius: 4px; color: #059669; font-weight: bold;"
+                           value="${proyecciones[producto].ing[i-1]}" 
+                           style="width: 65px; text-align: center; border: 1px solid #10b981; border-radius: 4px; color: #059669; font-weight: bold;"
                            oninput="actualizarCalculosSimulacion()">
                 </td>
-                <td style="padding: 5px; text-align: right;" id="saldo_dia_${i}">
-                    0.00
-                </td>
-            </tr>
-        `;
+                <td style="padding: 5px; text-align: right;" id="saldo_dia_${i}">0.00</td>
+            </tr>`;
     }
     actualizarCalculosSimulacion();
 }
@@ -982,35 +981,34 @@ let timerGuardado;
 function actualizarCalculosSimulacion() {
     const producto = document.getElementById('simProducto').value;
     
-    // 1. CAPTURAR DATOS DE LAS CAJITAS
+    // --- 1. CAPTURAR DATOS EN LA "GAVETA" CORRECTA ---
+    // Usamos el objeto 'proyecciones' con la llave del producto (DIESEL o GASOHOL)
     for (let j = 1; j <= 6; j++) {
         const inputC = document.getElementById(`cons_dia_${j}`);
         const inputI = document.getElementById(`ing_dia_${j}`);
-        // Si existen, guardamos el valor; si no, mantenemos lo que había
-        if (inputC) consumosProyectados[j-1] = parseFloat(inputC.value) || 0;
-        if (inputI) ingresosProyectados[j-1] = parseFloat(inputI.value) || 0;
+        
+        if (inputC) proyecciones[producto].cons[j-1] = parseFloat(inputC.value) || 0;
+        if (inputI) proyecciones[producto].ing[j-1] = parseFloat(inputI.value) || 0;
     }
 
-    // 2. JALAR SALDO INICIAL REAL (Tanque Central)
-    // Importante: Los IDs 'tanqueDiesel' y 'tanqueGasohol' deben existir en tu monitor
+    // --- 2. JALAR SALDO INICIAL REAL (Tanque Central) ---
     let saldoSimulado = (producto === 'DIESEL') ? 
         parseFloat(document.getElementById('tanqueDiesel').innerText) : 
         parseFloat(document.getElementById('tanqueGasohol').innerText);
     
     saldoSimulado = saldoSimulado || 0;
 
-    // 3. CALCULAR FILA POR FILA
+    // --- 3. CALCULAR FILA POR FILA ---
     for (let i = 1; i <= 6; i++) {
         const celdaSaldo = document.getElementById(`saldo_dia_${i}`);
         const fila = document.getElementById(`fila_sim_${i}`);
         
-        let consumo = consumosProyectados[i-1];
-        let ingreso = ingresosProyectados[i-1];
+        // Usamos la data específica del producto seleccionado
+        let consumo = proyecciones[producto].cons[i-1];
+        let ingreso = proyecciones[producto].ing[i-1];
         
-        // Restamos lo que se gasta y sumamos lo que entra
         saldoSimulado = (saldoSimulado - consumo) + ingreso;
         
-        // Escribimos el resultado en la tabla
         if (celdaSaldo) {
             celdaSaldo.innerText = saldoSimulado.toFixed(2) + (saldoSimulado < 0 ? ' 🚨' : '');
             
@@ -1027,17 +1025,23 @@ function actualizarCalculosSimulacion() {
         }
     }
 
-    // 4. GUARDADO AUTOMÁTICO PARA EL JEFE
+    // --- 4. GUARDADO AUTOMÁTICO EN LA NUBE (Independiente) ---
     clearTimeout(timerGuardado);
     timerGuardado = setTimeout(() => {
         const payload = {
             action: 'saveSim',
             user: currentUser,
-            producto: producto,
-            consumos: consumosProyectados,
-            ingresos: ingresosProyectados
+            producto: producto, // Enviamos el producto para que el .gs sepa en qué fila guardar
+            consumos: proyecciones[producto].cons,
+            ingresos: proyecciones[producto].ing
         };
-        fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        
+        fetch(WEB_APP_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify(payload) 
+        });
+        console.log(`☁️ Proyección de ${producto} guardada para el jefe.`);
     }, 2000);
 }
 </script>
