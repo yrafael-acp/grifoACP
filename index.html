@@ -408,9 +408,21 @@
                 <canvas id="consumoChart"></canvas>
             </div>
 
-            <div id="statusFiltros" style="margin-top:15px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <b>Inventario Filtros:</b> CF60: <span id="f60">3</span> | CF100: <span id="f100">2</span>
-                <div id="alertaStockFiltros" style="margin-top:5px; font-weight:bold; font-size:0.85em;"></div>
+            <div id="statusFiltros" style="margin-top:15px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <b style="font-size: 0.85rem; color: #475569; display: block; margin-bottom: 12px; text-transform: uppercase;">📦 Inventario de Filtros</b>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="text-align: center; padding: 10px; background: white; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        <small style="color: #64748b; font-weight: bold; display: block; font-size: 0.65rem;">TIPO CF60</small>
+                        <span id="f60" style="font-size: 1.4rem; font-weight: bold; color: var(--acp-green);">0</span>
+                        <button class="btn btn-green" style="width: 100%; padding: 4px; font-size: 0.65rem; margin-top: 5px; height: 25px;" onclick="gestionarFiltros('compra', 'cf60')">+ Ingreso</button>
+                    </div>
+                    <div style="text-align: center; padding: 10px; background: white; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        <small style="color: #64748b; font-weight: bold; display: block; font-size: 0.65rem;">TIPO CF100</small>
+                        <span id="f100" style="font-size: 1.4rem; font-weight: bold; color: var(--acp-green);">0</span>
+                        <button class="btn btn-green" style="width: 100%; padding: 4px; font-size: 0.65rem; margin-top: 5px; height: 25px;" onclick="gestionarFiltros('compra', 'cf100')">+ Ingreso</button>
+                    </div>
+                </div>
+                <div id="alertaStockFiltros" style="margin-top:5px; font-weight:bold; font-size:0.75em; text-align:center;"></div>
             </div>
         </div>
 
@@ -470,34 +482,25 @@
     </div>
 </div>
 
-<div id="calcModal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="cerrarCalc()">&times;</span>
-        <h2 style="color: var(--acp-green); margin-top: 0;">📏 Calculadora de Cubicaje</h2>
-        <p style="font-size: 0.8rem; color: #64748b;">Ingrese la medida en centímetros para obtener el galonaje según tabla.</p>
-        
-        <div class="calc-grid">
-            <div style="grid-column: span 2;">
-                <label class="group-label">Tipo de Combustible</label>
-                <select id="calcTipo" onchange="ejecutarCalculoVarilla()">
-                    <option value="GASOHOL">GASOHOL</option>
-                    <option value="DIESEL">DIESEL</option>
-                </select>
-            </div>
-            <div>
-                <label class="group-label">Medida Varilla (cm)</label>
-                <input type="number" id="calcCm" step="0.1" placeholder="Ej: 22.5" oninput="ejecutarCalculoVarilla()">
-            </div>
-            <div class="calc-res-box">
-                <label class="group-label">Saldo en Galones</label>
-                <span id="calcResultado" class="calc-val">0.00 gl</span>
+<button onclick="document.getElementById('modalVarilla').style.display='block'" 
+        style="position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--acp-green); color: white; border: none; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 2000; font-size: 24px; display: flex; align-items: center; justify-content: center;">
+        📏
+    </button>
+
+    <div id="modalVarilla" style="display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+        <div class="card" style="background: white; margin: 10% auto; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; border-top: 8px solid var(--acp-green);">
+            <span onclick="document.getElementById('modalVarilla').style.display='none'" style="float: right; cursor: pointer; font-size: 24px; color: #64748b;">&times;</span>
+            <h3 style="margin-top: 0; color: var(--acp-green);">📏 Consumo por Varilla</h3>
+            <label class="group-label">Stock Sistema (gl)</label>
+            <input type="number" id="simStockIni" placeholder="Ej: 4500" oninput="ejecutarSimulacionVarilla()">
+            <label class="group-label">Lectura Varilla (gl)</label>
+            <input type="number" id="simVarilla" placeholder="Ej: 4350" oninput="ejecutarSimulacionVarilla()">
+            <div style="text-align: center; margin-top: 20px; padding: 15px; background: #f0fdf4; border-radius: 10px; border: 1px dashed var(--acp-green);">
+                <small style="font-weight: bold; color: #166534;">CONSUMO CALCULADO</small>
+                <div id="simResultadoVarilla" style="font-size: 1.8rem; font-weight: bold; color: var(--acp-green);">0.00 gl</div>
             </div>
         </div>
-        <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
-            * Los valores se consultan de las pestañas Maestras cub_gasohol y cub_diesel.
-        </p>
     </div>
-</div>
 
 <script>
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyznJML-_JIaxXzggVrViaMlw4J7N_MGCYeuPPRJ8xE29W4k-LxwGedRnasteqTvPmfFA/exec'; 
