@@ -296,12 +296,6 @@
             </div>
             <button class="btn btn-blue" style="width:100%" onclick="procesarMovimiento()">Guardar Registro</button>
             
-            <h3 style="margin-top:20px;">Stock de Filtros</h3>
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf60')">Ingreso CF60</button>
-                <button class="btn btn-green" style="flex:1" onclick="gestionarFiltros('compra', 'cf100')">Ingreso CF100</button>
-            </div>
-
             <div class="card admin-only sim-box" style="border: 2px solid var(--primary); background: #ffffff;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">
         <h2 style="color: var(--primary); margin:0; font-size: 1.1rem;">📊 Proyectado Semanal de Compras</h2>
@@ -409,21 +403,21 @@
             </div>
 
             <div id="statusFiltros" style="margin-top:15px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
-                <b style="font-size: 0.85rem; color: #475569; display: block; margin-bottom: 12px; text-transform: uppercase;">📦 Inventario de Filtros</b>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div style="text-align: center; padding: 10px; background: white; border-radius: 8px; border: 1px solid #cbd5e1;">
-                        <small style="color: #64748b; font-weight: bold; display: block; font-size: 0.65rem;">TIPO CF60</small>
-                        <span id="f60" style="font-size: 1.4rem; font-weight: bold; color: var(--acp-green);">0</span>
-                        <button class="btn btn-green" style="width: 100%; padding: 4px; font-size: 0.65rem; margin-top: 5px; height: 25px;" onclick="gestionarFiltros('compra', 'cf60')">+ Ingreso</button>
-                    </div>
-                    <div style="text-align: center; padding: 10px; background: white; border-radius: 8px; border: 1px solid #cbd5e1;">
-                        <small style="color: #64748b; font-weight: bold; display: block; font-size: 0.65rem;">TIPO CF100</small>
-                        <span id="f100" style="font-size: 1.4rem; font-weight: bold; color: var(--acp-green);">0</span>
-                        <button class="btn btn-green" style="width: 100%; padding: 4px; font-size: 0.65rem; margin-top: 5px; height: 25px;" onclick="gestionarFiltros('compra', 'cf100')">+ Ingreso</button>
-                    </div>
-                </div>
-                <div id="alertaStockFiltros" style="margin-top:5px; font-weight:bold; font-size:0.75em; text-align:center;"></div>
-            </div>
+    <b style="font-size: 0.85rem; color: #475569; display: block; margin-bottom: 12px; text-transform: uppercase;">📦 Inventario de Filtros</b>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div style="text-align: center; padding: 10px; background: white; border-radius: 8px; border: 1px solid #cbd5e1;">
+            <small style="color: #64748b; font-weight: bold; display: block; font-size: 0.65rem;">TIPO CF60</small>
+            <span id="f60" style="font-size: 1.4rem; font-weight: bold; color: var(--acp-green);">0</span>
+            <button class="btn btn-green" style="width: 100%; padding: 4px; font-size: 0.65rem; margin-top: 5px; height: 25px; line-height: 1;" onclick="gestionarFiltros('compra', 'cf60')">+ Ingreso</button>
+        </div>
+        <div style="text-align: center; padding: 10px; background: white; border-radius: 8px; border: 1px solid #cbd5e1;">
+            <small style="color: #64748b; font-weight: bold; display: block; font-size: 0.65rem;">TIPO CF100</small>
+            <span id="f100" style="font-size: 1.4rem; font-weight: bold; color: var(--acp-green);">0</span>
+            <button class="btn btn-green" style="width: 100%; padding: 4px; font-size: 0.65rem; margin-top: 5px; height: 25px; line-height: 1;" onclick="gestionarFiltros('compra', 'cf100')">+ Ingreso</button>
+        </div>
+    </div>
+    <div id="alertaStockFiltros" style="margin-top:5px; font-weight:bold; font-size:0.75em; text-align:center;"></div>
+</div>
         </div>
 
         <div class="card full-width">
@@ -1132,6 +1126,18 @@ function aplicarAlertasVisuales(idSaldo, idFila, saldo, consDia, tope) {
         el.style.color = "#1e293b";
         el.style.backgroundColor = "transparent";
     }
+}
+    // Agrega esto al final de tu script para que el modal de varilla calcule
+function ejecutarSimulacionVarilla() {
+    const stockIni = parseFloat(document.getElementById('simStockIni').value) || 0;
+    const varillaFinal = parseFloat(document.getElementById('simVarilla').value) || 0;
+    const resultado = stockIni - varillaFinal;
+    
+    const resEl = document.getElementById('simResultadoVarilla');
+    resEl.innerText = (resultado >= 0 ? resultado.toFixed(2) : "0.00") + " gl";
+    
+    // Alerta visual si el consumo es muy alto (ej. más de 500 gl)
+    resEl.style.color = resultado > 500 ? "#dc2626" : "var(--acp-green)";
 }
 </script>
 </body>
