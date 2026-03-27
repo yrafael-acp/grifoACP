@@ -662,13 +662,24 @@ async function gestionarFiltros(accion, tipo, equipo = '') {
 }
 
 async function cargarDatos() {
+    cargandoDataInicial = true; // Bloqueamos cualquier guardado accidental al cargar
     try {
         const response = await fetch(`${WEB_APP_URL}?action=read`);
         const data = await response.json();
         
-        // 1. Sincronización de proyecciones guardadas
-        if (data.sim_guardada_dual) {
-            proyeccionesDual = data.sim_guardada_dual;
+        // 1. Sincronización de proyecciones guardadas (INYECCIÓN CLAVE)
+        if (data.sim_guardada_dual && Object.keys(data.sim_guardada_dual).length > 0) {
+            // Si el Excel trae data de Diesel, la cargamos
+            if (data.sim_guardada_dual.DIESEL) {
+                proyeccionesDual.DIESEL.cons = data.sim_guardada_dual.DIESEL.consumos;
+                proyeccionesDual.DIESEL.ing = data.sim_guardada_dual.DIESEL.ingresos;
+            }
+            // Si trae de Gasohol, también
+            if (data.sim_guardada_dual.GASOHOL) {
+                proyeccionesDual.GASOHOL.cons = data.sim_guardada_dual.GASOHOL.consumos;
+                proyeccionesDual.GASOHOL.ing = data.sim_guardada_dual.GASOHOL.ingresos;
+            }
+            console.log("📥 Data del simulador recuperada desde el Excel");
         }
 
         // 2. ACTUALIZACIÓN DE MEMORIA (Vital para el historial)
@@ -687,7 +698,6 @@ async function cargarDatos() {
         calcularConsumoAnual();
         
         // 4. INYECCIÓN CLAVE: Forzar renderizado del historial
-        // Esto asegura que al refrescar, la tabla se llene de inmediato
         if (typeof renderHistorial === "function") {
             renderHistorial(datosCache);
             console.log("✅ Historial renderizado con éxito");
@@ -696,6 +706,13 @@ async function cargarDatos() {
         // 5. Dibujamos el simulador solo si somos Admin
         if (currentUser === 'ADMIN') {
             renderizarSimuladorBase(); 
+            actualizarCalculosSimulacion(); // Calculamos saldos con la data cargada
+            
+            // Abrimos el seguro de guardado después de 3 segundos
+            setTimeout(() => { 
+                cargandoDataInicial = false; 
+                console.log("🔓 Ya puedes editar y guardar");
+            }, 3000);
         }
 
         document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
