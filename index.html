@@ -982,34 +982,63 @@ let timerGuardado;
 function actualizarCalculosSimulacion() {
     const producto = document.getElementById('simProducto').value;
     
+    // 1. CAPTURAR DATOS DE LAS CAJITAS
     for (let j = 1; j <= 6; j++) {
         const inputC = document.getElementById(`cons_dia_${j}`);
         const inputI = document.getElementById(`ing_dia_${j}`);
+        // Si existen, guardamos el valor; si no, mantenemos lo que había
         if (inputC) consumosProyectados[j-1] = parseFloat(inputC.value) || 0;
         if (inputI) ingresosProyectados[j-1] = parseFloat(inputI.value) || 0;
     }
 
-    // ... (tu lógica de cálculo de saldos que ya tienes) ...
-    // [Pega aquí el bucle de cálculo que ya funciona]
+    // 2. JALAR SALDO INICIAL REAL (Tanque Central)
+    // Importante: Los IDs 'tanqueDiesel' y 'tanqueGasohol' deben existir en tu monitor
+    let saldoSimulado = (producto === 'DIESEL') ? 
+        parseFloat(document.getElementById('tanqueDiesel').innerText) : 
+        parseFloat(document.getElementById('tanqueGasohol').innerText);
+    
+    saldoSimulado = saldoSimulado || 0;
 
-    // --- LA JUGADA MAESTRA: GUARDADO EN NUBE ---
+    // 3. CALCULAR FILA POR FILA
+    for (let i = 1; i <= 6; i++) {
+        const celdaSaldo = document.getElementById(`saldo_dia_${i}`);
+        const fila = document.getElementById(`fila_sim_${i}`);
+        
+        let consumo = consumosProyectados[i-1];
+        let ingreso = ingresosProyectados[i-1];
+        
+        // Restamos lo que se gasta y sumamos lo que entra
+        saldoSimulado = (saldoSimulado - consumo) + ingreso;
+        
+        // Escribimos el resultado en la tabla
+        if (celdaSaldo) {
+            celdaSaldo.innerText = saldoSimulado.toFixed(2) + (saldoSimulado < 0 ? ' 🚨' : '');
+            
+            // Colores de alerta
+            if (saldoSimulado < 0) {
+                fila.style.background = "#fee2e2";
+                celdaSaldo.style.color = "#ef4444";
+                celdaSaldo.style.fontWeight = "bold";
+            } else {
+                fila.style.background = "white";
+                celdaSaldo.style.color = "#1e293b";
+                celdaSaldo.style.fontWeight = "normal";
+            }
+        }
+    }
+
+    // 4. GUARDADO AUTOMÁTICO PARA EL JEFE
     clearTimeout(timerGuardado);
     timerGuardado = setTimeout(() => {
         const payload = {
-            action: 'saveSim', // Debes manejar esta acción en tu doPost del .gs
+            action: 'saveSim',
             user: currentUser,
             producto: producto,
             consumos: consumosProyectados,
             ingresos: ingresosProyectados
         };
-        
-        fetch(WEB_APP_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify(payload) 
-        });
-        console.log("☁️ Simulación sincronizada en la nube para el jefe.");
-    }, 2000); // Espera 2 segundos después de que dejes de escribir
+        fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+    }, 2000);
 }
 </script>
 </body>
