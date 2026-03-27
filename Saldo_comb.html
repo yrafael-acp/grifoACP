@@ -13,40 +13,60 @@
         }
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--acp-light); margin: 0; padding: 10px; }
+        
         .main-wrapper { max-width: 900px; margin: auto; }
         .container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; overflow: hidden; margin-bottom: 15px; }
+        
         .header-section { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .header-logo { width: 120px; flex-shrink: 0; }
         .title-bg { background-color: var(--acp-green); color: white; font-size: 1.3rem; font-weight: bold; text-align: center; padding: 15px; flex: 1; border-radius: 4px; text-transform: uppercase; min-width: 200px; }
+        
         .date-box { background: #f8fafc; border: 1px solid var(--acp-green); padding: 5px; border-radius: 4px; text-align: center; min-width: 140px; }
         .date-label { display: block; font-size: 0.7em; font-weight: bold; color: var(--acp-green); margin-bottom: 2px; }
         #fechaReporte { border: none; background: transparent; font-weight: bold; text-align: center; width: 100%; outline: none; }
+
         .user-cards-section { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
         .user-card { flex: 1; min-width: calc(33.333% - 10px); background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; }
         .user-card-header { background-color: var(--acp-green); color: white; font-size: 0.85em; font-weight: bold; padding: 5px; text-align: center; text-transform: uppercase; }
         .user-card-body { padding: 10px; text-align: center; }
+        
         input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-size: 1rem; }
         .readonly-field { background-color: #eee; font-weight: bold; color: #333; }
+
         .fuel-table-wrapper { width: 100%; overflow-x: auto; }
         table.fuel-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
         .fuel-table th, .fuel-table td { border: 1px solid #333; padding: 8px 4px; text-align: center; font-size: 0.85em; }
         .fuel-table th { background-color: var(--acp-green); color: white; }
+        
         .gasolina-label { background-color: red; color: white; font-weight: bold; }
         .petroleo-label { background-color: var(--acp-green); color: white; font-weight: bold; }
         .cell-total { font-size: 1.1em; font-weight: bold; }
+
         .button-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
         .btn { border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; flex: 1; min-width: 200px; }
         .btn-guardar { background-color: var(--acp-green); color: white; }
         .btn-descargar { background-color: var(--secondary); color: white; }
+
         .loader-overlay { position: fixed; bottom: 20px; right: 20px; background: rgba(0, 0, 0, 0.8); color: white; padding: 10px 20px; border-radius: 50px; display: none; align-items: center; gap: 12px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .spinner { width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid var(--acp-green); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @media screen and (max-width: 600px) { .user-card { min-width: 100%; } }
+
+        /* --- RESPONSIVE PRO --- */
+        @media screen and (max-width: 600px) {
+            .header-section { flex-direction: column; text-align: center; }
+            .header-logo { margin-bottom: 10px; }
+            .title-bg { width: 100%; font-size: 1.1rem; padding: 10px; }
+            .date-box { width: 100%; margin-top: 10px; }
+            .user-card { min-width: 100%; }
+            .fuel-table th, .fuel-table td { padding: 6px 2px; font-size: 0.72em; }
+            input[type="number"], select { font-size: 0.9rem; padding: 5px; }
+            .btn { width: 100%; margin-bottom: 5px; }
+        }
     </style>
 </head>
 <body>
 
-<div id="loader" class="loader-overlay"><div class="spinner"></div><div class="loader-text" id="loaderText">Sincronizando...</div></div>
+<div id="loader" class="loader-overlay"><div class="spinner"></div><div id="loaderText">Sincronizando...</div></div>
 
 <div class="main-wrapper">
     <div class="container" id="captureArea">
@@ -61,7 +81,20 @@
 
         <div class="user-cards-section">
             <div class="user-card"><div class="user-card-header">DNI</div><div class="user-card-body"><input type="text" id="dniInput" class="readonly-field" readonly></div></div>
-            <div class="user-card"><div class="user-card-header">OPERARIO</div><div class="user-card-body"><select id="operarioSelect" onchange="vincularDNI()"><option value="">-- Seleccione --</option><option value="77103804">WILDER NEYRA PAICO</option><option value="76181486">LUIS ANGEL JUAREZ ELIAS</option><option value="74308732">CARLOS ORRILLO CRUZADO</option><option value="41892133">CRISTIAN GONZALES UCEDA</option><option value="76377901">ANGELO SALAZAR DEL AGUILA</option><option value="16454237">FELIPE FERNANDEZ TERRONES</option></select></div></div>
+            <div class="user-card">
+                <div class="user-card-header">OPERARIO</div>
+                <div class="user-card-body">
+                    <select id="operarioSelect" onchange="vincularDNI()">
+                        <option value="">-- Seleccione --</option>
+                        <option value="77103804">WILDER NEYRA PAICO</option>
+                        <option value="76181486">LUIS ANGEL JUAREZ ELIAS</option>
+                        <option value="74308732">CARLOS ORRILLO CRUZADO</option>
+                        <option value="41892133">CRISTIAN GONZALES UCEDA</option>
+                        <option value="76377901">ANGELO SALAZAR DEL AGUILA</option>
+                        <option value="16454237">FELIPE FERNANDEZ TERRONES</option>
+                    </select>
+                </div>
+            </div>
             <div class="user-card"><div class="user-card-header">TURNO</div><div class="user-card-body"><select id="turnoSelect" onchange="guardarEnNube()"><option value="DIA">DIA</option><option value="NOCHE">NOCHE</option></select></div></div>
         </div>
 
@@ -69,8 +102,20 @@
             <table class="fuel-table">
                 <thead><tr><th>PRODUCTO</th><th>V. FINAL</th><th>SALDO</th><th>ISOT.</th><th>TOT. GLS</th></tr></thead>
                 <tbody>
-                    <tr><td class="gasolina-label">GASOLINA</td><td><input type="number" id="vGasolina" step="0.1" min="0" oninput="calcularTotales()"></td><td id="sGasolina" class="readonly-field">0.00</td><td><input type="number" id="iGasolina" class="readonly-field" readonly></td><td id="tGasolina" class="cell-total">0.00</td></tr>
-                    <tr><td class="petroleo-label">PETROLEO</td><td><input type="number" id="vPetroleo" step="0.1" min="0" oninput="calcularTotales()"></td><td id="sPetroleo" class="readonly-field">0.00</td><td><input type="number" id="iPetroleo" class="readonly-field" readonly></td><td id="tPetroleo" class="cell-total">0.00</td></tr>
+                    <tr>
+                        <td class="gasolina-label">GASOLINA</td>
+                        <td><input type="number" id="vGasolina" step="0.1" min="0" oninput="calcularTotales()"></td>
+                        <td id="sGasolina" class="readonly-field">0.00</td>
+                        <td><input type="number" id="iGasolina" step="0.1" oninput="calcularTotales()"></td>
+                        <td id="tGasolina" class="cell-total">0.00</td>
+                    </tr>
+                    <tr>
+                        <td class="petroleo-label">PETROLEO</td>
+                        <td><input type="number" id="vPetroleo" step="0.1" min="0" oninput="calcularTotales()"></td>
+                        <td id="sPetroleo" class="readonly-field">0.00</td>
+                        <td><input type="number" id="iPetroleo" step="0.1" oninput="calcularTotales()"></td>
+                        <td id="tPetroleo" class="cell-total">0.00</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -99,10 +144,12 @@
     const loaderText = document.getElementById('loaderText');
     let timeoutSaldos;
 
+    let isoGasOriginal = 0;
+    let isoPetOriginal = 0;
+
     window.onload = () => {
         const rol = sessionStorage.getItem('rolGrifo');
-        const session = sessionStorage.getItem('sessionGrifo');
-        if (!session) { window.location.href = "index.html"; return; }
+        if (!sessionStorage.getItem('sessionGrifo')) { window.location.href = "index.html"; return; }
         if (rol === "ADMIN") document.getElementById('seccionBuscador').style.display = 'block';
 
         const btnVolver = document.getElementById('btnVolverDinamico');
@@ -115,156 +162,156 @@
         }
     };
 
-    function showLoading(text) { loaderText.innerText = text || "Procesando..."; loader.style.display = 'flex'; }
+    function showLoading(t) { loaderText.innerText = t || "Procesando..."; loader.style.display = 'flex'; }
     function hideLoading() { loader.style.display = 'none'; }
 
-    // --- CARGA INICIAL CORREGIDA PARA JALAR ISOTANQUES ---
     document.addEventListener('DOMContentLoaded', async function() {
         showLoading("Sincronizando con la nube...");
         try {
-            // 1. Cargar fecha
             const resFecha = await fetch(`${scriptUrl}?action=getUltimaFecha`);
             const dataFecha = await resFecha.json();
             if (dataFecha.fecha) document.getElementById('fechaReporte').value = dataFecha.fecha;
 
-            // 2. Cargar Isotanques de la plataforma central
             const resSist = await fetch(`${scriptUrl}?action=read`);
             const dataSist = await resSist.json();
             if (dataSist && dataSist.reservas) {
-                document.getElementById('iGasolina').value = dataSist.reservas.gasohol || 0;
-                document.getElementById('iPetroleo').value = dataSist.reservas.diesel || 0;
+                isoGasOriginal = parseFloat(dataSist.reservas.gasohol) || 0;
+                isoPetOriginal = parseFloat(dataSist.reservas.diesel) || 0;
             }
-            
-            // 3. Recuperar borrador
+
             const resBorrador = await fetch(`${scriptUrl}?action=getEstadoBorrador`);
             const borrador = await resBorrador.json();
             if (borrador) {
                 document.getElementById('vGasolina').value = borrador.vGas || "";
                 document.getElementById('vPetroleo').value = borrador.vPet || "";
                 document.getElementById('turnoSelect').value = borrador.turno || "DIA";
+                document.getElementById('iGasolina').value = borrador.iGas || isoGasOriginal;
+                document.getElementById('iPetroleo').value = borrador.iPet || isoPetOriginal;
                 if (borrador.dni) {
                     document.getElementById('operarioSelect').value = borrador.dni;
                     document.getElementById('dniInput').value = borrador.dni;
                 }
             }
-            // Disparamos cálculo para que los totales se vean de una vez
             await calcularTotales();
         } catch (e) { console.error("Error inicial:", e); } finally { hideLoading(); }
     });
 
     async function calcularTotales() {
         clearTimeout(timeoutSaldos);
-        const vGas = document.getElementById('vGasolina').value;
-        const vPet = document.getElementById('vPetroleo').value;
+        const vG = document.getElementById('vGasolina').value;
+        const vP = document.getElementById('vPetroleo').value;
+        const iG = document.getElementById('iGasolina').value;
+        const iP = document.getElementById('iPetroleo').value;
+
         document.getElementById('sGasolina').innerText = "...";
         document.getElementById('sPetroleo').innerText = "...";
 
         timeoutSaldos = setTimeout(async () => {
-            // Si no hay valores, mostramos el Isotanque como total
-            if (!vGas && !vPet) { 
-                const iG = parseFloat(document.getElementById('iGasolina').value) || 0;
-                const iP = parseFloat(document.getElementById('iPetroleo').value) || 0;
+            if (!vG && !vP) {
                 document.getElementById('sGasolina').innerText = "0.00";
-                document.getElementById('tGasolina').innerText = iG.toFixed(2);
+                document.getElementById('tGasolina').innerText = (parseFloat(iG) || 0).toFixed(2);
                 document.getElementById('sPetroleo').innerText = "0.00";
-                document.getElementById('tPetroleo').innerText = iP.toFixed(2);
-                return; 
+                document.getElementById('tPetroleo').innerText = (parseFloat(iP) || 0).toFixed(2);
+                guardarEnNube(); return;
             }
             showLoading("Sincronizando saldos...");
             try {
                 await Promise.all([
-                    actualizarSaldo('GASOLINA', vGas, 'sGasolina', 'iGasolina', 'tGasolina'),
-                    actualizarSaldo('PETROLEO', vPet, 'sPetroleo', 'iPetroleo', 'tPetroleo')
+                    actualizarSaldo('GASOLINA', vG, 'sGasolina', 'iGasolina', 'tGasolina'),
+                    actualizarSaldo('PETROLEO', vP, 'sPetroleo', 'iPetroleo', 'tPetroleo')
                 ]);
-                guardarEnNube(); 
+                guardarEnNube();
             } finally { hideLoading(); }
-        }, 1000); 
+        }, 1000);
     }
 
-    async function actualizarSaldo(tipo, valor, idSaldo, idIso, idTotal) {
-        const iso = parseFloat(document.getElementById(idIso).value) || 0;
+    async function actualizarSaldo(tipo, valor, idS, idI, idT) {
+        const iso = parseFloat(document.getElementById(idI).value) || 0;
         if (valor && valor >= 0) {
             try {
                 const res = await fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=${tipo}&valor=${valor}`);
                 const data = await res.json();
                 if (data.saldo !== undefined) {
                     const s = parseFloat(data.saldo);
-                    document.getElementById(idSaldo).innerText = s.toFixed(2);
-                    document.getElementById(idTotal).innerText = (s + iso).toFixed(2);
+                    document.getElementById(idS).innerText = s.toFixed(2);
+                    document.getElementById(idT).innerText = (s + iso).toFixed(2);
                 }
-            } catch (e) { document.getElementById(idSaldo).innerText = "Error"; }
+            } catch (e) { document.getElementById(idS).innerText = "Error"; }
         } else {
-            document.getElementById(idSaldo).innerText = "0.00";
-            document.getElementById(idTotal).innerText = iso.toFixed(2);
+            document.getElementById(idS).innerText = "0.00";
+            document.getElementById(idT).innerText = iso.toFixed(2);
         }
     }
 
-    async function enviarReporteFinal() {
-        const opSelect = document.getElementById('operarioSelect');
-        if (!opSelect.value) return alert("Selecciona un operario.");
-        if (!confirm("¿Deseas registrar este reporte en el Historial de Excel?")) return;
-
-        showLoading("Registrando reporte final...");
+    async function guardarEnNube() {
+        const op = document.getElementById('operarioSelect');
         const data = {
+            action: 'guardarEstadoBorrador',
+            vGas: document.getElementById('vGasolina').value,
+            vPet: document.getElementById('vPetroleo').value,
+            iGas: document.getElementById('iGasolina').value,
+            iPet: document.getElementById('iPetroleo').value,
+            operario: op.selectedIndex > 0 ? op.options[op.selectedIndex].text : "",
+            dni: op.value,
+            turno: document.getElementById('turnoSelect').value
+        };
+        fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+    }
+
+    async function enviarReporteFinal() {
+        const op = document.getElementById('operarioSelect');
+        if (!op.value) return alert("Selecciona operario.");
+        const iG = parseFloat(document.getElementById('iGasolina').value) || 0;
+        const iP = parseFloat(document.getElementById('iPetroleo').value) || 0;
+        let msg = (iG !== isoGasOriginal || iP !== isoPetOriginal) ? "\n\n🚨 NOTA: Se enviarán Isotanques editados manualmente." : "";
+        if (!confirm("¿Deseas registrar este reporte?" + msg)) return;
+
+        showLoading("Registrando...");
+        const payload = {
             action: 'enviarReporteFinal',
             fechaReporte: document.getElementById('fechaReporte').value,
-            dni: opSelect.value,
-            operario: opSelect.options[opSelect.selectedIndex].text,
+            dni: op.value,
+            operario: op.options[op.selectedIndex].text,
             turno: document.getElementById('turnoSelect').value,
             vGas: document.getElementById('vGasolina').value,
             sGas: document.getElementById('sGasolina').innerText,
-            iGas: document.getElementById('iGasolina').value,
+            iGas: iG,
             tGas: document.getElementById('tGasolina').innerText,
             vPet: document.getElementById('vPetroleo').value,
             sPet: document.getElementById('sPetroleo').innerText,
-            iPet: document.getElementById('iPetroleo').value,
+            iPet: iP,
             tPet: document.getElementById('tPetroleo').innerText
         };
-
         try {
-            await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-            alert("✅ REPORTE GUARDADO EXITOSAMENTE.");
-        } catch (e) { alert("Error al conectar."); } finally { hideLoading(); }
+            await fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("✅ REPORTE GUARDADO."); location.reload();
+        } catch (e) { alert("Error."); } finally { hideLoading(); }
     }
 
     async function consultarHistorial() {
         const f = document.getElementById('fechaBusqueda').value;
         const t = document.getElementById('turnoBusqueda').value;
-        if (!f) return alert("Selecciona fecha.");
+        if (!f) return alert("Fecha?");
         showLoading("Buscando...");
         try {
             const res = await fetch(`${scriptUrl}?action=consultarHistorial&fecha=${f}&turno=${t}`);
             const r = await res.json();
             if (r.success) {
                 const d = r.data;
-                alert(`✅ ENCONTRADO\nOperario: ${d.operario}\nGas: Var ${d.vGas} | Saldo ${d.sGas}\nPet: Var ${d.vPet} | Saldo ${d.sPet}`);
-            } else alert("❌ " + r.message);
+                let aviso = (parseFloat(d.iGas) !== isoGasOriginal || parseFloat(d.iPet) !== isoPetOriginal) ? "\n\n🚨 ALERTA: Editado manualmente." : "";
+                alert(`✅ REPORTE:\nOperario: ${d.operario}\nGas: Var ${d.vGas} | Iso ${d.iGas}\nPet: Var ${d.vPet} | Iso ${d.iPet}` + aviso);
+            } else alert("❌ No encontrado.");
         } catch (e) { alert("Error."); } finally { hideLoading(); }
     }
 
     function vincularDNI() { document.getElementById('dniInput').value = document.getElementById('operarioSelect').value; guardarEnNube(); }
-
-    async function guardarEnNube() {
-        const opSelect = document.getElementById('operarioSelect');
-        const datos = {
-            action: 'guardarEstadoBorrador',
-            vGas: document.getElementById('vGasolina').value,
-            vPet: document.getElementById('vPetroleo').value,
-            operario: opSelect.selectedIndex > 0 ? opSelect.options[opSelect.selectedIndex].text : "",
-            dni: opSelect.value,
-            turno: document.getElementById('turnoSelect').value
-        };
-        fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
-    }
 
     function descargarComoImagen() {
         showLoading("Generando imagen...");
         html2canvas(document.getElementById('captureArea'), { scale: 2, useCORS: true }).then(canvas => {
             const link = document.createElement('a');
             link.download = `Saldo_ACP_${document.getElementById('fechaReporte').value}.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-            hideLoading();
+            link.href = canvas.toDataURL(); link.click(); hideLoading();
         });
     }
 </script>
