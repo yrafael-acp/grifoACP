@@ -58,39 +58,39 @@
             50% { opacity: 0.4; transform: scale(0.9); }
         }
 
-        /* --- DISEÑO PRO PARA EL SELECTOR DE SEMANAS (RENOVADO) --- */
-        #selectorSemanas {
-            appearance: none;
-            background-color: #ffffff;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231e293b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 14px;
-            padding-right: 32px !important;
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s ease;
-            min-width: 160px;
-        }
+       /* --- DISEÑO PRO PARA EL SELECTOR DE SEMANAS (REPARADO) --- */
+#selectorSemanas {
+    appearance: none !important;
+    background-color: #f8fafc !important; /* Fondo visible siempre */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231e293b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 8px center !important;
+    background-size: 12px !important;
+    padding: 4px 28px 4px 10px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    color: #1e293b !important; /* Texto negro para que se vea */
+    font-weight: 800 !important;
+    font-size: 11px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease;
+    min-width: 155px;
+    cursor: pointer;
+    outline: none !important;
+}
 
-        #selectorSemanas:hover {
-            border-color: #fbbf24; /* Color amarillo similar a tu hover previo */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transform: translateY(-1px);
-        }
+#selectorSemanas:hover {
+    border-color: #fbbf24 !important; /* Brillo amarillo en hover */
+    background-color: #ffffff !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
-        #selectorSemanas:focus {
-            border-color: #007d32;
-            box-shadow: 0 0 0 2px rgba(0, 125, 50, 0.2);
-        }
-
-        /* Estilo para el contenedor del selector */
-        .semana-nav-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 6px 12px;
-            border-radius: 12px;
-        }
+.semana-nav-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 12px;
+}
 </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800">
@@ -99,24 +99,24 @@
     <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-3">
         
         <div class="flex items-center gap-3 w-full lg:w-auto justify-center lg:justify-start">
-            <i class="fas fa-truck-moving text-2xl text-yellow-400"></i>
+            <img src="https://i.ibb.co/996WvFh/cerro-prieto-logo.png" alt="Logo ACP" class="h-10 filter brightness-0 invert">
             <div>
                 <h1 class="text-lg font-bold italic leading-none">FLOTA NUBE</h1>
                 <span class="text-[10px] uppercase tracking-widest opacity-80">Agrícola Cerro Prieto</span>
             </div>
         </div>
 
-        <div class="flex items-center gap-2 bg-green-900/50 p-1.5 rounded-lg border border-white/20 shadow-inner">
+        <div class="semana-nav-container flex items-center gap-2">
             <div class="flex flex-col">
-                <span class="text-[8px] font-bold ml-1 text-green-300 uppercase leading-none mb-1">Año</span>
+                <span class="text-[8px] font-bold ml-1 text-yellow-400 uppercase leading-none mb-1">Año</span>
                 <select id="selectorAnio" onchange="cambiarAnio()" class="bg-transparent text-white text-[11px] font-bold px-1 outline-none cursor-pointer hover:text-yellow-400 transition-colors"></select>
             </div>
             <div class="h-6 w-[1px] bg-white/20 mx-1"></div> 
             <div class="flex flex-col">
-                <span class="text-[8px] font-bold ml-1 text-green-300 uppercase leading-none mb-1">Semana de Gestión</span>
+                <span class="text-[8px] font-bold ml-1 text-yellow-400 uppercase leading-none mb-1">Semana de Gestión</span>
                 <div class="flex items-center gap-2">
-                    <select id="selectorSemanas" onchange="gestionarCambioSemana()" class="bg-transparent text-white text-[11px] font-bold px-1 outline-none w-full sm:w-auto cursor-pointer hover:text-yellow-400 transition-colors"></select>
-                    <span id="estadoSemana" class="flex items-center gap-1 font-black tracking-tighter"></span>
+                    <select id="selectorSemanas" onchange="gestionarCambioSemana()"></select>
+                    <span id="estadoSemana" class="flex items-center gap-1 font-black tracking-tighter text-yellow-400 text-[10px]"></span>
                 </div>
             </div>
         </div>
@@ -126,36 +126,22 @@
                 <a id="btnCalcFlota" href="Saldo_comb.html" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-calculator mr-1"></i> CALCULADORA VARILLA
                 </a>
-
                 <button id="btnRegistrar" onclick="abrirModalRegistro()" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-gas-pump mr-1"></i> REGISTRAR
                 </button>
-
                 <button id="btnConsulta" onclick="abrirModalConsulta()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-search-dollar mr-1"></i> CONSULTA ÓRDENES
                 </button>
-
                 <button id="btnSincronizar" onclick="sincronizarDesdeNube()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-sync-alt mr-1"></i> SINCRONIZAR
                 </button>
-
                 <button id="btnRango" onclick="abrirModalRango()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-calendar-alt mr-1"></i> RANGO SAP
                 </button>
-
                 <button id="btnConfig" onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-cog mr-1"></i>
                     <div id="contenedorAdmin" class="flex gap-2"></div>
                 </button>
-
-                <button id="btnCerrarAdmin" onclick="irAPaginaPrincipal()" title="Volver a Gestión Corporativa" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[14px] transition shadow flex items-center" style="display:none;">
-                    <i class="fas fa-home"></i>
-                </button>
-
-                <button id="btnLimpiar" onclick="limpiarValesManuales()" title="Limpiar Vales Manuales" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
-                    <i class="fas fa-broom mr-1"></i> LIMPIAR VALES
-                </button>
-
                 <button id="btnSalirFlota" onclick="logout()" class="bg-red-600 hover:bg-red-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-power-off mr-1"></i> SALIR
                 </button>
