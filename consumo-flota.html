@@ -556,35 +556,41 @@ function logout() {
     const sel = document.getElementById('selectorSemanas'); 
     sel.innerHTML = '';
     
-    // Configuramos el inicio del año correctamente
-    let f = getLunesActual(new Date(`${anio}-01-01T12:00:00`));
+    // 1. Calculamos el lunes de la semana actual
     const hoy = new Date();
-    const hoyL = getLunesActual(hoy).toISOString().split('T')[0];
+    const hoyLunes = getLunesActual(hoy);
+    hoyLunes.setHours(0, 0, 0, 0);
+    
+    // 2. Iniciamos el recorrido desde el primer lunes del año elegido
+    let f = getLunesActual(new Date(`${anio}-01-01T12:00:00`));
     
     let ops = [];
-    // Generar semanas de todo el año
+    
+    // 3. El bucle solo avanza mientras la semana NO supere a la actual
     while (f.getFullYear() <= anio) {
+        const fechaLunesSrt = f.toISOString().split('T')[0];
+        const fechaLunesObj = new Date(f);
+        fechaLunesObj.setHours(0, 0, 0, 0);
+
+        // FILTRO RADICAL: Si la semana es mayor a la actual, se rompe el bucle
+        if (fechaLunesObj > hoyLunes) break;
+
         let fin = new Date(f); 
         fin.setDate(f.getDate() + 6);
+        
         ops.push({ 
-            val: f.toISOString().split('T')[0], 
+            val: fechaLunesSrt, 
             text: `Sem: ${f.toLocaleDateString()} al ${fin.toLocaleDateString()}` 
         });
+
         f.setDate(f.getDate() + 7);
     }
     
-    ops.reverse().forEach(op => {
+    // 4. Invertimos para que la semana actual salga primero arriba
+    ops.reverse().forEach((op, index) => {
         const opt = new Option(op.text, op.val);
-        
-        // LÓGICA DE SELECCIÓN:
-        // Si el año es el actual, marca la semana de hoy.
-        // Si el año es pasado (2025), marca la última semana de diciembre.
-        if (anio == hoy.getFullYear()) {
-            if (op.val === hoyL) opt.selected = true;
-        } else {
-            // Si es 2025, la primera de la lista (que es la última de dic por el reverse)
-            if (ops.indexOf(op) === 0) opt.selected = true;
-        }
+        // Por defecto, que siempre seleccione la primera (la más reciente)
+        if (index === 0) opt.selected = true;
         sel.add(opt);
     });
 }
