@@ -123,6 +123,10 @@
 
         <div class="flex flex-wrap items-center justify-center gap-2 w-full lg:w-auto">
             <div class="flex flex-wrap justify-center gap-2">
+                <button id="btnCerrarAdmin" onclick="irAPaginaPrincipal()" title="Volver al Dashboard Principal" class="bg-yellow-500 hover:bg-yellow-600 text-green-900 px-3 py-2 rounded-lg font-bold text-[14px] transition shadow flex items-center">
+                    <i class="fas fa-home"></i>
+                </button>
+
                 <a id="btnCalcFlota" href="Saldo_comb.html" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-calculator mr-1"></i> CALCULADORA VARILLA
                 </a>
@@ -138,9 +142,14 @@
                 <button id="btnRango" onclick="abrirModalRango()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-calendar-alt mr-1"></i> RANGO SAP
                 </button>
+                
                 <button id="btnConfig" onclick="abrirModalConfig()" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-cog mr-1"></i>
                     <div id="contenedorAdmin" class="flex gap-2"></div>
+                </button>
+
+                <button id="btnLimpiar" onclick="limpiarValesManuales()" title="Limpiar Vales Manuales" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
+                    <i class="fas fa-broom mr-1"></i> LIMPIAR VALES
                 </button>
                 <button id="btnSalirFlota" onclick="logout()" class="bg-red-600 hover:bg-red-800 text-white px-3 py-2 rounded-lg font-bold text-[10px] transition shadow flex items-center">
                     <i class="fas fa-power-off mr-1"></i> SALIR
