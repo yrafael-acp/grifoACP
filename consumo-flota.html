@@ -844,7 +844,8 @@ function actualizarEtiquetaEstado() {
             action: "saveExcepcion", 
             semana: semana, 
             placa: placaNorm, 
-            dotacion: nuevaDot 
+            dotacion: nuevaDot,
+            userLog: sessionStorage.getItem('usuarioGrifo') // <--- AQUÍ ENTRÓ EL CHISMOSO
         };
 
         // Enviamos a la nube
