@@ -904,7 +904,6 @@ function actualizarEtiquetaEstado() {
     const container = document.getElementById('tablaConsultaContainer');
     const estado = document.getElementById('estadoConsulta');
 
-    // Mostrar cargando
     loader.classList.remove('hidden');
     resumen.classList.add('hidden');
     container.classList.add('hidden');
@@ -922,7 +921,7 @@ function actualizarEtiquetaEstado() {
             
             data.items.forEach(i => {
                 totalImporte += i.importe;
-                // --- NUEVO DISEÑO DE FILA ---
+                // --- TABLA DETALLE: NÚMEROS LIMPIOS PARA EXCEL ---
                 tbody.innerHTML += `
                     <tr class="hover:bg-indigo-50/50 transition-colors border-b border-gray-100">
                         <td class="p-4 text-gray-600 font-medium">${i.fecha}</td>
@@ -935,10 +934,9 @@ function actualizarEtiquetaEstado() {
                         <td class="p-4 font-mono text-gray-400 text-[11px]">${i.documento}</td>
                         <td class="p-4 text-center">
                             <span class="text-sm font-black text-gray-800">${i.cantidad.toFixed(2)}</span>
-                            <span class="text-[9px] text-gray-400 font-bold">GLN</span>
                         </td>
                         <td class="p-4 text-right">
-                            <span class="text-soles">S/ ${i.importe.toFixed(2)}</span>
+                            <span class="text-soles">${i.importe.toFixed(2)}</span>
                         </td>
                         <td class="p-4 text-center">
                             <span class="badge-orden">${i.orden}</span>
@@ -946,11 +944,13 @@ function actualizarEtiquetaEstado() {
                     </tr>`;
             });
 
-            // Actualizar totalizadores (IDs del Dashboard)
-            document.getElementById('totalGlnOrden').innerText = data.total.toFixed(2);
-            document.getElementById('totalSolesOrden').innerText = totalImporte.toFixed(2);
+            // --- RESUMEN TOTAL: AQUÍ SÍ PONEMOS LOS SÍMBOLOS ---
+            // Agregamos GLN al total consumido
+            document.getElementById('totalGlnOrden').innerHTML = `${data.total.toFixed(2)} <span class="text-[10px] opacity-70">GLN</span>`;
             
-            // Mostrar resultados
+            // Agregamos S/ al total soles
+            document.getElementById('totalSolesOrden').innerHTML = `<span class="text-[12px] mr-1">S/</span>${totalImporte.toFixed(2)}`;
+            
             resumen.classList.remove('hidden');
             container.classList.remove('hidden');
         } else {
