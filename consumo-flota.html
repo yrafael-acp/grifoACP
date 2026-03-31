@@ -160,6 +160,19 @@
 </header>
 
     <main class="max-w-[1580px] mx-auto p-3">
+        <div class="card admin-only" style="margin-bottom: 20px; border-left: 5px solid #107c41;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="margin:0; color: #107c41;"><i class="fas fa-file-import"></i> Sincronizar Data SAP</h3>
+            <p style="margin:0; font-size: 11px; color: #64748b;">Sube el reporte para actualizar consumos reales.</p>
+        </div>
+        <label class="btn btn-excel" style="margin:0; cursor: pointer; padding: 8px 20px;">
+            <i class="fas fa-upload mr-1"></i> CARGAR EXCEL
+            <input type="file" id="inputArchivoSAP" accept=".xlsx, .xls" style="display:none;" onchange="procesarArchivoSAPFlota(this)">
+        </label>
+    </div>
+    <div id="statusCargaSAP" style="font-size: 10px; color: #107c41; margin-top: 5px; font-weight: bold; text-align: right;"></div>
+</div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <div class="bg-white p-3 rounded-xl shadow-sm border-l-4 border-blue-600 text-center">
             <span class="text-[9px] font-bold text-gray-400 uppercase">Gln Asignado</span>
@@ -1324,6 +1337,57 @@ function actualizarAnalisisGrafico(datos) {
             lista.innerHTML = `<p class="col-span-full text-center py-10 text-red-500 text-[10px]">Error al conectar con SAP.</p>`;
         }
     }
+        async function procesarArchivoSAPFlota(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const status = document.getElementById('statusCargaSAP');
+    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando archivo...';
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+            if (jsonData.length === 0) {
+                alert("⚠️ El archivo está vacío.");
+                status.innerText = "";
+                return;
+            }
+
+            status.innerHTML = `<i class="fas fa-sync"></i> Sincronizando ${jsonData.length} registros...`;
+
+            const resp = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'uploadSAPData', // Usamos la misma acción del Código.gs
+                    user: sessionStorage.getItem('sessionGrifo'),
+                    payload: jsonData
+                })
+            });
+
+            const res = await resp.json();
+            if (res.status === "OK") {
+                alert(res.detalles);
+                // Aquí podrías llamar a tu función de recargar tabla si la tienes
+                if(typeof refrescarTablaFlota === "function") refrescarTablaFlota();
+            } else {
+                alert("❌ Error: " + res.message);
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert("❌ Error al procesar el Excel. Verifica que sea el formato SAP.");
+        } finally {
+            status.innerText = "";
+            input.value = "";
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
     </script>
 </body>
 </html>
