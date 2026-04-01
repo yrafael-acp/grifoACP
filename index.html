@@ -380,14 +380,21 @@
         <div id="isoGasohol" class="isotanque-alert" style="display:none;"></div>
     </div>
 
-    <div style="grid-column: span 2; display: flex; align-items: center; justify-content: space-between; padding: 5px 10px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1; margin-top: 5px;">
-        <b style="font-size: 0.85rem; color: #475569; text-transform: uppercase;">Consumo Acumulado</b>
-        <select id="selectAnioFiscal" 
-                onchange="calcularConsumoAnual(); procesarGrafico();" 
-                style="width: auto; margin: 0; padding: 2px 8px; font-size: 0.85rem; font-weight: bold; color: var(--accent); border: 1px dashed var(--accent); background: #f0f9ff; border-radius: 6px; cursor: pointer;">
-            <option value="2026" selected>Año 2026</option>
-            <option value="2025">Año 2025</option>
-        </select>
+    <div style="grid-column: span 2; display: flex; align-items: center; justify-content: space-between; padding: 8px 15px; background: #fff; border-radius: 12px; border: 1px solid #cbd5e1; margin-top: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.2rem;">📅</span>
+            <b style="font-size: 0.85rem; color: #1e293b; text-transform: uppercase; letter-spacing: 0.5px;">Consumo Acumulado</b>
+        </div>
+        
+        <div style="position: relative; display: flex; align-items: center;">
+            <select id="selectAnioFiscal" 
+                    onchange="document.getElementById('currentYearDisplay').innerText = this.value; calcularConsumoAnual(); procesarGrafico();" 
+                    style="appearance: none; -webkit-appearance: none; padding: 6px 35px 6px 12px; font-size: 0.85rem; font-weight: bold; color: #fff; background: var(--accent); border: none; border-radius: 8px; cursor: pointer; outline: none; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3); transition: all 0.2s;">
+                <option value="2026" selected>Año 2026</option>
+                <option value="2025">Año 2025</option>
+            </select>
+            <div style="position: absolute; right: 12px; pointer-events: none; color: #fff; font-size: 0.7rem;">▼</div>
+        </div>
     </div>
 
     <div style="padding: 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; border-left: 5px solid var(--diesel); display: flex; justify-content: space-between; align-items: center;">
