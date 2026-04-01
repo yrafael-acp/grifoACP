@@ -377,34 +377,35 @@
                     </div>
                     <div id="isoGasohol" class="isotanque-alert" style="display:none;"></div>
                 </div>
-                <div style="margin-top:15px; padding: 10px 15px; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+               <div style="margin-top:15px; padding: 8px 15px; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: nowrap;">
     
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-        <b style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Consumo Anual Acumulado</b>
-        
-        <select id="selectAnioFiscal" 
-                onchange="document.getElementById('currentYearDisplay').innerText = this.value; calcularConsumoAnual(); procesarGrafico();" 
-                style="width: auto; margin: 0; padding: 2px 8px; font-size: 0.8rem; font-weight: bold; color: var(--accent); border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 5px; cursor: pointer;">
-            <option value="2026" selected>Año 2026</option>
-            <option value="2025">Año 2025</option>
-        </select>
-        <span id="currentYearDisplay" style="display:none;">2026</span>
+    <b style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; white-space: nowrap;">Consumo Anual</b>
+
+    <select id="selectAnioFiscal" 
+            onchange="calcularConsumoAnual(); procesarGrafico();" 
+            style="width: auto; padding: 2px 5px; font-size: 0.8rem; font-weight: bold; color: var(--accent); border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 5px; cursor: pointer;">
+        <option value="2026" selected>2026</option>
+        <option value="2025">2025</option>
+    </select>
+
+    <div style="flex: 1; border-left: 3px solid var(--diesel); padding-left: 10px; display: flex; flex-direction: column;">
+        <small style="font-weight: 800; color: #475569; font-size: 0.6rem; line-height: 1;">DIESEL</small>
+        <div style="display: flex; align-items: baseline; gap: 3px;">
+            <span id="annualDiesel" style="font-size: 1.1rem; font-weight: bold; color: var(--diesel); line-height: 1.2;">0.00</span>
+            <small style="font-size: 0.65rem; color: #94a3b8; font-weight: bold;">gl</small>
+        </div>
+    </div>
+    
+    <div style="flex: 1; border-left: 3px solid var(--gasohol); padding-left: 10px; display: flex; flex-direction: column;">
+        <small style="font-weight: 800; color: #475569; font-size: 0.6rem; line-height: 1;">GASOHOL</small>
+        <div style="display: flex; align-items: baseline; gap: 3px;">
+            <span id="annualGasohol" style="font-size: 1.1rem; font-weight: bold; color: var(--gasohol); line-height: 1.2;">0.00</span>
+            <small style="font-size: 0.65rem; color: #94a3b8; font-weight: bold;">gl</small>
+        </div>
     </div>
 
-    <div style="display: flex; gap: 10px; align-items: center;">
-        
-        <div style="flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; background: #f1f5f9; border-left: 4px solid var(--diesel); border-radius: 4px;">
-            <small style="font-weight: 800; color: #475569; font-size: 0.65rem;">DIESEL</small>
-            <span id="annualDiesel" style="font-size: 1.1rem; font-weight: bold; color: var(--diesel);">0.00 gl</span>
-        </div>
-        
-        <div style="flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; background: #f1f5f9; border-left: 4px solid var(--gasohol); border-radius: 4px;">
-            <small style="font-weight: 800; color: #475569; font-size: 0.65rem;">GASOHOL</small>
-            <span id="annualGasohol" style="font-size: 1.1rem; font-weight: bold; color: var(--gasohol);">0.00 gl</span>
-        </div>
-        
-    </div>
-</div>
+    <span id="currentYearDisplay" style="display:none;">2026</span>
+</div>>
             </div>
             
             <div style="margin-top:15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
