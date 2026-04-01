@@ -377,35 +377,32 @@
                     </div>
                     <div id="isoGasohol" class="isotanque-alert" style="display:none;"></div>
                 </div>
-               <div style="margin-top:15px; padding: 8px 15px; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: nowrap;">
+               <div style="margin-top:15px; padding: 10px; background: #fff; border-radius: 8px; border: 1px solid #cbd5e1;">
     
-    <b style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; white-space: nowrap;">Consumo Anual</b>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 5px;">
+        <b style="font-size: 0.85rem; color: #475569; text-transform: uppercase;">Consumo Acumulado</b>
+        <select id="selectAnioFiscal" 
+                onchange="calcularConsumoAnual(); procesarGrafico();" 
+                style="width: auto; margin: 0; padding: 2px 8px; font-size: 0.85rem; font-weight: bold; color: var(--accent); border: 1px dashed var(--accent); background: #f0f9ff; border-radius: 6px; cursor: pointer;">
+            <option value="2026" selected>Año 2026</option>
+            <option value="2025">Año 2025</option>
+        </select>
+    </div>
 
-    <select id="selectAnioFiscal" 
-            onchange="calcularConsumoAnual(); procesarGrafico();" 
-            style="width: auto; padding: 2px 5px; font-size: 0.8rem; font-weight: bold; color: var(--accent); border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 5px; cursor: pointer;">
-        <option value="2026" selected>2026</option>
-        <option value="2025">2025</option>
-    </select>
+    <div style="display: flex; gap: 10px;">
+        <div style="flex: 1; padding: 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; border-left: 5px solid var(--diesel); display: flex; justify-content: space-between; align-items: center;">
+            <small style="color: #64748b; font-weight: bold; text-transform: uppercase; font-size: 0.7rem;">Diesel Total</small>
+            <span id="annualDiesel" style="font-size: 1.2rem; font-weight: bold; color: var(--diesel);">0.00 gl</span>
+        </div>
 
-    <div style="flex: 1; border-left: 3px solid var(--diesel); padding-left: 10px; display: flex; flex-direction: column;">
-        <small style="font-weight: 800; color: #475569; font-size: 0.6rem; line-height: 1;">DIESEL</small>
-        <div style="display: flex; align-items: baseline; gap: 3px;">
-            <span id="annualDiesel" style="font-size: 1.1rem; font-weight: bold; color: var(--diesel); line-height: 1.2;">0.00</span>
-            <small style="font-size: 0.65rem; color: #94a3b8; font-weight: bold;">gl</small>
+        <div style="flex: 1; padding: 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #cbd5e1; border-left: 5px solid var(--gasohol); display: flex; justify-content: space-between; align-items: center;">
+            <small style="color: #64748b; font-weight: bold; text-transform: uppercase; font-size: 0.7rem;">Gasohol Total</small>
+            <span id="annualGasohol" style="font-size: 1.2rem; font-weight: bold; color: var(--gasohol);">0.00 gl</span>
         </div>
     </div>
     
-    <div style="flex: 1; border-left: 3px solid var(--gasohol); padding-left: 10px; display: flex; flex-direction: column;">
-        <small style="font-weight: 800; color: #475569; font-size: 0.6rem; line-height: 1;">GASOHOL</small>
-        <div style="display: flex; align-items: baseline; gap: 3px;">
-            <span id="annualGasohol" style="font-size: 1.1rem; font-weight: bold; color: var(--gasohol); line-height: 1.2;">0.00</span>
-            <small style="font-size: 0.65rem; color: #94a3b8; font-weight: bold;">gl</small>
-        </div>
-    </div>
-
     <span id="currentYearDisplay" style="display:none;">2026</span>
-</div>>
+</div>
             </div>
             
             <div style="margin-top:15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
