@@ -1054,16 +1054,38 @@ function renderizarSimuladorBase() {
     
     // 1. Calculamos el lunes de la semana actual
     const hoy = new Date();
-    const diaSemana = hoy.getDay(); // 0 es domingo, 1 lunes...
+    const diaSemana = hoy.getDay(); 
     const diff = hoy.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1); 
     const lunesActual = new Date(hoy.setDate(diff));
+
+    // --- FILA DE APERTURA: Para que edites el saldo real a mano ---
+    tbody.innerHTML += `
+        <tr style="background: #f8fafc; border-bottom: 2px solid var(--accent);">
+            <td style="padding: 8px; font-weight: bold; color: var(--accent); border-right: 2px solid #e2e8f0;">
+                🏁 APERTURA SEMANAL
+            </td>
+            <td colspan="2" style="padding: 2px; background: #fffbeb;">
+                <input type="number" id="saldo_ini_d" class="input-sim" 
+                       style="width: 85% !important; border: 1px dashed #f59e0b; color: #92400e; font-weight: bold;" 
+                       value="${proyeccionesDual.DIESEL.saldoIni || 0}" 
+                       placeholder="Saldo D" oninput="actualizarCalculosSimulacion()">
+            </td>
+            <td style="border-right: 2px solid #e2e8f0; text-align: center; font-size: 0.6rem; color: #94a3b8;">gl</td>
+            <td colspan="2" style="padding: 2px; background: #fffbeb;">
+                <input type="number" id="saldo_ini_g" class="input-sim" 
+                       style="width: 85% !important; border: 1px dashed #f59e0b; color: #92400e; font-weight: bold;" 
+                       value="${proyeccionesDual.GASOHOL.saldoIni || 0}" 
+                       placeholder="Saldo G" oninput="actualizarCalculosSimulacion()">
+            </td>
+            <td style="text-align: center; font-size: 0.6rem; color: #94a3b8;">gl</td>
+        </tr>`;
 
     // 2. Dibujamos los 7 días de LUNES a DOMINGO
     for (let i = 0; i < 7; i++) {
         const fechaSim = new Date(lunesActual);
         fechaSim.setDate(lunesActual.getDate() + i);
         const nombreDia = diasNombres[fechaSim.getDay()];
-        const esPasado = fechaSim < new Date().setHours(0,0,0,0); // Para saber si es ayer o antes
+        const esPasado = fechaSim < new Date().setHours(0,0,0,0);
         
         tbody.innerHTML += `
             <tr id="fila_dual_${i}" style="${esPasado ? 'background: #f1f5f9;' : ''}">
@@ -1097,11 +1119,19 @@ function renderizarSimuladorBase() {
 let cargandoDataInicial = true; 
 
 function actualizarCalculosSimulacion() {
-    let totalD = 0; let totalG = 0;
+    // 1. JALAR SALDOS INICIALES DESDE LA FILA DE APERTURA (La nueva llave maestra)
+    let sD = parseFloat(document.getElementById('saldo_ini_d').value) || 0;
+    let sG = parseFloat(document.getElementById('saldo_ini_g').value) || 0;
 
-    // 1. CAPTURAR DATOS DEL TABLERO (Ahora recorremos de 0 a 6 para los 7 días)
+    // Guardamos en el objeto de memoria para que no se borre al navegar
+    proyeccionesDual.DIESEL.saldoIni = sD;
+    proyeccionesDual.GASOHOL.saldoIni = sG;
+
+    let totalD = 0; 
+    let totalG = 0;
+
+    // 2. CAPTURAR DATOS DE LOS 7 DÍAS
     for (let j = 0; j < 7; j++) {
-        // Capturamos valores usando el ID que ahora empieza en 0 (Lunes)
         proyeccionesDual.DIESEL.cons[j] = parseFloat(document.getElementById(`d_cons_${j}`).value) || 0;
         proyeccionesDual.DIESEL.ing[j] = parseFloat(document.getElementById(`d_ing_${j}`).value) || 0;
         proyeccionesDual.GASOHOL.cons[j] = parseFloat(document.getElementById(`g_cons_${j}`).value) || 0;
@@ -1110,30 +1140,30 @@ function actualizarCalculosSimulacion() {
         totalD += proyeccionesDual.DIESEL.ing[j];
         totalG += proyeccionesDual.GASOHOL.ing[j];
 
-        // Maquillaje de inputs - mantenemos tus estilos pro
+        // Mantener estilos visuales
         document.getElementById(`d_cons_${j}`).className = "input-sim input-cons";
         document.getElementById(`g_cons_${j}`).className = "input-sim input-cons";
         document.getElementById(`d_ing_${j}`).className = "input-sim input-ing";
         document.getElementById(`g_ing_${j}`).className = "input-sim input-ing";
     }
 
-    // 2. SALDOS INICIALES REALES (Lo que hay ahorita en el tanque)
-    let sD = parseFloat(document.getElementById('tanqueDiesel').innerText) || 0;
-    let sG = parseFloat(document.getElementById('tanqueGasohol').innerText) || 0;
-
-    // 3. CÁLCULO EN PARALELO CON ALERTAS VISUALES
+    // 3. CÁLCULO CRONOLÓGICO DÍA POR DÍA (Consumo -> Luego Ingreso)
     for (let i = 0; i < 7; i++) {
+        // --- LÓGICA: Primero se va el combustible del turno, luego llega la cisterna ---
         sD = (sD - proyeccionesDual.DIESEL.cons[i]) + proyeccionesDual.DIESEL.ing[i];
         sG = (sG - proyeccionesDual.GASOHOL.cons[i]) + proyeccionesDual.GASOHOL.ing[i];
 
-        // Llamamos a tus alertas visuales (Quiebre, Pedir ya, Exceso)
+        // Pintar saldos y disparar alertas visuales
         aplicarAlertasVisuales(`d_saldo_${i}`, `fila_dual_${i}`, sD, proyeccionesDual.DIESEL.cons[i], 5000);
         aplicarAlertasVisuales(`g_saldo_${i}`, `fila_dual_${i}`, sG, proyeccionesDual.GASOHOL.cons[i], 1000);
     }
 
-    // 4. MOSTRAR TOTALES SEMANALES EN TABLA
-    if(document.getElementById('totalIngresoD')) document.getElementById('totalIngresoD').innerText = totalD.toFixed(2);
-    if(document.getElementById('totalIngresoG')) document.getElementById('totalIngresoG').innerText = totalG.toFixed(2);
+    // 4. ACTUALIZAR TOTALES DE PEDIDO EN EL FOOTER
+    const totalDEl = document.getElementById('totalIngresoD');
+    const totalGEl = document.getElementById('totalIngresoG');
+    
+    if(totalDEl) totalDEl.innerText = totalD.toFixed(2);
+    if(totalGEl) totalGEl.innerText = totalG.toFixed(2);
 }
 
 // FUNCIÓN AUXILIAR PARA EL "MAQUILLAJE" LÓGICO
