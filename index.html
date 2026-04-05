@@ -643,21 +643,29 @@ function startSession(user) {
     const thAccion = document.getElementById('thAccion');
     if (thAccion) thAccion.style.display = 'table-cell';
 
-    // 4. CARGA DE DATOS, SIMULADOR E HISTORIAL
-    // Agregamos renderHistorial dentro del .then para que no desaparezca al refrescar
-    cargarDatos().then(() => {
-        // Pintar el simulador
-        if (typeof renderizarSimuladorBase === "function") {
-            renderizarSimuladorBase();
+    // 4. RECUPERAR APERTURA Y LUEGO CARGAR TODO
+    // Primero le pedimos a Google los montos guardados
+    google.script.run.withSuccessHandler(function(datos) {
+        if (datos) {
+            proyeccionesDual.DIESEL.saldoIni = parseFloat(datos.diesel) || 0;
+            proyeccionesDual.GASOHOL.saldoIni = parseFloat(datos.gasohol) || 0;
+            console.log("📥 Apertura semanal recuperada con éxito");
         }
-        // FORZAR EL PINTADO DEL HISTORIAL
-        if (typeof renderHistorial === "function" && datosCache.length > 0) {
-            renderHistorial(datosCache);
-            console.log("📋 Historial restaurado tras el refresco.");
-        }
-    });
-}
 
+        // Una vez que tenemos la apertura, cargamos el historial y stocks
+        cargarDatos().then(() => {
+            // Pintar el simulador (ya con los datos de apertura cargados)
+            if (typeof renderizarSimuladorBase === "function") {
+                renderizarSimuladorBase();
+            }
+            // FORZAR EL PINTADO DEL HISTORIAL
+            if (typeof renderHistorial === "function" && datosCache.length > 0) {
+                renderHistorial(datosCache);
+                console.log("📋 Historial restaurado tras el refresco.");
+            }
+        });
+    }).obtenerAperturaSemanal(); 
+}
 function logout() {
     sessionStorage.clear();
     location.reload();
@@ -1118,14 +1126,30 @@ function renderizarSimuladorBase() {
 // --- IMPORTANTE: Pon esta variable al inicio de tu <script> fuera de cualquier función ---
 let cargandoDataInicial = true; 
 
+let timerApertura; // Guardián de la sincronización
+
 function actualizarCalculosSimulacion() {
-    // 1. JALAR SALDOS INICIALES DESDE LA FILA DE APERTURA (La nueva llave maestra)
+    // 1. JALAR SALDOS INICIALES DESDE LA FILA DE APERTURA
     let sD = parseFloat(document.getElementById('saldo_ini_d').value) || 0;
     let sG = parseFloat(document.getElementById('saldo_ini_g').value) || 0;
 
-    // Guardamos en el objeto de memoria para que no se borre al navegar
+    // Guardamos en el objeto de memoria
     proyeccionesDual.DIESEL.saldoIni = sD;
     proyeccionesDual.GASOHOL.saldoIni = sG;
+
+    // --- NUEVO: GUARDADO AUTOMÁTICO EN LA NUBE ---
+    clearTimeout(timerApertura);
+    timerApertura = setTimeout(() => {
+        // Usamos la misma acción que ya tienes para la simulación, pero mandando los saldos iniciales
+        const payload = { 
+            action: 'saveSimDual', 
+            user: currentUser, 
+            producto: 'CONFIG_INICIAL', 
+            data: { dieselIni: sD, gasoholIni: sG } 
+        };
+        fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        console.log("💾 Apertura semanal sincronizada...");
+    }, 1000); 
 
     let totalD = 0; 
     let totalG = 0;
@@ -1140,25 +1164,22 @@ function actualizarCalculosSimulacion() {
         totalD += proyeccionesDual.DIESEL.ing[j];
         totalG += proyeccionesDual.GASOHOL.ing[j];
 
-        // Mantener estilos visuales
         document.getElementById(`d_cons_${j}`).className = "input-sim input-cons";
         document.getElementById(`g_cons_${j}`).className = "input-sim input-cons";
         document.getElementById(`d_ing_${j}`).className = "input-sim input-ing";
         document.getElementById(`g_ing_${j}`).className = "input-sim input-ing";
     }
 
-    // 3. CÁLCULO CRONOLÓGICO DÍA POR DÍA (Consumo -> Luego Ingreso)
+    // 3. CÁLCULO CRONOLÓGICO DÍA POR DÍA
     for (let i = 0; i < 7; i++) {
-        // --- LÓGICA: Primero se va el combustible del turno, luego llega la cisterna ---
         sD = (sD - proyeccionesDual.DIESEL.cons[i]) + proyeccionesDual.DIESEL.ing[i];
         sG = (sG - proyeccionesDual.GASOHOL.cons[i]) + proyeccionesDual.GASOHOL.ing[i];
 
-        // Pintar saldos y disparar alertas visuales
         aplicarAlertasVisuales(`d_saldo_${i}`, `fila_dual_${i}`, sD, proyeccionesDual.DIESEL.cons[i], 5000);
         aplicarAlertasVisuales(`g_saldo_${i}`, `fila_dual_${i}`, sG, proyeccionesDual.GASOHOL.cons[i], 1000);
     }
 
-    // 4. ACTUALIZAR TOTALES DE PEDIDO EN EL FOOTER
+    // 4. ACTUALIZAR TOTALES EN EL FOOTER
     const totalDEl = document.getElementById('totalIngresoD');
     const totalGEl = document.getElementById('totalIngresoG');
     
