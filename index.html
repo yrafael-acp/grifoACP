@@ -756,28 +756,22 @@ function calcularConsumoAnual() {
 }
 
 function actualizarUI(data) {
-    // 1. EL SALDO DEL EXCEL (HISTORIAL) ES EL TANQUE CENTRAL
-    // Guardamos los valores que vienen del servidor (Saldo Final del último movimiento)
+    // 1. El saldo del Excel es el STOCK FÍSICO TOTAL (Badge grande)
     stockTotalDiesel = data.stocks.diesel;
     stockTotalGasohol = data.stocks.gasohol;
 
-    // Pintamos estos valores DIRECTAMENTE en las etiquetas del Tanque Central
-    if(document.getElementById('tanqueDiesel')) {
-        document.getElementById('tanqueDiesel').innerText = stockTotalDiesel.toFixed(2);
-    }
-    if(document.getElementById('tanqueGasohol')) {
-        document.getElementById('tanqueGasohol').innerText = stockTotalGasohol.toFixed(2);
-    }
+    // Pintamos los cuadros grandes de arriba
+    document.getElementById('sDiesel').innerText = stockTotalDiesel.toFixed(2);
+    document.getElementById('sGasohol').innerText = stockTotalGasohol.toFixed(2);
 
-    // 2. DISPARAMOS EL DESGLOSE PARA CALCULAR EL TOTAL DE ARRIBA
-    // Esta función tomará lo que acabamos de pintar (Tanque) y le SUMARÁ los Isotanques
+    // 2. DISPARAMOS EL DESGLOSE (Resta Isotanques para hallar Tanque Central)
     actualizarDesgloseLocal();
 
-    // 3. ACTUALIZAMOS INVENTARIO DE FILTROS
+    // 3. --- LÓGICA DE FILTROS (INTACTA) ---
     document.getElementById('f60').innerText = data.filtros.cf60;
     document.getElementById('f100').innerText = data.filtros.cf100;
 
-    // 4. PLAN TRIMESTRAL DE EQUIPOS
+    // 4. --- PLAN TRIMESTRAL DE EQUIPOS (INTACTO) ---
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
         const fManto = parseFechaBase(e.ult);
