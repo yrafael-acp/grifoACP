@@ -620,51 +620,45 @@ function startSession(user) {
     sessionStorage.setItem('rolGrifo', rol);
 
     if (rol === "READ") {
-        console.log("🚀 Operador detectado. Destino: Consumo Flota.");
         window.location.href = "consumo-flota.html"; 
         return; 
     }
     
-    // EL JEFE (ADMIN) ENTRA AQUÍ
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('mainContent').style.display = 'block';
     
-    // 1. Ponemos tu nombre en el Header
     const displayUserEl = document.getElementById('displayUser');
     if (displayUserEl) displayUserEl.innerText = user;
 
-    // 2. LA LLAVE MAESTRA: Mostramos todo lo que es solo para Admin
-    const elementosAdmin = document.querySelectorAll('.admin-only');
-    elementosAdmin.forEach(el => {
-        el.style.display = 'block'; 
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+    if (document.getElementById('thAccion')) document.getElementById('thAccion').style.display = 'table-cell';
+
+    // --- CARGA EN PARALELO PARA MÁXIMA VELOCIDAD ---
+    
+    // Promesa 1: Recuperar la apertura semanal de la nube
+    const promesaApertura = new Promise((resolve) => {
+        google.script.run.withSuccessHandler(datos => {
+            if (datos) {
+                proyeccionesDual.DIESEL.saldoIni = parseFloat(datos.diesel) || 0;
+                proyeccionesDual.GASOHOL.saldoIni = parseFloat(datos.gasohol) || 0;
+            }
+            resolve();
+        }).obtenerAperturaSemanal();
     });
 
-    // 3. Activamos la columna de acción en la tabla de mantenimiento
-    const thAccion = document.getElementById('thAccion');
-    if (thAccion) thAccion.style.display = 'table-cell';
+    // Promesa 2: Cargar datos del Excel (Stocks, Historial, etc.)
+    const promesaDatos = cargarDatos();
 
-    // 4. RECUPERAR APERTURA Y LUEGO CARGAR TODO
-    // Primero le pedimos a Google los montos guardados
-    google.script.run.withSuccessHandler(function(datos) {
-        if (datos) {
-            proyeccionesDual.DIESEL.saldoIni = parseFloat(datos.diesel) || 0;
-            proyeccionesDual.GASOHOL.saldoIni = parseFloat(datos.gasohol) || 0;
-            console.log("📥 Apertura semanal recuperada con éxito");
+    // Cuando ambas terminen, dibujamos el simulador
+    Promise.all([promesaApertura, promesaDatos]).then(() => {
+        if (typeof renderizarSimuladorBase === "function") {
+            renderizarSimuladorBase();
         }
-
-        // Una vez que tenemos la apertura, cargamos el historial y stocks
-        cargarDatos().then(() => {
-            // Pintar el simulador (ya con los datos de apertura cargados)
-            if (typeof renderizarSimuladorBase === "function") {
-                renderizarSimuladorBase();
-            }
-            // FORZAR EL PINTADO DEL HISTORIAL
-            if (typeof renderHistorial === "function" && datosCache.length > 0) {
-                renderHistorial(datosCache);
-                console.log("📋 Historial restaurado tras el refresco.");
-            }
-        });
-    }).obtenerAperturaSemanal(); 
+        if (typeof renderHistorial === "function" && datosCache.length > 0) {
+            renderHistorial(datosCache);
+        }
+        console.log("🚀 Sistema cargado y sincronizado en paralelo.");
+    });
 }
 function logout() {
     sessionStorage.clear();
@@ -762,11 +756,29 @@ function calcularConsumoAnual() {
 }
 
 function actualizarUI(data) {
-    document.getElementById('sDiesel').innerText = stockTotalDiesel.toFixed(2);
-    document.getElementById('sGasohol').innerText = stockTotalGasohol.toFixed(2);
+    // 1. CARGAMOS LOS VALORES BASE DESDE EL EXCEL (Data real del servidor)
+    // Asignamos a las variables globales para que todo el script las use
+    stockTotalDiesel = data.stocks.diesel;
+    stockTotalGasohol = data.stocks.gasohol;
+
+    // 2. ACTUALIZAMOS EL TANQUE CENTRAL (Lo que dice el Excel que hay en el tanque)
+    // Usamos los IDs correctos que tienes en tu HTML
+    if(document.getElementById('tanqueDiesel')) {
+        document.getElementById('tanqueDiesel').innerText = stockTotalDiesel.toFixed(2);
+    }
+    if(document.getElementById('tanqueGasohol')) {
+        document.getElementById('tanqueGasohol').innerText = stockTotalGasohol.toFixed(2);
+    }
+
+    // 3. DISPARAMOS EL DESGLOSE (Para que sume los Isotanques al Stock Total de arriba)
+    // Esto hará que: Stock Total = Tanque Central (Excel) + Isotanques (Manual)
+    actualizarDesgloseLocal();
+
+    // 4. ACTUALIZAMOS INVENTARIO DE FILTROS
     document.getElementById('f60').innerText = data.filtros.cf60;
     document.getElementById('f100').innerText = data.filtros.cf100;
 
+    // 5. PLAN TRIMESTRAL DE EQUIPOS
     const hoy = new Date();
     document.getElementById('mantoBody').innerHTML = data.equipos.map(e => {
         const fManto = parseFechaBase(e.ult);
@@ -789,6 +801,7 @@ function actualizarUI(data) {
         </tr>`;
     }).join('');
 
+    // 6. RENDERIZAMOS EL HISTORIAL
     renderHistorial(datosCache);
 }
 
