@@ -805,29 +805,28 @@ function actualizarUI(data) {
 }
 
 function actualizarDesgloseLocal() {
-    // 1. Jalamos lo que hay en el Tanque Central 
-    // IMPORTANTE: Este valor ya fue pintado por actualizarUI con la data del Excel
-    const tanqueD = parseFloat(document.getElementById('tanqueDiesel').innerText) || 0;
-    const tanqueG = parseFloat(document.getElementById('tanqueGasohol').innerText) || 0;
+    // 1. Jalamos el Total (que ya se cargó del Excel)
+    // Usamos la variable global o el innerText del label grande
+    const totalD = stockTotalDiesel; 
+    const totalG = stockTotalGasohol;
 
-    // 2. Jalamos lo que tú digitas en "En Isotanques"
+    // 2. Jalamos lo que hay en Isotanques
     const isoD = parseFloat(document.getElementById('inputIsoDiesel').value) || 0;
     const isoG = parseFloat(document.getElementById('inputIsoGasohol').value) || 0;
 
-    // 3. LÓGICA CERRO PRIETO: El Stock Total es la suma de ambos
-    const totalD = tanqueD + isoD;
-    const totalG = tanqueG + isoG;
+    // 3. LÓGICA DE RESTA: Lo que no está en isotanques, está en el tanque central
+    const tanqueD = totalD - isoD;
+    const tanqueG = totalG - isoG;
 
-    // 4. Pintamos el resultado en los labels de STOCK FÍSICO TOTAL (Los de arriba)
-    document.getElementById('sDiesel').innerText = totalD.toFixed(2);
-    document.getElementById('sGasohol').innerText = totalG.toFixed(2);
+    // 4. Pintamos en los labels de Tanque Central
+    document.getElementById('tanqueDiesel').innerText = tanqueD.toFixed(2);
+    document.getElementById('tanqueGasohol').innerText = tanqueG.toFixed(2);
+
+    // 5. Alerta por si metiste un número de isotanque mayor al total
+    document.getElementById('tanqueDiesel').style.color = tanqueD < 0 ? 'red' : 'var(--primary)';
+    document.getElementById('tanqueGasohol').style.color = tanqueG < 0 ? 'red' : 'var(--primary)';
     
-    // 5. Sincronizamos las variables globales 
-    // Para que las gráficas y el cálculo anual usen el stock real de campo
-    stockTotalDiesel = totalD;
-    stockTotalGasohol = totalG;
-
-    console.log("✅ Desglose: Tanque Central se mantuvo. Stock Total actualizado con Isotanques.");
+    console.log("✅ Desglose: Stock Total - Isotanques = Tanque Central");
 }
 
 // GUARDAR EN LA NUBE
