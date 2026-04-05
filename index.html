@@ -792,26 +792,29 @@ function actualizarUI(data) {
     renderHistorial(datosCache);
 }
 
-// NUEVA FUNCIÓN DESGLOSE CORREGIDA (Lógica Cerro Prieto)
 function actualizarDesgloseLocal() {
-    // 1. Jalamos los valores de los Isotanques (lo que tú digitas)
+    // 1. Jalamos lo que hay en el Tanque Central (Valor base de BD)
+    // Usamos parseFloat para que el texto se vuelva número
+    const tanqueD = parseFloat(document.getElementById('tanqueDiesel').innerText) || 0;
+    const tanqueG = parseFloat(document.getElementById('tanqueGasohol').innerText) || 0;
+
+    // 2. Jalamos lo que acabas de escribir en Isotanques
     const isoD = parseFloat(document.getElementById('inputIsoDiesel').value) || 0;
     const isoG = parseFloat(document.getElementById('inputIsoGasohol').value) || 0;
 
-    // 2. LÓGICA: El Tanque Central es lo que queda del Stock Físico Total
-    // El 'stockTotalDiesel' solo cambia cuando hay Despachos o Cisternas (BD)
-    const tanqueD = stockTotalDiesel - isoD;
-    const tanqueG = stockTotalGasohol - isoG;
+    // 3. LÓGICA REPARADA: Stock Total = Tanque Central + Isotanques
+    const nuevoTotalD = tanqueD + isoD;
+    const nuevoTotalG = tanqueG + isoG;
 
-    // 3. Pintamos en los labels del Tanque Central
-    document.getElementById('tanqueDiesel').innerText = tanqueD.toFixed(2);
-    document.getElementById('tanqueGasohol').innerText = tanqueG.toFixed(2);
-
-    // 4. Alertamos si la reserva en Isotanques es mayor a lo que hay en total (error de dedo)
-    document.getElementById('tanqueDiesel').style.color = tanqueD < 0 ? 'red' : 'var(--primary)';
-    document.getElementById('tanqueGasohol').style.color = tanqueG < 0 ? 'red' : 'var(--primary)';
+    // 4. Pintamos el resultado en el STOCK FÍSICO TOTAL (Los labels de arriba)
+    document.getElementById('sDiesel').innerText = nuevoTotalD.toFixed(2);
+    document.getElementById('sGasohol').innerText = nuevoTotalG.toFixed(2);
     
-    console.log("🔄 Desglose actualizado: Tanque Central recalculado.");
+    // Actualizamos las variables globales para que el resto del sistema sepa el nuevo total
+    stockTotalDiesel = nuevoTotalD;
+    stockTotalGasohol = nuevoTotalG;
+
+    console.log("✅ Stock General actualizado. El Tanque Central se mantuvo intacto.");
 }
 
 // GUARDAR EN LA NUBE
