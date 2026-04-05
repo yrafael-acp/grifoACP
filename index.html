@@ -792,12 +792,26 @@ function actualizarUI(data) {
     renderHistorial(datosCache);
 }
 
-// NUEVA FUNCIÓN DESGLOSE
+// NUEVA FUNCIÓN DESGLOSE CORREGIDA (Lógica Cerro Prieto)
 function actualizarDesgloseLocal() {
+    // 1. Jalamos los valores de los Isotanques (lo que tú digitas)
     const isoD = parseFloat(document.getElementById('inputIsoDiesel').value) || 0;
     const isoG = parseFloat(document.getElementById('inputIsoGasohol').value) || 0;
-    document.getElementById('tanqueDiesel').innerText = (stockTotalDiesel - isoD).toFixed(2);
-    document.getElementById('tanqueGasohol').innerText = (stockTotalGasohol - isoG).toFixed(2);
+
+    // 2. LÓGICA: El Tanque Central es lo que queda del Stock Físico Total
+    // El 'stockTotalDiesel' solo cambia cuando hay Despachos o Cisternas (BD)
+    const tanqueD = stockTotalDiesel - isoD;
+    const tanqueG = stockTotalGasohol - isoG;
+
+    // 3. Pintamos en los labels del Tanque Central
+    document.getElementById('tanqueDiesel').innerText = tanqueD.toFixed(2);
+    document.getElementById('tanqueGasohol').innerText = tanqueG.toFixed(2);
+
+    // 4. Alertamos si la reserva en Isotanques es mayor a lo que hay en total (error de dedo)
+    document.getElementById('tanqueDiesel').style.color = tanqueD < 0 ? 'red' : 'var(--primary)';
+    document.getElementById('tanqueGasohol').style.color = tanqueG < 0 ? 'red' : 'var(--primary)';
+    
+    console.log("🔄 Desglose actualizado: Tanque Central recalculado.");
 }
 
 // GUARDAR EN LA NUBE
