@@ -75,7 +75,7 @@ const FlotaUI = {
     // ── KPIs ──────────────────────────────────────
 
     /**
-     * Actualiza los 4 KPI cards
+     * Actualiza los KPI cards
      * @param {number} tA - total asignado
      * @param {number} tC - total consumido
      */
@@ -98,6 +98,22 @@ const FlotaUI = {
         // Color del saldo
         const saldoEl = document.getElementById('resumenSaldo');
         saldoEl.style.color = saldo < 0 ? '#f87171' : '';
+    },
+
+    /**
+     * Actualiza KPI de despachos del mes
+     * @param {number} totalMes
+     * @param {Date} fechaReferencia
+     */
+    actualizarDespachosMes(totalMes, fechaReferencia = new Date()) {
+        const el = document.getElementById('resumenDespachosMes');
+        if (el) el.textContent = (parseFloat(totalMes) || 0).toFixed(2);
+
+        const label = document.getElementById('labelDespachosMes');
+        if (label) {
+            const nombreMes = fechaReferencia.toLocaleDateString('es-PE', { month: 'long' });
+            label.textContent = `DESPACHOS ${nombreMes.toUpperCase()}`;
+        }
     },
 
     // ── CONTADOR DE FILAS ─────────────────────────

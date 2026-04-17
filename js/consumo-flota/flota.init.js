@@ -15,12 +15,51 @@ async function sincronizarDesdeNube() {
         const data = await FlotaAPI.getFlota(fStr);
         FlotaState.ESTRUCTURA_FLOTA = data;
         FlotaTabla.render(data);
+        await actualizarDespachosDelMes();
     } catch (e) {
         console.error('Error sincronizando flota:', e);
         FlotaUI.toast('Error al sincronizar datos.', 'error');
     } finally {
         FlotaUI.setSyncIndicator(false);
     }
+}
+
+/**
+ * Calcula y actualiza el total de despachos del mes de la semana seleccionada
+ * Suma el campo totalGrupo una sola vez por vínculo para cada semana.
+ */
+async function actualizarDespachosDelMes() {
+    const base = new Date(FlotaState.lunesReferencia);
+    const anio = base.getFullYear();
+    const mes = base.getMonth();
+
+    const primerDiaMes = new Date(anio, mes, 1, 12, 0, 0);
+    const ultimoDiaMes = new Date(anio, mes + 1, 0, 12, 0, 0);
+    const lunesInicial = FlotaUtils.getLunesActual(primerDiaMes);
+
+    let cursor = new Date(lunesInicial);
+    let totalMes = 0;
+
+    while (cursor <= ultimoDiaMes) {
+        const fechaSemanaISO = FlotaUtils.toISODate(cursor);
+        const semanaData = await FlotaAPI.getFlota(fechaSemanaISO);
+        if (!Array.isArray(semanaData)) {
+            cursor.setDate(cursor.getDate() + 7);
+            continue;
+        }
+
+        const vistos = {};
+        semanaData.forEach(g => {
+            const idVinculo = g.id || g.p?.[0];
+            if (!idVinculo || vistos[idVinculo]) return;
+            vistos[idVinculo] = true;
+            totalMes += parseFloat(g.totalGrupo) || 0;
+        });
+
+        cursor.setDate(cursor.getDate() + 7);
+    }
+
+    FlotaUI.actualizarDespachosMes(totalMes, base);
 }
 
 // ── AUDITORÍA RADAR ───────────────────────────────────────────
