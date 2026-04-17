@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GRIFO CONTROL — Saldos de Combustible</title>
+<link rel="icon" type="image/png" href="logo.png">
+<script>
+  (function () {
+    const user = sessionStorage.getItem('sessionGrifo');
+    const role = sessionStorage.getItem('rolGrifo');
+    if (!user || !role) {
+      window.location.replace('index.html');
+    }
+  })();
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
