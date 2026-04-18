@@ -323,13 +323,54 @@
         guardarEnNube(); 
     }
 
-    function descargarComoImagen() {
-        showLoading("Generando imagen...");
-        html2canvas(document.getElementById('captureArea'), { scale: 2, useCORS: true }).then(canvas => {
+    async function descargarComoImagen() {
+        const capture = document.getElementById('captureArea');
+        if (!capture) {
+            alert('No se encontró el área del reporte.');
+            return;
+        }
+        if (typeof html2canvas !== 'function') {
+            alert('No se cargó html2canvas. Revisa la conexión y recarga la página.');
+            return;
+        }
+
+        const fechaInput = document.getElementById('fechaReporte');
+        const fecha = (fechaInput && fechaInput.value) ? fechaInput.value : new Date().toISOString().slice(0, 10);
+
+        showLoading('Generando imagen...');
+        try {
+            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+            const canvas = await html2canvas(capture, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                onclone(clonedDoc) {
+                    const sheet = clonedDoc.getElementById('captureArea');
+                    if (sheet) {
+                        sheet.style.overflow = 'visible';
+                    }
+                    clonedDoc.querySelectorAll('.fuel-table-wrapper').forEach((el) => {
+                        el.style.overflow = 'visible';
+                        el.style.maxHeight = 'none';
+                    });
+                },
+            });
+
             const link = document.createElement('a');
-            link.download = `Saldo_ACP_${document.getElementById('fechaReporte').value}.png`;
-            link.href = canvas.toDataURL(); link.click(); hideLoading();
-        });
+            link.download = `Saldo_ACP_${fecha}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.rel = 'noopener';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (e) {
+            console.error(e);
+            alert('No se pudo generar la imagen. Intenta de nuevo o recarga la página.');
+        } finally {
+            hideLoading();
+        }
     }
 </script>
 </body>

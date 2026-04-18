@@ -197,9 +197,16 @@ const FlotaUI = {
             style.textContent = `.placa-btn { pointer-events: none !important; color: var(--text-secondary) !important; cursor: default !important; } .placa-btn .edit-icon { display: none !important; }`;
             document.head.appendChild(style);
         }
+
+        // ── KPIs resumen (solo ADMIN) ──────────────────────
+        const kpiGrid = document.getElementById('kpiGrid');
+        if (kpiGrid) {
+            kpiGrid.style.display = rol === 'READ' ? 'none' : '';
+        }
+
         // ── RADAR SOLO ADMIN ──────────────────────
-            const radar = document.querySelector('.radar-panel');
-            if (radar) {
+        const radar = document.querySelector('.radar-panel');
+        if (radar) {
             radar.style.display = (rol === 'ADMIN') ? '' : 'none';
         }
     }
