@@ -1,38 +1,15 @@
 /* ===========================
-   VARIABLES & RESET
+   Grifo Control (tokens: css/theme.css)
 =========================== */
-:root {
-    --primary:    #0f172a;
-    --primary-lt: #1e293b;
-    --surface:    #ffffff;
-    --surface-2:  #f8fafc;
-    --border:     #e2e8f0;
-    --text:       #334155;
-    --text-muted: #64748b;
-    --diesel:     #1d4ed8;
-    --diesel-lt:  #eff6ff;
-    --diesel-bd:  #bfdbfe;
-    --gasohol:    #059669;
-    --gasohol-lt: #ecfdf5;
-    --gasohol-bd: #a7f3d0;
-    --accent:     #3b82f6;
-    --danger:     #dc2626;
-    --danger-lt:  #fef2f2;
-    --warning:    #d97706;
-    --warning-lt: #fffbeb;
-    --success:    #059669;
-    --success-lt: #ecfdf5;
-    --radius:     12px;
-    --radius-sm:  8px;
-    --shadow:     0 1px 3px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.06);
-    --shadow-lg:  0 8px 24px rgba(0,0,0,.12);
-}
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    font-family: 'Inter', system-ui, sans-serif;
-    background: #f1f5f9;
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    letter-spacing: -0.01em;
+    background:
+        radial-gradient(1000px 520px at 0% 0%, color-mix(in srgb, var(--diesel) 10%, transparent), transparent 50%),
+        radial-gradient(800px 400px at 100% 10%, color-mix(in srgb, var(--gasohol) 8%, transparent), transparent 45%),
+        var(--surface-muted);
     color: var(--text);
     min-height: 100vh;
     padding: 0;
@@ -42,25 +19,26 @@ body {
    HEADER
 =========================== */
 .header {
-    background: var(--primary);
+    background: linear-gradient(180deg, var(--primary-soft) 0%, var(--primary) 100%);
     color: #fff;
-    padding: 14px 24px;
+    padding: 0.875rem clamp(1rem, 3vw, 1.75rem);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 1rem;
     flex-wrap: wrap;
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 2px 12px rgba(0,0,0,.3);
+    border-bottom: 1px solid color-mix(in srgb, #fff 10%, transparent);
+    box-shadow: var(--shadow-md);
 }
 
 .header-title {
-    font-size: .9rem;
+    font-size: var(--text-sm);
     font-weight: 700;
-    letter-spacing: .06em;
-    color: #94a3b8;
+    letter-spacing: var(--tracking-wide);
+    color: var(--text-faint);
     text-transform: uppercase;
 }
 
@@ -74,10 +52,10 @@ body {
 }
 
 .date-nav input[type="date"] {
-    background: #fff;
-    border: 1.5px solid var(--border);
+    background: var(--surface);
+    border: 1px solid var(--border);
     color: var(--text);
-    font-family: 'DM Mono', monospace;
+    font-family: var(--font-mono);
     font-size: .85rem;
     padding: 9px 12px;
     border-radius: var(--radius-sm);
@@ -86,9 +64,9 @@ body {
     transition: border-color .2s, box-shadow .2s;
 }
 
-.date-nav input[type="date"]:focus {
+.date-nav input[type="date"]:focus-visible {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+    box-shadow: var(--ring);
 }
 
 /* ===========================
@@ -102,7 +80,7 @@ body {
     cursor: pointer;
     border: none;
     border-radius: var(--radius-sm);
-    font-family: inherit;
+    font-family: var(--font-sans);
     font-weight: 600;
     font-size: .875rem;
     padding: 10px 18px;
@@ -117,7 +95,7 @@ body {
     color: #fff;
 }
 
-.btn-primary:hover { background: #2563eb; }
+.btn-primary:hover { background: var(--accent-hover); }
 
 .btn-save {
     background: var(--success);
@@ -143,7 +121,7 @@ body {
 }
 
 .date-badge {
-    font-family: 'DM Mono', monospace;
+    font-family: var(--font-mono);
     font-size: .78rem;
     color: var(--text-muted);
     margin-bottom: 18px;
@@ -175,7 +153,7 @@ body {
 .summary-panel {
     background: var(--surface);
     border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-sm);
     border: 1px solid var(--border);
 }
 
@@ -205,7 +183,7 @@ body {
 .card-title-gasohol { color: var(--gasohol); }
 
 .card-date-tag {
-    font-family: 'DM Mono', monospace;
+    font-family: var(--font-mono);
     font-size: .72rem;
     color: var(--text-muted);
     background: var(--surface-2);
@@ -250,10 +228,10 @@ body {
 .field-input {
     width: 100%;
     padding: 10px 12px;
-    border: 1.5px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    font-size: .9rem;
-    font-family: 'DM Mono', monospace;
+    font-size: var(--text-sm);
+    font-family: var(--font-mono);
     color: var(--text);
     background: var(--surface);
     text-align: right;
@@ -261,9 +239,9 @@ body {
     transition: border-color .2s, box-shadow .2s;
 }
 
-.field-input:focus {
+.field-input:focus-visible {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+    box-shadow: var(--ring);
 }
 
 .field-input[readonly] {
@@ -287,7 +265,7 @@ body {
 }
 
 .total-value {
-    font-family: 'DM Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 1rem;
     font-weight: 700;
     text-align: right;
@@ -320,13 +298,13 @@ body {
 }
 
 .dif-formula {
-    font-family: 'DM Mono', monospace;
+    font-family: var(--font-mono);
     font-size: .72rem;
     color: var(--text-muted);
 }
 
 .dif-value {
-    font-family: 'DM Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 1.4rem;
     font-weight: 700;
 }
@@ -358,7 +336,7 @@ body {
 }
 
 .summary-item-value {
-    font-family: 'DM Mono', monospace;
+    font-family: var(--font-mono);
     font-size: 1.25rem;
     font-weight: 700;
 }
@@ -377,8 +355,8 @@ body {
    STATUS / LOADER
 =========================== */
 .status-msg {
-    font-size: .78rem;
-    font-family: 'DM Mono', monospace;
+    font-size: var(--text-sm);
+    font-family: var(--font-mono);
     padding: 7px 12px;
     border-radius: var(--radius-sm);
     display: none;
@@ -392,9 +370,9 @@ body {
     display: none;
     align-items: center;
     gap: 8px;
-    font-size: .78rem;
-    color: #cbd5e1;
-    font-family: 'DM Mono', monospace;
+    font-size: var(--text-sm);
+    color: var(--text-faint);
+    font-family: var(--font-mono);
 }
 
 .spinner {
@@ -415,7 +393,7 @@ body {
     padding: 12px 16px;
     font-size: .78rem;
     color: #92400e;
-    font-family: 'DM Mono', monospace;
+    font-family: var(--font-mono);
     margin-bottom: 20px;
     min-height: 44px;
     display: flex;

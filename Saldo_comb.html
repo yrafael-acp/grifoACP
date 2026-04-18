@@ -5,65 +5,21 @@
     <link rel="icon" type="image/png" href="logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>REPORTE DE SALDOS - ACP</title>
-    <style>
-        :root {
-            --acp-green: #007d32;
-            --acp-light: #f1f5f9;
-            --danger: #ef4444;
-            --secondary: #64748b;
-        }
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--acp-light); margin: 0; padding: 10px; }
-        .main-wrapper { max-width: 900px; margin: auto; }
-        .container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; overflow: hidden; margin-bottom: 15px; }
-        .header-section { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .header-logo { width: 120px; flex-shrink: 0; }
-        .title-bg { background-color: var(--acp-green); color: white; font-size: 1.3rem; font-weight: bold; text-align: center; padding: 15px; flex: 1; border-radius: 4px; text-transform: uppercase; min-width: 200px; }
-        .date-box { background: #f8fafc; border: 1px solid var(--acp-green); padding: 5px; border-radius: 4px; text-align: center; min-width: 140px; }
-        .date-label { display: block; font-size: 0.7em; font-weight: bold; color: var(--acp-green); margin-bottom: 2px; }
-        #fechaReporte { border: none; background: transparent; font-weight: bold; text-align: center; width: 100%; outline: none; }
-        .user-cards-section { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-        .user-card { flex: 1; min-width: calc(33.333% - 10px); background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; }
-        .user-card-header { background-color: var(--acp-green); color: white; font-size: 0.85em; font-weight: bold; padding: 5px; text-align: center; text-transform: uppercase; }
-        .user-card-body { padding: 10px; text-align: center; }
-        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-size: 1rem; }
-        .readonly-field { background-color: #eee; font-weight: bold; color: #333; }
-        .fuel-table-wrapper { width: 100%; overflow-x: auto; }
-        table.fuel-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        .fuel-table th, .fuel-table td { border: 1px solid #333; padding: 8px 4px; text-align: center; font-size: 0.85em; }
-        .fuel-table th { background-color: var(--acp-green); color: white; }
-        .gasolina-label { background-color: red; color: white; font-weight: bold; }
-        .petroleo-label { background-color: var(--acp-green); color: white; font-weight: bold; }
-        .cell-total { font-size: 1.1em; font-weight: bold; }
-        .button-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-        .btn { border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; flex: 1; min-width: 200px; }
-        .btn-guardar { background-color: var(--acp-green); color: white; }
-        .btn-descargar { background-color: var(--secondary); color: white; }
-        .loader-overlay { position: fixed; bottom: 20px; right: 20px; background: rgba(0, 0, 0, 0.8); color: white; padding: 10px 20px; border-radius: 50px; display: none; align-items: center; gap: 12px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .spinner { width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid var(--acp-green); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        @media screen and (max-width: 600px) {
-            .header-section { flex-direction: column; text-align: center; }
-            .header-logo { margin-bottom: 10px; }
-            .title-bg { width: 100%; font-size: 1.1rem; padding: 10px; }
-            .date-box { width: 100%; margin-top: 10px; }
-            .user-card { min-width: 100%; }
-            .fuel-table th, .fuel-table td { padding: 6px 2px; font-size: 0.72em; }
-            input[type="number"], select { font-size: 0.9rem; padding: 5px; }
-            .btn { width: 100%; margin-bottom: 5px; }
-        }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/saldo_comb.css">
 </head>
 <body>
 
 <div id="loader" class="loader-overlay"><div class="spinner"></div><div id="loaderText">Sincronizando...</div></div>
 
 <div class="main-wrapper">
-    <div class="container" id="captureArea">
+    <div class="sheet" id="captureArea">
         <div class="header-section">
             <img src="logo.png" alt="ACP" class="header-logo">
-            <div class="title-bg">REPORTE DE SALDOS</div>
+            <div class="title-block">REPORTE DE SALDOS</div>
             <div class="date-box">
                 <span class="date-label">FECHA DE REPORTE</span>
                 <input type="date" id="fechaReporte" onchange="guardarEnNube()">
@@ -112,19 +68,19 @@
         </div>
     </div>
 
-    <div class="container" id="seccionBuscador" style="display: none; border: 2px solid var(--acp-green);">
-        <div class="user-card-header">🔍 BUSCADOR DE HISTORIAL (SOLO ADMIN)</div>
-        <div style="display: flex; gap: 10px; padding: 15px; flex-wrap: wrap; background-color: #f8fafc;">
-            <div style="flex: 1; min-width: 150px;"><span class="date-label">FECHA A CONSULTAR</span><input type="date" id="fechaBusqueda"></div>
-            <div style="flex: 1; min-width: 150px;"><span class="date-label">TURNO</span><select id="turnoBusqueda"><option value="DIA">DIA</option><option value="NOCHE">NOCHE</option></select></div>
-            <div style="flex: 0 0 100px; display: flex; align-items: flex-end;"><button class="btn btn-guardar" onclick="consultarHistorial()" style="padding: 10px; font-size: 1rem;">BUSCAR</button></div>
+    <div class="sheet admin-search" id="seccionBuscador" style="display: none;">
+        <div class="user-card-header">Buscador de historial (solo admin)</div>
+        <div class="admin-search-inner">
+            <div class="admin-field"><span class="date-label">Fecha a consultar</span><input type="date" id="fechaBusqueda"></div>
+            <div class="admin-field"><span class="date-label">Turno</span><select id="turnoBusqueda"><option value="DIA">DIA</option><option value="NOCHE">NOCHE</option></select></div>
+            <div class="admin-field" style="flex:0 0 auto"><button type="button" class="btn btn-guardar" onclick="consultarHistorial()">Buscar</button></div>
         </div>
     </div>
 
     <div class="button-group">
         <button class="btn btn-guardar" onclick="enviarReporteFinal()">ENVIAR REPORTE FINAL</button>
         <button id="btnImg" class="btn btn-descargar" onclick="descargarComoImagen()">DESCARGAR COMO IMAGEN</button>
-        <button id="btnVolverDinamico" class="btn" style="background-color: #3b82f6; color: white;">🏠 VOLVER</button>
+        <button type="button" id="btnVolverDinamico" class="btn btn-home">Volver</button>
     </div>
 </div>
 
