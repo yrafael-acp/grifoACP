@@ -404,5 +404,19 @@ select:focus-visible {
     .fuel-table td {
         padding: 0.45rem 0.25rem;
         font-size: max(0.65rem, 11px);
+        
     }
+}
+#exportHost,
+#exportHost * {
+    box-sizing: border-box;
+}
+
+#exportHost .sheet,
+#exportHost .header-section,
+#exportHost .title-block,
+#exportHost .user-card,
+#exportHost .fuel-table,
+#exportHost .fuel-table-wrapper {
+    overflow: visible !important;
 }
