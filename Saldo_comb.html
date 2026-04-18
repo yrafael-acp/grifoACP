@@ -322,56 +322,153 @@
         document.getElementById('dniInput').value = document.getElementById('operarioSelect').value; 
         guardarEnNube(); 
     }
-
-    async function descargarComoImagen() {
-        const capture = document.getElementById('captureArea');
-        if (!capture) {
-            alert('No se encontró el área del reporte.');
-            return;
-        }
-        if (typeof html2canvas !== 'function') {
-            alert('No se cargó html2canvas. Revisa la conexión y recarga la página.');
-            return;
-        }
-
-        const fechaInput = document.getElementById('fechaReporte');
-        const fecha = (fechaInput && fechaInput.value) ? fechaInput.value : new Date().toISOString().slice(0, 10);
-
-        showLoading('Generando imagen...');
-        try {
-            await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-            const canvas = await html2canvas(capture, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                logging: false,
-                onclone(clonedDoc) {
-                    const sheet = clonedDoc.getElementById('captureArea');
-                    if (sheet) {
-                        sheet.style.overflow = 'visible';
-                    }
-                    clonedDoc.querySelectorAll('.fuel-table-wrapper').forEach((el) => {
-                        el.style.overflow = 'visible';
-                        el.style.maxHeight = 'none';
-                    });
-                },
-            });
-
-            const link = document.createElement('a');
-            link.download = `Saldo_ACP_${fecha}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.rel = 'noopener';
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-        } catch (e) {
-            console.error(e);
-            alert('No se pudo generar la imagen. Intenta de nuevo o recarga la página.');
-        } finally {
-            hideLoading();
-        }
+    
+async function descargarComoImagen() {
+    const capture = document.getElementById('captureArea');
+    if (!capture) {
+        alert('No se encontró el área del reporte.');
+        return;
     }
+
+    if (typeof html2canvas !== 'function') {
+        alert('No se cargó html2canvas. Revisa la conexión y recarga la página.');
+        return;
+    }
+
+    const fechaInput = document.getElementById('fechaReporte');
+    const fecha = (fechaInput && fechaInput.value)
+        ? fechaInput.value
+        : new Date().toISOString().slice(0, 10);
+
+    showLoading('Generando imagen...');
+
+    let exportHost = null;
+
+    try {
+        await document.fonts?.ready;
+
+        // Clonar solo el bloque que quieres exportar
+        const clone = capture.cloneNode(true);
+
+        // Limpiar ids duplicados en el clon para evitar efectos raros
+        clone.removeAttribute('id');
+
+        // Contenedor offscreen
+        exportHost = document.createElement('div');
+        exportHost.id = 'exportHost';
+        exportHost.style.position = 'fixed';
+        exportHost.style.left = '-99999px';
+        exportHost.style.top = '0';
+        exportHost.style.width = '960px';
+        exportHost.style.maxWidth = '960px';
+        exportHost.style.padding = '0';
+        exportHost.style.margin = '0';
+        exportHost.style.background = '#ffffff';
+        exportHost.style.zIndex = '-1';
+        exportHost.style.pointerEvents = 'none';
+        exportHost.style.opacity = '1';
+
+        // Forzar estilos seguros para exportación
+        clone.style.width = '960px';
+        clone.style.maxWidth = '960px';
+        clone.style.margin = '0';
+        clone.style.background = '#ffffff';
+        clone.style.overflow = 'visible';
+        clone.style.boxShadow = 'none';
+
+        // Quitar estilos conflictivos del tema moderno
+        clone.querySelectorAll('*').forEach((el) => {
+            el.style.animation = 'none';
+            el.style.transition = 'none';
+            el.style.backdropFilter = 'none';
+            el.style.webkitBackdropFilter = 'none';
+        });
+
+        // Ajustes visuales seguros para html2canvas
+        const headerSection = clone.querySelector('.header-section');
+        if (headerSection) {
+            headerSection.style.background = '#ffffff';
+        }
+
+        const titleBlock = clone.querySelector('.title-block');
+        if (titleBlock) {
+            titleBlock.style.background = '#0b7f57';
+            titleBlock.style.color = '#ffffff';
+            titleBlock.style.boxShadow = 'none';
+        }
+
+        clone.querySelectorAll('.gasolina-label').forEach((el) => {
+            el.style.background = '#dc2626';
+            el.style.color = '#ffffff';
+        });
+
+        clone.querySelectorAll('.petroleo-label').forEach((el) => {
+            el.style.background = '#0b7f57';
+            el.style.color = '#ffffff';
+        });
+
+        clone.querySelectorAll('.user-card-header').forEach((el) => {
+            el.style.background = '#0b7f57';
+            el.style.color = '#ffffff';
+        });
+
+        clone.querySelectorAll('.fuel-table-wrapper').forEach((el) => {
+            el.style.overflow = 'visible';
+            el.style.maxHeight = 'none';
+            el.style.width = '100%';
+        });
+
+        clone.querySelectorAll('.fuel-table').forEach((el) => {
+            el.style.width = '100%';
+            el.style.minWidth = '0';
+            el.style.maxWidth = '100%';
+            el.style.tableLayout = 'fixed';
+        });
+
+        // Inputs con fondo limpio
+        clone.querySelectorAll('input, select').forEach((el) => {
+            el.style.background = '#ffffff';
+            el.style.color = '#1f2937';
+            el.style.border = '1px solid #d1d5db';
+            el.style.boxShadow = 'none';
+        });
+
+        exportHost.appendChild(clone);
+        document.body.appendChild(exportHost);
+
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+        const canvas = await html2canvas(clone, {
+            scale: Math.min(window.devicePixelRatio || 2, 3),
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: '#ffffff',
+            logging: false,
+            width: clone.scrollWidth,
+            height: clone.scrollHeight,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: 960,
+            windowHeight: clone.scrollHeight
+        });
+
+        const link = document.createElement('a');
+        link.download = `Reporte_Saldos_${fecha}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+    } catch (e) {
+        console.error('Error al generar imagen:', e);
+        alert('No se pudo generar la imagen. Revisa la consola para ver el detalle.');
+    } finally {
+        if (exportHost && exportHost.parentNode) {
+            exportHost.parentNode.removeChild(exportHost);
+        }
+        hideLoading();
+    }
+}
 </script>
 </body>
 </html>
