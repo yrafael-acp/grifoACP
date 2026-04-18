@@ -81,6 +81,11 @@
     --success-lt: var(--success-soft);
     --shadow: var(--shadow-sm);
     --shadow-lg: var(--elevation-lg);
+
+    /* Responsive / táctil (consumido en media queries) */
+    --touch-target: 44px;
+    --page-inline: clamp(14px, 4vw, 28px);
+    --fab-clearance: 5.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
