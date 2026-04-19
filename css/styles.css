@@ -375,6 +375,28 @@
         }
         #fabVarilla:hover { transform: scale(1.08); }
 
+.acciones-wrap{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+#tablaHistorialWeb td[data-label="Acciones"]{
+    white-space:nowrap;
+}
+
+         @media (max-width: 768px){
+          #tablaHistorialWeb td[data-label="Acciones"] .acciones-wrap{
+              justify-content:flex-end;
+              width:100%;
+          }
+
+             #tablaHistorialWeb td[data-label="Acciones"] .btn{
+              min-width:92px;
+          }
+         }
+
         /* ===========================
            STATUS INDICATOR
         =========================== */
