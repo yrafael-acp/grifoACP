@@ -297,22 +297,34 @@ async function guardarEdicionMovimiento(event) {
     const updated = { fecha, mov, prod, cant, ref };
 
     try {
-        await fetch(WEB_APP_URL, {
+        const resp = await fetch(WEB_APP_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'updateMovement',
                 rowIndex: idx,
                 original,
-                updated
+                updated,
+                userLog: sessionStorage.getItem('userGrifo') || 'ADMIN'
             })
         });
+
+        const text = await resp.text();
+        console.log('updateMovement response:', text);
+
+        let json = {};
+        try { json = JSON.parse(text); } catch (_) {}
+
+        if (!resp.ok || json.status === 'ERROR') {
+            alert(json.message || 'No se pudo actualizar el registro.');
+            return;
+        }
 
         cerrarModalEditar();
         location.reload();
     } catch (error) {
-        console.error(error);
-        alert('Error al guardar cambios.');
+        console.error('updateMovement error:', error);
+        alert('Error al guardar cambios. Revisa consola y despliegue del Apps Script.');
     }
 }
 
