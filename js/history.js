@@ -327,19 +327,31 @@ async function eliminarMovimiento(idx) {
     }
 
     try {
-        await fetch(WEB_APP_URL, {
+        const resp = await fetch(WEB_APP_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'deleteMovement',
                 rowIndex: idx,
-                original
+                original,
+                userLog: sessionStorage.getItem('userGrifo') || 'ADMIN'
             })
         });
 
+        const text = await resp.text();
+        console.log('deleteMovement response:', text);
+
+        let json = {};
+        try { json = JSON.parse(text); } catch (_) {}
+
+        if (!resp.ok || json.status === 'ERROR') {
+            alert(json.message || 'No se pudo eliminar el registro.');
+            return;
+        }
+
         location.reload();
     } catch (error) {
-        console.error(error);
-        alert('Error al eliminar.');
+        console.error('deleteMovement error:', error);
+        alert('Error al eliminar. Revisa consola y despliegue del Apps Script.');
     }
 }
