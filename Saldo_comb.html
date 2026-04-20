@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>REPORTE DE SALDOS - ACP</title>
+    <style>
+        :root {
+            --acp-green: #007d32;
+            --acp-light: #f1f5f9;
+            --danger: #ef4444;
+            --secondary: #64748b;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--acp-light); margin: 0; padding: 10px; }
+        .main-wrapper { max-width: 900px; margin: auto; }
+        .container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; overflow: hidden; margin-bottom: 15px; }
+        .header-section { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .header-logo { width: 120px; flex-shrink: 0; }
+        .title-bg { background-color: var(--acp-green); color: white; font-size: 1.3rem; font-weight: bold; text-align: center; padding: 15px; flex: 1; border-radius: 4px; text-transform: uppercase; min-width: 200px; }
+        .date-box { background: #f8fafc; border: 1px solid var(--acp-green); padding: 5px; border-radius: 4px; text-align: center; min-width: 140px; }
+        .date-label { display: block; font-size: 0.7em; font-weight: bold; color: var(--acp-green); margin-bottom: 2px; }
+        #fechaReporte { border: none; background: transparent; font-weight: bold; text-align: center; width: 100%; outline: none; }
+        .user-cards-section { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .user-card { flex: 1; min-width: calc(33.333% - 10px); background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; }
+        .user-card-header { background-color: var(--acp-green); color: white; font-size: 0.85em; font-weight: bold; padding: 5px; text-align: center; text-transform: uppercase; }
+        .user-card-body { padding: 10px; text-align: center; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-size: 1rem; }
+        .readonly-field { background-color: #eee; font-weight: bold; color: #333; }
+        .fuel-table-wrapper { width: 100%; overflow-x: auto; }
+        table.fuel-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .fuel-table th, .fuel-table td { border: 1px solid #333; padding: 8px 4px; text-align: center; font-size: 0.85em; }
+        .fuel-table th { background-color: var(--acp-green); color: white; }
+        .gasolina-label { background-color: red; color: white; font-weight: bold; }
+        .petroleo-label { background-color: var(--acp-green); color: white; font-weight: bold; }
+        .cell-total { font-size: 1.1em; font-weight: bold; }
+        .button-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .btn { border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-size: 1.1rem; font-weight: bold; flex: 1; min-width: 200px; }
+        .btn-guardar { background-color: var(--acp-green); color: white; }
+        .btn-descargar { background-color: var(--secondary); color: white; }
+        .loader-overlay { position: fixed; bottom: 20px; right: 20px; background: rgba(0, 0, 0, 0.8); color: white; padding: 10px 20px; border-radius: 50px; display: none; align-items: center; gap: 12px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .spinner { width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid var(--acp-green); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media screen and (max-width: 600px) {
+            .header-section { flex-direction: column; text-align: center; }
+            .header-logo { margin-bottom: 10px; }
+            .title-bg { width: 100%; font-size: 1.1rem; padding: 10px; }
+            .date-box { width: 100%; margin-top: 10px; }
+            .user-card { min-width: 100%; }
+            .fuel-table th, .fuel-table td { padding: 6px 2px; font-size: 0.72em; }
+            input[type="number"], select { font-size: 0.9rem; padding: 5px; }
+            .btn { width: 100%; margin-bottom: 5px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loader" class="loader-overlay"><div class="spinner"></div><div id="loaderText">Sincronizando...</div></div>
+
+<div class="main-wrapper">
+    <div class="container" id="captureArea">
+        <div class="header-section">
+            <img src="logo.png" alt="ACP" class="header-logo">
+            <div class="title-bg">REPORTE DE SALDOS</div>
+            <div class="date-box">
+                <span class="date-label">FECHA DE REPORTE</span>
+                <input type="date" id="fechaReporte" onchange="guardarEnNube()">
+            </div>
+        </div>
+
+        <div class="user-cards-section">
+            <div class="user-card"><div class="user-card-header">DNI</div><div class="user-card-body"><input type="text" id="dniInput" class="readonly-field" readonly></div></div>
+            <div class="user-card">
+                <div class="user-card-header">OPERARIO</div>
+                <div class="user-card-body">
+                    <select id="operarioSelect" onchange="vincularDNI()">
+                        <option value="">-- Seleccione --</option>
+                        <option value="77103804">WILDER NEYRA PAICO</option>
+                        <option value="76181486">LUIS ANGEL JUAREZ ELIAS</option>
+                        <option value="74308732">CARLOS ORRILLO CRUZADO</option>
+                        <option value="41892133">CRISTIAN GONZALES UCEDA</option>
+                        <option value="76377901">ANGELO SALAZAR DEL AGUILA</option>
+                        <option value="16454237">FELIPE FERNANDEZ TERRONES</option>
+                    </select>
+                </div>
+            </div>
+            <div class="user-card"><div class="user-card-header">TURNO</div><div class="user-card-body"><select id="turnoSelect" onchange="guardarEnNube()"><option value="DIA">DIA</option><option value="NOCHE">NOCHE</option></select></div></div>
+        </div>
+
+        <div class="fuel-table-wrapper">
+            <table class="fuel-table">
+                <thead><tr><th>PRODUCTO</th><th>V. FINAL</th><th>SALDO</th><th>ISOT.</th><th>TOT. GLS</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td class="gasolina-label">GASOLINA</td>
+                        <td><input type="number" id="vGasolina" step="0.1" min="0" oninput="calcularTotales()"></td>
+                        <td id="sGasolina" class="readonly-field">0.00</td>
+                        <td><input type="number" id="iGasolina" step="0.1" oninput="calcularTotales()"></td>
+                        <td id="tGasolina" class="cell-total">0.00</td>
+                    </tr>
+                    <tr>
+                        <td class="petroleo-label">PETROLEO</td>
+                        <td><input type="number" id="vPetroleo" step="0.1" min="0" oninput="calcularTotales()"></td>
+                        <td id="sPetroleo" class="readonly-field">0.00</td>
+                        <td><input type="number" id="iPetroleo" step="0.1" oninput="calcularTotales()"></td>
+                        <td id="tPetroleo" class="cell-total">0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="container" id="seccionBuscador" style="display: none; border: 2px solid var(--acp-green);">
+        <div class="user-card-header">🔍 BUSCADOR DE HISTORIAL (SOLO ADMIN)</div>
+        <div style="display: flex; gap: 10px; padding: 15px; flex-wrap: wrap; background-color: #f8fafc;">
+            <div style="flex: 1; min-width: 150px;"><span class="date-label">FECHA A CONSULTAR</span><input type="date" id="fechaBusqueda"></div>
+            <div style="flex: 1; min-width: 150px;"><span class="date-label">TURNO</span><select id="turnoBusqueda"><option value="DIA">DIA</option><option value="NOCHE">NOCHE</option></select></div>
+            <div style="flex: 0 0 100px; display: flex; align-items: flex-end;"><button class="btn btn-guardar" onclick="consultarHistorial()" style="padding: 10px; font-size: 1rem;">BUSCAR</button></div>
+        </div>
+    </div>
+
+    <div class="button-group">
+        <button class="btn btn-guardar" onclick="enviarReporteFinal()">ENVIAR REPORTE FINAL</button>
+        <button id="btnImg" class="btn btn-descargar" onclick="descargarComoImagen()">DESCARGAR COMO IMAGEN</button>
+        <button id="btnVolverDinamico" class="btn" style="background-color: #3b82f6; color: white;">🏠 VOLVER</button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    const scriptUrl = 'https://script.google.com/macros/s/AKfycbwExlJ_SGhr3EW2X0eHbRk5x_DVUykGExlNUgolQP3jUuS8G28a7EAePa0xu_FJIe-v9w/exec';
+    const loader = document.getElementById('loader');
+    const loaderText = document.getElementById('loaderText');
+    let timeoutSaldos;
+    let isoGasOriginal = 0;
+    let isoPetOriginal = 0;
+
+    window.onload = () => {
+        const rol = sessionStorage.getItem('rolGrifo');
+        if (!sessionStorage.getItem('sessionGrifo')) { window.location.href = "index.html"; return; }
+        if (rol === "ADMIN") document.getElementById('seccionBuscador').style.display = 'block';
+
+        const btnVolver = document.getElementById('btnVolverDinamico');
+        if (rol === "ADMIN") {
+            btnVolver.innerHTML = "🏠 VOLVER AL DASHBOARD";
+            btnVolver.onclick = () => { window.location.href = "index.html"; };
+        } else {
+            btnVolver.innerHTML = "🚛 VOLVER A FLOTA";
+            btnVolver.onclick = () => { window.location.href = "consumo-flota.html"; };
+        }
+    };
+
+    function showLoading(t) { loaderText.innerText = t || "Procesando..."; loader.style.display = 'flex'; }
+    function hideLoading() { loader.style.display = 'none'; }
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        showLoading("Sincronizando con la nube...");
+        try {
+            const resSist = await fetch(`${scriptUrl}?action=read`);
+            const dataSist = await resSist.json();
+            if (dataSist && dataSist.reservas) {
+                isoGasOriginal = parseFloat(dataSist.reservas.gasohol) || 0;
+                isoPetOriginal = parseFloat(dataSist.reservas.diesel) || 0;
+            }
+
+            const resBorrador = await fetch(`${scriptUrl}?action=getEstadoBorrador`);
+            const borrador = await resBorrador.json();
+            
+            if (borrador && (borrador.vGas || borrador.vPet)) {
+                if (borrador.fecha) document.getElementById('fechaReporte').value = borrador.fecha;
+                document.getElementById('vGasolina').value = borrador.vGas || "";
+                document.getElementById('vPetroleo').value = borrador.vPet || "";
+                document.getElementById('turnoSelect').value = borrador.turno || "DIA";
+                document.getElementById('iGasolina').value = borrador.iGas || isoGasOriginal;
+                document.getElementById('iPetroleo').value = borrador.iPet || isoPetOriginal;
+                if (borrador.dni) {
+                    document.getElementById('operarioSelect').value = borrador.dni;
+                    document.getElementById('dniInput').value = borrador.dni;
+                }
+            } else {
+                const resFecha = await fetch(`${scriptUrl}?action=getUltimaFecha`);
+                const dataFecha = await resFecha.json();
+                if (dataFecha.fecha) document.getElementById('fechaReporte').value = dataFecha.fecha;
+                document.getElementById('iGasolina').value = isoGasOriginal;
+                document.getElementById('iPetroleo').value = isoPetOriginal;
+            }
+            await calcularTotales();
+        } catch (e) { console.error("Error inicial:", e); } finally { hideLoading(); }
+    });
+
+    async function calcularTotales() {
+        clearTimeout(timeoutSaldos);
+        const vG = document.getElementById('vGasolina').value;
+        const vP = document.getElementById('vPetroleo').value;
+        const iG = document.getElementById('iGasolina').value;
+        const iP = document.getElementById('iPetroleo').value;
+
+        document.getElementById('sGasolina').innerText = "...";
+        document.getElementById('sPetroleo').innerText = "...";
+
+        timeoutSaldos = setTimeout(async () => {
+            if (!vG && !vP) {
+                document.getElementById('sGasolina').innerText = "0.00";
+                document.getElementById('tGasolina').innerText = (parseFloat(iG) || 0).toFixed(2);
+                document.getElementById('sPetroleo').innerText = "0.00";
+                document.getElementById('tPetroleo').innerText = (parseFloat(iP) || 0).toFixed(2);
+                guardarEnNube(); return;
+            }
+            showLoading("Sincronizando saldos...");
+            try {
+                await Promise.all([
+                    actualizarSaldo('GASOLINA', vG, 'sGasolina', 'iGasolina', 'tGasolina'),
+                    actualizarSaldo('PETROLEO', vP, 'sPetroleo', 'iPetroleo', 'tPetroleo')
+                ]);
+                guardarEnNube();
+            } finally { hideLoading(); }
+        }, 1000);
+    }
+
+    async function actualizarSaldo(tipo, valor, idS, idI, idT) {
+        const iso = parseFloat(document.getElementById(idI).value) || 0;
+        if (valor && valor >= 0) {
+            try {
+                const res = await fetch(`${scriptUrl}?action=getSaldoVarilla&tipo=${tipo}&valor=${valor}`);
+                const data = await res.json();
+                if (data.saldo !== undefined) {
+                    const s = parseFloat(data.saldo);
+                    document.getElementById(idS).innerText = s.toFixed(2);
+                    document.getElementById(idT).innerText = (s + iso).toFixed(2);
+                }
+            } catch (e) { document.getElementById(idS).innerText = "Error"; }
+        } else {
+            document.getElementById(idS).innerText = "0.00";
+            document.getElementById(idT).innerText = iso.toFixed(2);
+        }
+    }
+
+    async function guardarEnNube() {
+        const op = document.getElementById('operarioSelect');
+        const data = {
+            action: 'guardarEstadoBorrador',
+            fecha: document.getElementById('fechaReporte').value,
+            vGas: document.getElementById('vGasolina').value,
+            vPet: document.getElementById('vPetroleo').value,
+            iGas: document.getElementById('iGasolina').value,
+            iPet: document.getElementById('iPetroleo').value,
+            operario: op.selectedIndex > 0 ? op.options[op.selectedIndex].text : "",
+            dni: op.value,
+            turno: document.getElementById('turnoSelect').value
+        };
+        fetch(scriptUrl, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+    }
+
+    async function enviarReporteFinal() {
+    const op = document.getElementById('operarioSelect');
+    if (!op.value) return alert("Selecciona operario.");
+
+    const iG = parseFloat(document.getElementById('iGasolina').value) || 0;
+    const iP = parseFloat(document.getElementById('iPetroleo').value) || 0;
+    let msg = (iG !== isoGasOriginal || iP !== isoPetOriginal) ? "\n\n🚨 NOTA: Isotanques editados manualmente." : "";
+    if (!confirm("¿Deseas registrar este reporte?" + msg)) return;
+
+    showLoading("Generando imagen del reporte...");
+
+    let imagenBase64 = "";
+    try {
+        const canvas = await html2canvas(document.getElementById('captureArea'), {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff"
+        });
+        imagenBase64 = canvas.toDataURL("image/png").split(",")[1];
+    } catch (e) {
+        hideLoading();
+        alert("No se pudo generar la imagen del reporte.");
+        return;
+    }
+
+    showLoading("Registrando y enviando correo...");
+
+    const payload = {
+        action: 'enviarReporteFinal',
+        fechaReporte: document.getElementById('fechaReporte').value,
+        dni: op.value,
+        operario: op.options[op.selectedIndex].text,
+        turno: document.getElementById('turnoSelect').value,
+        vGas: document.getElementById('vGasolina').value,
+        sGas: document.getElementById('sGasolina').innerText,
+        iGas: iG,
+        tGas: document.getElementById('tGasolina').innerText,
+        vPet: document.getElementById('vPetroleo').value,
+        sPet: document.getElementById('sPetroleo').innerText,
+        iPet: iP,
+        tPet: document.getElementById('tPetroleo').innerText,
+        imagenReporteBase64: imagenBase64
+    };
+
+    try {
+        await fetch(scriptUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(payload)
+        });
+        alert("✅ REPORTE GUARDADO Y ENVIADO.");
+        location.reload();
+    } catch (e) {
+        alert("Error.");
+    } finally {
+        hideLoading();
+    }
+}
+
+    async function consultarHistorial() {
+        const f = document.getElementById('fechaBusqueda').value;
+        const t = document.getElementById('turnoBusqueda').value;
+        if (!f) return alert("¡Habla trome! Selecciona una fecha primero.");
+        
+        showLoading("Buscando en registros...");
+        try {
+            // 1. Traemos la data real del sistema (la que dice 6500)
+            const resSist = await fetch(`${scriptUrl}?action=read`);
+            const dataSist = await resSist.json();
+            const stockRealGas = parseFloat(dataSist.reservas.gasohol) || 0;
+            const stockRealPet = parseFloat(dataSist.reservas.diesel) || 0;
+
+            // 2. Traemos el reporte que guardó el operario
+            const resHist = await fetch(`${scriptUrl}?action=consultarHistorial&fecha=${f}&turno=${t}`);
+            const r = await resHist.json();
+            
+            if (r.success) {
+                const d = r.data;
+                const gasHistorial = parseFloat(d.iGas) || 0;
+                const petHistorial = parseFloat(d.iPet) || 0;
+
+                let avisoAdmin = "";
+                // COMPARACIÓN CRÍTICA: Historial vs Sistema Real
+                if (gasHistorial !== stockRealGas || petHistorial !== stockRealPet) {
+                    avisoAdmin = "\n\n🚨 ALERTA DE SEGURIDAD:\nLos Isotanques registrados NO coinciden con el stock real del sistema.";
+                    avisoAdmin += `\n\nRegistrado: G:${gasHistorial} | P:${petHistorial}`;
+                    avisoAdmin += `\nReal Sistema: G:${stockRealGas} | P:${stockRealPet}`;
+                }
+
+                alert(
+                    `✅ REPORTE ENCONTRADO\n` +
+                    `----------------------------\n` +
+                    `Operario: ${d.operario}\n` +
+                    `Turno: ${d.turno}\n` +
+                    `Gasolina: Varilla ${d.vGas} | Saldo ${d.sGas} | Iso ${d.iGas}\n` +
+                    `Petróleo: Varilla ${d.vPet} | Saldo ${d.sPet} | Iso ${d.iPet}\n` +
+                    `----------------------------` + 
+                    avisoAdmin
+                );
+            } else {
+                alert("❌ " + r.message);
+            }
+        } catch (e) { 
+            alert("Error al conectar con el servidor."); 
+        } finally { 
+            hideLoading(); 
+        }
+    }
+
+    function vincularDNI() { 
+        document.getElementById('dniInput').value = document.getElementById('operarioSelect').value; 
+        guardarEnNube(); 
+    }
+
+    function descargarComoImagen() {
+        showLoading("Generando imagen...");
+        html2canvas(document.getElementById('captureArea'), { scale: 2, useCORS: true }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Saldo_ACP_${document.getElementById('fechaReporte').value}.png`;
+            link.href = canvas.toDataURL(); link.click(); hideLoading();
+        });
+    }
+</script>
+</body>
+</html>
