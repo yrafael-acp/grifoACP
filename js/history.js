@@ -327,7 +327,6 @@ async function guardarEdicionMovimiento(event) {
         alert('Error al guardar cambios. Revisa consola y despliegue del Apps Script.');
     }
 }
-
 async function eliminarMovimiento(idx) {
     if (!usuarioPuedeEditarHistorial()) return;
     if (!confirm('¿Eliminar este movimiento?')) return;
