@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informe Fotográfico — Recepción Combustible | ACP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://accounts.google.com/gsi/client" async></script>
+<style>
+:root{--verde:#1a5c2e;--verde-med:#2d7a45;--verde-claro:#3d9c5a;--verde-hover:#4db36b;--amarillo:#f5c518;--oscuro:#161b16;--gris:#212621;--gris-med:#2c332c;--gris-borde:#3a423a;--gris-texto:#8fa08f;--blanco:#e8f0e8;--rojo:#c0392b;--r:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Barlow',sans-serif;background:var(--oscuro);color:var(--blanco);min-height:100vh}
+header{background:var(--verde);border-bottom:3px solid var(--amarillo);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:62px;position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.5)}
+.h-brand{display:flex;align-items:center;gap:12px}
+.h-logo{width:40px;height:40px;background:var(--amarillo);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--verde);font-size:16px;font-weight:900;font-family:'Barlow Condensed',sans-serif;flex-shrink:0}
+.h-titles h1{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:1px;text-transform:uppercase;line-height:1}
+.h-titles span{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:2px}
+.h-nav{display:flex;gap:5px;align-items:center}
+.nav-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:7px 16px;border-radius:5px;cursor:pointer;font-family:'Barlow',sans-serif;font-size:13px;font-weight:500;transition:all .2s;display:flex;align-items:center;gap:6px}
+.nav-btn:hover,.nav-btn.active{background:var(--amarillo);color:var(--verde);border-color:var(--amarillo);font-weight:600}
+.user-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 12px 5px 5px;margin-left:6px}
+.user-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid var(--amarillo)}
+.user-name{font-size:12px;font-weight:500;color:rgba(255,255,255,.85);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-logout{background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:12px;padding:2px 4px;transition:color .2s}
+.btn-logout:hover{color:#fff}
+#auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 62px);padding:40px 20px;text-align:center}
+.auth-logo{width:80px;height:80px;background:var(--amarillo);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--verde);font-size:36px;font-weight:900;font-family:'Barlow Condensed',sans-serif;margin:0 auto 24px}
+.auth-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.auth-sub{font-size:14px;color:var(--gris-texto);margin-bottom:32px;max-width:420px;line-height:1.6}
+.btn-google{display:flex;align-items:center;gap:12px;background:#fff;color:#1a1a1a;border:none;border-radius:8px;padding:14px 28px;cursor:pointer;font-size:15px;font-weight:600;font-family:'Barlow',sans-serif;transition:all .2s;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.btn-google:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.5)}
+.btn-google img{width:22px;height:22px}
+.auth-note{margin-top:20px;font-size:12px;color:var(--gris-texto);max-width:380px;line-height:1.7;background:rgba(245,197,24,.06);border:1px solid rgba(245,197,24,.2);border-radius:8px;padding:14px 18px;text-align:left}
+.auth-note strong{color:var(--amarillo)}
+.auth-note code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:3px;font-size:11px}
+#setup-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 62px);padding:40px 20px}
+.setup-card{background:var(--gris);border:1px solid var(--gris-borde);border-radius:12px;padding:36px;max-width:540px;width:100%;text-align:center}
+.setup-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.setup-sub{font-size:13px;color:var(--gris-texto);margin-bottom:22px;line-height:1.6}
+.frow{display:flex;flex-direction:column;gap:8px;text-align:left}
+.frow label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gris-texto)}
+.frow input{background:var(--gris-med);border:1px solid var(--gris-borde);border-radius:6px;color:var(--blanco);padding:11px 14px;font-size:14px;font-family:'Barlow',sans-serif}
+.frow input:focus{outline:none;border-color:var(--verde-claro)}
+.hint-box{font-size:11px;color:var(--gris-texto);line-height:1.6;padding:10px 14px;background:rgba(245,197,24,.06);border:1px solid rgba(245,197,24,.2);border-radius:6px}
+.hint-box strong{color:var(--amarillo)}
+.hint-box code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:3px}
+.btn-connect{background:var(--verde);border:2px solid var(--verde-claro);color:#fff;padding:12px 28px;border-radius:7px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:8px;margin-top:6px;width:100%;justify-content:center}
+.btn-connect:hover{background:var(--verde-claro);transform:translateY(-1px)}
+.main{max-width:1300px;margin:0 auto;padding:26px 22px;display:none}
+.view{display:none}.view.active{display:block}
+.pg-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
+.pg-sub{font-size:13px;color:var(--gris-texto);margin-bottom:22px}
+.card{background:var(--gris);border:1px solid var(--gris-borde);border-radius:var(--r);margin-bottom:16px;overflow:hidden}
+.card-hdr{background:var(--verde);padding:11px 18px;display:flex;align-items:center;gap:9px}
+.card-hdr h3{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.card-hdr i{color:var(--amarillo);font-size:13px}
+.card-body{padding:18px}
+.fg{display:grid;gap:13px}
+.fg3{grid-template-columns:1fr 1fr 1fr}.fg2{grid-template-columns:1fr 1fr}
+.fgrp{display:flex;flex-direction:column;gap:5px}
+.lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--gris-texto)}
+.req{color:var(--amarillo);margin-left:3px}
+input,select,textarea{background:var(--gris-med);border:1px solid var(--gris-borde);border-radius:5px;color:var(--blanco);padding:9px 12px;font-family:'Barlow',sans-serif;font-size:13px;transition:border-color .2s;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--verde-claro);background:#353d35}
+input::placeholder,textarea::placeholder{color:#5a6a5a}
+select option{background:var(--gris-med)}
+textarea{resize:vertical;min-height:64px}
+.gt{width:100%;border-collapse:collapse;font-size:13px}
+.gt th{background:var(--gris-med);color:var(--gris-texto);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:9px 11px;text-align:left;border-bottom:1px solid var(--gris-borde)}
+.gt td{padding:7px 11px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.gt td input,.gt td select{padding:6px 9px;font-size:12px}
+.btn-add{background:none;border:1px dashed var(--verde-claro);color:var(--verde-claro);padding:7px 14px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;margin-top:9px;display:flex;align-items:center;gap:5px}
+.btn-add:hover{background:rgba(61,156,90,.1);border-style:solid}
+.btn-del{background:rgba(192,57,43,.12);border:none;color:var(--rojo);width:28px;height:28px;border-radius:4px;cursor:pointer;font-size:12px;transition:background .2s;display:flex;align-items:center;justify-content:center}
+.btn-del:hover{background:rgba(192,57,43,.28)}
+.steps-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.step-item{background:var(--gris-med);border:1px solid var(--gris-borde);border-radius:6px;overflow:hidden}
+.step-hdr{display:flex;align-items:flex-start;gap:9px;padding:10px 11px;border-bottom:1px solid var(--gris-borde)}
+.step-num{background:var(--verde);color:#fff;font-size:11px;font-weight:700;min-width:24px;height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-desc{font-size:11px;color:rgba(255,255,255,.75);line-height:1.5}
+.step-zone{padding:9px;display:flex;flex-direction:column;gap:7px}
+.photo-area{border:1.5px dashed var(--gris-borde);border-radius:5px;aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;background:var(--oscuro)}
+.photo-area:hover{border-color:var(--verde-claro);background:rgba(45,122,69,.07)}
+.photo-area.has-photo{border-style:solid;border-color:var(--verde-claro)}
+.photo-area img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ph-overlay{position:absolute;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;gap:8px}
+.photo-area.has-photo:hover .ph-overlay{opacity:1}
+.ph-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:'Barlow',sans-serif;font-weight:500}
+.ph-btn:hover{background:rgba(255,255,255,.25)}.ph-btn.del{color:#ff6b6b}
+.ph-ph{display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none}
+.ph-ph i{font-size:22px;color:var(--gris-texto)}
+.ph-ph span{font-size:10px;color:var(--gris-texto);text-align:center;line-height:1.4}
+.step-obs{background:var(--oscuro);border:1px solid var(--gris-borde);border-radius:4px;color:rgba(255,255,255,.75);padding:6px 9px;font-family:'Barlow',sans-serif;font-size:11px;resize:none;min-height:44px;width:100%}
+.step-obs:focus{outline:none;border-color:var(--verde-claro)}
+.f-actions{display:flex;gap:10px;justify-content:flex-end;padding-top:6px}
+.btn-pri{background:var(--verde);border:2px solid var(--verde-claro);color:#fff;padding:11px 26px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:7px}
+.btn-pri:hover{background:var(--verde-claro);transform:translateY(-1px);box-shadow:0 4px 14px rgba(45,122,69,.4)}
+.btn-pri:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-sec{background:transparent;border:2px solid var(--gris-borde);color:var(--gris-texto);padding:11px 20px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:7px}
+.btn-sec:hover{border-color:var(--gris-texto);color:var(--blanco)}
+.search-bar{background:var(--gris);border:1px solid var(--gris-borde);border-radius:var(--r);padding:16px 18px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
+.search-bar .fgrp{flex:1;min-width:150px}
+.btn-bus{background:var(--amarillo);border:none;color:var(--verde);padding:9px 20px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:6px;height:38px;white-space:nowrap}
+.btn-bus:hover{background:#f7d040;transform:translateY(-1px)}
+.btn-bus.outline{background:transparent;border:1px solid var(--amarillo);color:var(--amarillo)}
+.btn-bus.outline:hover{background:rgba(245,197,24,.1)}
+.rec-count{font-size:13px;color:var(--gris-texto);margin-bottom:12px}
+.rec-count strong{color:var(--amarillo);font-size:15px}
+.rec-card{background:var(--gris);border:1px solid var(--gris-borde);border-radius:var(--r);margin-bottom:11px;overflow:hidden;transition:border-color .2s}
+.rec-card:hover{border-color:var(--verde-claro)}
+.rec-hdr{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--gris-med);transition:background .2s;user-select:none}
+.rec-hdr:hover{background:#353d35}
+.rec-meta{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.rec-date{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--amarillo)}
+.rec-badge{background:rgba(61,156,90,.15);border:1px solid rgba(61,156,90,.3);color:var(--verde-claro);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:2px 9px;border-radius:20px}
+.rec-info{font-size:12px;color:var(--gris-texto)}.rec-info strong{color:rgba(255,255,255,.8)}
+.rec-acts{display:flex;gap:7px;align-items:center}
+.btn-ico{background:rgba(255,255,255,.04);border:1px solid var(--gris-borde);color:var(--gris-texto);width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s}
+.btn-ico:hover{background:rgba(255,255,255,.1);color:var(--blanco)}
+.btn-ico.del:hover{background:rgba(192,57,43,.18);color:var(--rojo);border-color:var(--rojo)}
+.chev{color:var(--gris-texto);font-size:12px;transition:transform .3s}.chev.open{transform:rotate(180deg)}
+.rec-det{display:none;padding:18px}.rec-det.open{display:block}
+.det-ttl{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gris-texto);margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--gris-borde);display:flex;align-items:center;gap:7px}
+.det-ttl i{color:var(--verde-claro)}
+.det-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:9px;margin-bottom:16px}
+.det-f{background:var(--gris-med);border-radius:5px;padding:8px 11px}
+.det-f .lb{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gris-texto);margin-bottom:3px;position:static;background:none;border:none}
+.det-f .vl{font-size:13px;color:var(--blanco);font-weight:500}
+.det-guias{background:var(--gris-med);border-radius:5px;overflow:hidden;margin-bottom:16px}
+.det-guias table{width:100%;border-collapse:collapse;font-size:12px}
+.det-guias th{background:rgba(0,0,0,.2);padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gris-texto)}
+.det-guias td{padding:7px 11px;border-top:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.8)}
+.ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:9px;margin-bottom:16px}
+.ph-card{background:var(--gris-med);border-radius:5px;overflow:hidden;border:1px solid var(--gris-borde)}
+.ph-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:pointer;transition:opacity .2s}
+.ph-card img:hover{opacity:.82}
+.ph-ci{padding:7px 9px;border-top:1px solid var(--gris-borde)}
+.ph-step{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--verde-claro);margin-bottom:2px}
+.ph-obs{font-size:11px;color:var(--gris-texto);line-height:1.4}
+.empty{text-align:center;padding:54px 20px;color:var(--gris-texto)}
+.empty i{font-size:40px;margin-bottom:12px;opacity:.25;display:block}
+.empty p{font-size:14px;margin-bottom:5px}.empty small{font-size:11px;opacity:.55}
+.drive-bar{background:rgba(26,92,46,.12);border:1px solid rgba(26,92,46,.28);border-radius:6px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:9px;font-size:12px;color:var(--gris-texto)}
+.drive-bar i{color:var(--verde-claro)}.drive-bar strong{color:var(--blanco)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-ov{position:fixed;inset:0;background:rgba(22,27,22,.88);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9000;gap:14px}
+.loading-ov p{font-size:14px;color:var(--gris-texto)}
+.loading-ov .spinner{width:34px;height:34px;border-width:3px}
+.lb-box{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;align-items:center;justify-content:center}
+.lb-box.open{display:flex}
+.lb-box img{max-width:90vw;max-height:88vh;object-fit:contain;border-radius:5px}
+.lb-cls{position:absolute;top:18px;right:22px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}
+.lb-cls:hover{background:rgba(255,255,255,.18)}
+.toast{position:fixed;bottom:26px;right:26px;background:var(--verde);border:1px solid var(--verde-claro);color:#fff;padding:12px 18px;border-radius:7px;font-size:13px;font-weight:500;z-index:9998;display:flex;align-items:center;gap:8px;transform:translateY(70px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}.toast.err{background:var(--rojo);border-color:#e74c3c}
+@media(max-width:768px){.steps-grid,.fg3,.fg2{grid-template-columns:1fr}header{padding:0 14px}.main{padding:14px}.h-titles span{display:none}}
+</style>
+</head>
+<body>
+
+<div class="loading-ov" id="lov"><div class="spinner"></div><p id="lovmsg">Cargando...</p></div>
+<div class="lb-box" id="lb" onclick="closeLB()"><button class="lb-cls" onclick="closeLB()"><i class="fa-solid fa-xmark"></i></button><img id="lb-img" src="" alt=""></div>
+<div class="toast" id="toast"><i class="fa-solid fa-check-circle"></i><span id="toast-msg"></span></div>
+
+<header>
+  <div class="h-brand">
+    <div class="h-logo">ACP</div>
+    <div class="h-titles">
+      <h1>Agrícola Cerro Prieto</h1>
+      <span>Informe Fotográfico — Recepción de Combustible</span>
+    </div>
+  </div>
+  <nav class="h-nav">
+    <button class="nav-btn" id="btn-registro" onclick="switchView('registro')" style="display:none"><i class="fa-solid fa-camera"></i> Nuevo</button>
+    <button class="nav-btn" id="btn-consulta" onclick="switchView('consulta')" style="display:none"><i class="fa-solid fa-magnifying-glass"></i> Consultar</button>
+    <div class="user-chip" id="user-chip" style="display:none">
+      <img class="user-avatar" id="user-avatar" src="" alt="">
+      <span class="user-name" id="user-name"></span>
+      <button class="btn-logout" onclick="signOut()" title="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </nav>
+</header>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-logo">ACP</div>
+  <div class="auth-title">Informe Fotográfico<br>Recepción de Combustible</div>
+  <div class="auth-sub">Inicie sesión con Google para acceder. Los informes se guardan en Google Drive y son visibles para todos los usuarios con acceso a la carpeta.</div>
+  <button class="btn-google" id="btn-gsi"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G"> Iniciar sesión con Google</button>
+  <div class="auth-note" style="margin-top:22px">
+    <strong>⚙️ Configuración requerida (una sola vez — solo el administrador):</strong><br><br>
+    1. Ir a <strong>console.cloud.google.com</strong> → Crear proyecto<br>
+    2. Activar <strong>Google Drive API</strong> y <strong>Google Identity</strong><br>
+    3. Crear credencial OAuth → tipo <strong>Aplicación web</strong><br>
+    4. Agregar <code>file://</code> o la URL donde aloje este HTML como origen autorizado<br>
+    5. Copiar el <strong>Client ID</strong> y reemplazar <code>TU_CLIENT_ID_AQUI</code> en el script<br><br>
+    <strong>Carpeta Drive:</strong> ID visible en la URL → <code>/folders/<strong>1M_9EFEq...</strong></code>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div style="font-size:36px;margin-bottom:12px">📂</div>
+    <div class="setup-title">Conectar carpeta de Drive</div>
+    <div class="setup-sub">Pegue el ID de la carpeta donde se guardarán los informes. El ID está en la URL de Drive después de <code>/folders/</code></div>
+    <div class="frow">
+      <label>ID de la Carpeta Google Drive <span style="color:var(--amarillo)">*</span></label>
+      <input type="text" id="folder-id-inp" placeholder="1M_9EFEq9x0thWP8sG2kVxDEnudNK0K1A" value="1M_9EFEq9x0thWP8sG2kVxDEnudNK0K1A">
+      <div class="hint-box"><strong>URL de ejemplo:</strong><br><code>drive.google.com/drive/folders/<strong style="color:var(--amarillo)">1M_9EFEq9x0thWP8sG2kVxDEnudNK0K1A</strong></code></div>
+      <button class="btn-connect" onclick="saveFolderStart()"><i class="fa-solid fa-link"></i> Conectar y continuar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="main" id="main-app">
+  <div class="drive-bar" id="drive-bar">
+    <i class="fa-brands fa-google-drive"></i>
+    <span>Almacenamiento: Google Drive → <strong id="drv-folder-name">cargando...</strong></span>
+    <span style="margin-left:auto;font-size:11px;opacity:.6" id="drv-sync"></span>
+  </div>
+
+  <!-- REGISTRO -->
+  <div class="view" id="view-registro">
+    <div class="pg-title"><i class="fa-solid fa-camera" style="color:var(--amarillo);margin-right:8px;font-size:20px"></i>Nuevo Informe Fotográfico</div>
+    <div class="pg-sub">Complete todos los campos del formato oficial de recepción de combustible — Agrícola Cerro Prieto</div>
+
+    <div class="card">
+      <div class="card-hdr"><i class="fa-solid fa-file-lines"></i><h3>Datos Generales</h3></div>
+      <div class="card-body">
+        <div class="fg fg3">
+          <div class="fgrp"><label class="lbl">Fecha <span class="req">*</span></label><input type="date" id="f-fecha"></div>
+          <div class="fgrp"><label class="lbl">Proveedor <span class="req">*</span></label><input type="text" id="f-prov" placeholder="Ej: Corporación Primax S.A."></div>
+          <div class="fgrp"><label class="lbl">N° de Informe</label><input type="text" id="f-ninf" readonly style="opacity:.55"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><i class="fa-solid fa-receipt"></i><h3>Guías de Remisión</h3></div>
+      <div class="card-body">
+        <div style="overflow-x:auto">
+          <table class="gt">
+            <thead><tr><th>Serie</th><th>N° Guía</th><th>Tipo de Combustible</th><th>Cantidad (gal)</th><th></th></tr></thead>
+            <tbody id="gtb">
+              <tr>
+                <td><input type="text" placeholder="T230" value="T230"></td>
+                <td><input type="text" placeholder="N° guía"></td>
+                <td><select><option value="">Seleccionar...</option><option>PETRÓLEO</option><option>GASOLINA</option><option>GLP</option><option>DIESEL B5</option></select></td>
+                <td><input type="number" placeholder="0" min="0"></td>
+                <td><button class="btn-del" onclick="delG(this)"><i class="fa-solid fa-trash-can"></i></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button class="btn-add" onclick="addG()"><i class="fa-solid fa-plus"></i> Agregar guía</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><i class="fa-solid fa-users"></i><h3>Responsables</h3></div>
+      <div class="card-body">
+        <div class="fg fg2">
+          <div class="fgrp"><label class="lbl">Operario de Almacén 1 <span class="req">*</span></label><input type="text" id="f-op1" placeholder="Nombre completo"></div>
+          <div class="fgrp"><label class="lbl">Operario de Almacén 2</label><input type="text" id="f-op2" placeholder="Nombre completo (opcional)"></div>
+          <div class="fgrp"><label class="lbl">Conductor <span class="req">*</span></label><input type="text" id="f-cond" placeholder="Nombre completo"></div>
+          <div class="fgrp"><label class="lbl">Observaciones Generales</label><input type="text" id="f-obs" placeholder="Novedades adicionales"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr"><i class="fa-solid fa-images"></i><h3>Registro Fotográfico por Procedimiento</h3></div>
+      <div class="card-body"><div class="steps-grid" id="steps-c"></div></div>
+    </div>
+
+    <div class="f-actions">
+      <button class="btn-sec" onclick="limpiar()"><i class="fa-solid fa-rotate-left"></i> Limpiar</button>
+      <button class="btn-pri" id="btn-save" onclick="guardar()"><i class="fa-solid fa-floppy-disk"></i> Guardar en Drive</button>
+    </div>
+  </div>
+
+  <!-- CONSULTA -->
+  <div class="view" id="view-consulta">
+    <div class="pg-title"><i class="fa-solid fa-folder-open" style="color:var(--amarillo);margin-right:8px;font-size:20px"></i>Consulta de Registros</div>
+    <div class="pg-sub">Informes almacenados en Google Drive — accesibles para todos los usuarios con acceso a la carpeta</div>
+
+    <div class="search-bar">
+      <div class="fgrp"><label class="lbl">Fecha desde</label><input type="date" id="q-desde"></div>
+      <div class="fgrp"><label class="lbl">Fecha hasta</label><input type="date" id="q-hasta"></div>
+      <div class="fgrp"><label class="lbl">Proveedor</label><input type="text" id="q-prov" placeholder="Filtrar por proveedor..."></div>
+      <button class="btn-bus" onclick="buscar()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
+      <button class="btn-bus outline" onclick="buscar()"><i class="fa-solid fa-rotate"></i> Actualizar</button>
+    </div>
+    <div id="resultados"></div>
+  </div>
+</div>
+
+<div id="file-inp-c" style="display:none"></div>
+
+<script>
+// ════════════════════════════════════════════
+//  CONFIGURACIÓN  ← EDITAR ANTES DE USAR
+// ════════════════════════════════════════════
+// 1. Crear proyecto en console.cloud.google.com
+// 2. Activar "Google Drive API"
+// 3. Crear credencial OAuth 2.0 (tipo: Aplicación web)
+// 4. Pegar el Client ID aquí:
+const CLIENT_ID = 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile';
+
+// ════════════════════════════════════════════
+//  PROCEDIMIENTO (19 pasos del formato)
+// ════════════════════════════════════════════
+const PASOS = [
+  {n:1,  d:"La cisterna pasa a balanza — pesado inicial del camión cisterna (ticket de peso bruto)."},
+  {n:2,  d:"El personal de almacén debe contar con los EPPS. El conductor debe contar con EPPS."},
+  {n:3,  d:"El operario de almacén toma las medidas iniciales en el tanque principal ACP."},
+  {n:4,  d:"El operario revisa que la caja de válvulas cuente con el precinto detallado en la bitácora."},
+  {n:5,  d:"El operario verifica que los precintos de las válvulas de descarga y tapa coincidan con la bitácora."},
+  {n:6,  d:"El operario toma la medida de los compartimientos de la cisterna con la varilla de aluminio."},
+  {n:7,  d:"El operario realiza la prueba COLOR OUT para determinar que NO hay presencia de AGUA en el combustible."},
+  {n:8,  d:"Se dirige la cisterna a la zona de descarga y se coloca el cable puesta tierra, extintores y kit antiderrame."},
+  {n:9,  d:"Se realizan pruebas en el balde de aluminio para cerciorarse que el combustible no está contaminado."},
+  {n:10, d:"Se verifica que la manguera de descarga de la cisterna cuente con la malla metálica."},
+  {n:11, d:"Una vez conectada la manguera, el conductor abre las válvulas y el operario enciende la motobomba."},
+  {n:12, d:"Después de descargar al tanque, el conductor retira la manguera."},
+  {n:13, d:"Se indica al conductor que dé la vuelta al grifo para acumular el líquido en el fondo de los compartimientos."},
+  {n:14, d:"El operario de almacén realiza el desconche con un balde de aluminio."},
+  {n:15, d:"El operario de almacén revisa que los compartimientos queden vacíos."},
+  {n:16, d:"Luego de 20 minutos, el operario sube al tanque principal para tomar las medidas finales."},
+  {n:17, d:"El conductor firma el informe de recepción final una vez terminado el proceso de descarga."},
+  {n:18, d:"El operario de almacén firma el informe de recepción final una vez terminado el proceso de descarga."},
+  {n:19, d:"Finalmente el conductor pasa por balanza para el pesado final y se le entrega el ticket (destare)."},
+];
+
+// ════ STATE ════
+let token = null, folderID = localStorage.getItem('acp_fid')||'', user = null, photos = {};
+
+// ════ INIT ════
+window.addEventListener('load', ()=>{
+  renderSteps();
+  setToday();
+  const st = sessionStorage.getItem('acp_tok');
+  const su = sessionStorage.getItem('acp_usr');
+  if(st && su){ token=st; user=JSON.parse(su); showApp(); }
+  else document.getElementById('btn-gsi').addEventListener('click', signIn);
+});
+
+// ════ AUTH ════
+function signIn(){
+  if(typeof google === 'undefined'){ toast('Google API no cargó. Use un servidor HTTP (no file://).', true); return; }
+  google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID, scope: SCOPES,
+    callback: async r => {
+      if(r.error){ toast('Error auth: '+r.error, true); return; }
+      token = r.access_token;
+      sessionStorage.setItem('acp_tok', token);
+      const ui = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+token}});
+      user = await ui.json();
+      sessionStorage.setItem('acp_usr', JSON.stringify(user));
+      showApp();
+    }
+  }).requestAccessToken();
+}
+function signOut(){
+  try{ google.accounts.oauth2.revoke(token,()=>{}); }catch(e){}
+  token=null; sessionStorage.removeItem('acp_tok'); sessionStorage.removeItem('acp_usr'); user=null;
+  hideApp();
+}
+function showApp(){
+  document.getElementById('auth-screen').style.display='none';
+  const chip=document.getElementById('user-chip'); chip.style.display='flex';
+  document.getElementById('user-avatar').src=user.picture||'';
+  document.getElementById('user-name').textContent=user.name||user.email||'';
+  if(!folderID){ document.getElementById('setup-screen').style.display='flex'; }
+  else launchApp();
+}
+function hideApp(){
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('user-chip').style.display='none';
+  ['btn-registro','btn-consulta'].forEach(id=>document.getElementById(id).style.display='none');
+}
+function saveFolderStart(){
+  const id=document.getElementById('folder-id-inp').value.trim();
+  if(!id){ toast('Ingrese el ID de la carpeta',true); return; }
+  folderID=id; localStorage.setItem('acp_fid',folderID);
+  document.getElementById('setup-screen').style.display='none';
+  launchApp();
+}
+async function launchApp(){
+  document.getElementById('main-app').style.display='block';
+  ['btn-registro','btn-consulta'].forEach(id=>{ const b=document.getElementById(id); b.style.display='flex'; });
+  document.getElementById('btn-registro').classList.add('active');
+  document.getElementById('view-registro').classList.add('active');
+  try{
+    const m=await drv(`https://www.googleapis.com/drive/v3/files/${folderID}?fields=name`);
+    document.getElementById('drv-folder-name').textContent=m.name||folderID;
+  }catch{ document.getElementById('drv-folder-name').textContent=folderID; }
+  genNInforme();
+}
+
+// ════ DRIVE API ════
+async function drv(url, opts={}){
+  if(!opts.headers) opts.headers={};
+  opts.headers['Authorization']='Bearer '+token;
+  const r=await fetch(url,opts);
+  if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error(e.error?.message||r.statusText); }
+  if(r.status===204) return null;
+  return r.json();
+}
+async function drvList(parentId, nameContains=''){
+  let q=`'${parentId}' in parents and trashed=false`;
+  if(nameContains) q+=` and name contains '${nameContains}'`;
+  const url=`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,createdTime)&orderBy=createdTime+desc&pageSize=200`;
+  const d=await drv(url); return d.files||[];
+}
+async function drvRead(fid){
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`,{headers:{Authorization:'Bearer '+token}});
+  if(!r.ok) throw new Error('Error leyendo archivo');
+  return r.json();
+}
+async function drvCreate(name, content, parentId){
+  const meta={name,mimeType:'application/json',parents:[parentId]};
+  const form=new FormData();
+  form.append('metadata', new Blob([JSON.stringify(meta)],{type:'application/json'}));
+  form.append('file', new Blob([JSON.stringify(content)],{type:'application/json'}));
+  const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{
+    method:'POST', headers:{Authorization:'Bearer '+token}, body:form
+  });
+  if(!r.ok) throw new Error('Error creando archivo en Drive');
+  return r.json();
+}
+async function drvDelete(fid){
+  await fetch(`https://www.googleapis.com/drive/v3/files/${fid}`,{method:'DELETE',headers:{Authorization:'Bearer '+token}});
+}
+
+// ════ STEPS ════
+function renderSteps(){
+  const c=document.getElementById('steps-c'); c.innerHTML='';
+  const fi=document.getElementById('file-inp-c'); fi.innerHTML='';
+  PASOS.forEach(p=>{
+    const d=document.createElement('div'); d.className='step-item';
+    d.innerHTML=`
+      <div class="step-hdr"><div class="step-num">${p.n}</div><div class="step-desc">${p.d}</div></div>
+      <div class="step-zone">
+        <div class="photo-area" id="pa-${p.n}" onclick="trigUp(${p.n})">
+          <div class="ph-ph"><i class="fa-solid fa-camera"></i><span>Clic para subir<br>fotografía</span></div>
+          <div class="ph-overlay">
+            <button class="ph-btn" onclick="event.stopPropagation();trigUp(${p.n})"><i class="fa-solid fa-arrow-up-from-bracket"></i> Cambiar</button>
+            <button class="ph-btn del" onclick="event.stopPropagation();remPhoto(${p.n})"><i class="fa-solid fa-trash-can"></i> Quitar</button>
+          </div>
+        </div>
+        <textarea class="step-obs" id="obs-${p.n}" placeholder="Observación paso ${p.n}..." rows="2"></textarea>
+      </div>`;
+    c.appendChild(d);
+    const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.id='fi-'+p.n;
+    inp.addEventListener('change', e=>handleUp(e,p.n)); fi.appendChild(inp);
+  });
+}
+function trigUp(n){ document.getElementById('fi-'+n).click(); }
+function handleUp(e,n){
+  const file=e.target.files[0]; if(!file) return;
+  const img=new Image(), reader=new FileReader();
+  reader.onload=ev=>{ img.onload=()=>{
+    const cv=document.createElement('canvas');
+    let w=img.width,h=img.height; const mx=800;
+    if(w>mx){h=Math.round(h*mx/w);w=mx;}
+    cv.width=w;cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h);
+    const b64=cv.toDataURL('image/jpeg',0.78);
+    photos[n]=b64;
+    const area=document.getElementById('pa-'+n);
+    area.querySelector('img')?.remove();
+    const im=document.createElement('img'); im.src=b64; area.insertBefore(im,area.firstChild);
+    area.classList.add('has-photo'); area.querySelector('.ph-ph').style.display='none';
+  }; img.src=ev.target.result; }; reader.readAsDataURL(file); e.target.value='';
+}
+function remPhoto(n){
+  delete photos[n];
+  const a=document.getElementById('pa-'+n);
+  a.querySelector('img')?.remove(); a.classList.remove('has-photo'); a.querySelector('.ph-ph').style.display='';
+}
+
+// ════ GUÍAS ════
+function addG(){
+  document.getElementById('gtb').insertAdjacentHTML('beforeend',`<tr>
+    <td><input type="text" placeholder="T230"></td>
+    <td><input type="text" placeholder="N° guía"></td>
+    <td><select><option value="">Seleccionar...</option><option>PETRÓLEO</option><option>GASOLINA</option><option>GLP</option><option>DIESEL B5</option></select></td>
+    <td><input type="number" placeholder="0" min="0"></td>
+    <td><button class="btn-del" onclick="delG(this)"><i class="fa-solid fa-trash-can"></i></button></td>
+  </tr>`);
+}
+function delG(btn){
+  const tb=document.getElementById('gtb');
+  if(tb.children.length>1) btn.closest('tr').remove();
+  else toast('Debe haber al menos una guía',true);
+}
+function getGuias(){
+  return Array.from(document.querySelectorAll('#gtb tr')).map(r=>{
+    const ins=r.querySelectorAll('input');
+    return{serie:ins[0].value.trim(),numero:ins[1].value.trim(),tipo:r.querySelector('select').value,cantidad:ins[2].value};
+  }).filter(g=>g.serie||g.numero);
+}
+
+// ════ GUARDAR ════
+async function guardar(){
+  const fecha=document.getElementById('f-fecha').value;
+  const prov=document.getElementById('f-prov').value.trim();
+  const op1=document.getElementById('f-op1').value.trim();
+  const cond=document.getElementById('f-cond').value.trim();
+  if(!fecha){toast('Ingrese la fecha',true);return;}
+  if(!prov){toast('Ingrese el proveedor',true);return;}
+  if(!op1){toast('Ingrese el Operario de Almacén',true);return;}
+  if(!cond){toast('Ingrese el Conductor',true);return;}
+  const pasos=PASOS.map(p=>({n:p.n,desc:p.d,foto:photos[p.n]||null,obs:document.getElementById('obs-'+p.n)?.value.trim()||''}));
+  const reg={
+    id:Date.now().toString(),
+    ninforme:document.getElementById('f-ninf').value,
+    fecha,proveedor:prov,op1,op2:document.getElementById('f-op2').value.trim(),
+    conductor:cond,obsGeneral:document.getElementById('f-obs').value.trim(),
+    guias:getGuias(),pasos,
+    guardadoPor:user?.name||user?.email||'Desconocido',
+    creadoEn:new Date().toISOString()
+  };
+  const btn=document.getElementById('btn-save');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Guardando...';
+  showLov('Guardando informe en Google Drive...');
+  try{
+    const fname=`acp_inf_${fecha}_${reg.id}.json`;
+    await drvCreate(fname, reg, folderID);
+    toast('Informe guardado en Google Drive ✓');
+    document.getElementById('drv-sync').textContent='Guardado: '+new Date().toLocaleTimeString('es-PE');
+    limpiar();
+  }catch(err){ toast('Error: '+err.message, true); }
+  finally{ hideLov(); btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-floppy-disk"></i> Guardar en Drive'; }
+}
+
+// ════ BUSCAR ════
+let fileIndex=[];
+async function buscar(){
+  showLov('Consultando Google Drive...');
+  try{
+    const files=await drvList(folderID,'acp_inf_');
+    fileIndex=files;
+    const promises=files.map(f=>drvRead(f.id).then(d=>({...d,_fid:f.id})).catch(()=>null));
+    let regs=(await Promise.all(promises)).filter(Boolean);
+    const desde=document.getElementById('q-desde').value;
+    const hasta=document.getElementById('q-hasta').value;
+    const prov=document.getElementById('q-prov').value.trim().toLowerCase();
+    if(desde) regs=regs.filter(r=>r.fecha>=desde);
+    if(hasta) regs=regs.filter(r=>r.fecha<=hasta);
+    if(prov) regs=regs.filter(r=>r.proveedor?.toLowerCase().includes(prov));
+    regs.sort((a,b)=>b.fecha?.localeCompare(a.fecha));
+    renderRes(regs);
+    document.getElementById('drv-sync').textContent='Actualizado: '+new Date().toLocaleTimeString('es-PE');
+  }catch(err){
+    toast('Error consultando Drive: '+err.message,true);
+    document.getElementById('resultados').innerHTML=`<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Error al conectar con Drive</p><small>${err.message}</small></div>`;
+  }finally{ hideLov(); }
+}
+function renderRes(regs){
+  const c=document.getElementById('resultados');
+  if(!regs.length){ c.innerHTML=`<div class="empty"><i class="fa-solid fa-box-open"></i><p>No se encontraron registros</p><small>Intente con otros filtros o registre un nuevo informe</small></div>`; return; }
+  const tf=regs.reduce((a,r)=>a+(r.pasos||[]).filter(p=>p.foto).length,0);
+  c.innerHTML=`<div class="rec-count"><strong>${regs.length}</strong> informe(s) &nbsp;·&nbsp; ${tf} foto(s)</div>`+regs.map(r=>buildCard(r)).join('');
+}
+function buildCard(r){
+  const nf=(r.pasos||[]).filter(p=>p.foto).length;
+  return`<div class="rec-card" id="card-${r.id}">
+    <div class="rec-hdr" onclick="togRec('${r.id}')">
+      <div class="rec-meta">
+        <div class="rec-date">${fmtF(r.fecha)}</div>
+        <div class="rec-badge">${r.ninforme||'—'}</div>
+        <div class="rec-info"><strong>${r.proveedor||'—'}</strong></div>
+        <div class="rec-info">Conductor: <strong>${r.conductor||'—'}</strong></div>
+        <div class="rec-info"><i class="fa-solid fa-camera" style="color:var(--verde-claro);margin-right:3px"></i>${nf} foto(s)</div>
+        ${r.guardadoPor?`<div class="rec-info" style="opacity:.6"><i class="fa-solid fa-user" style="margin-right:3px"></i>${r.guardadoPor}</div>`:''}
+      </div>
+      <div class="rec-acts" onclick="event.stopPropagation()">
+        <button class="btn-ico del" onclick="eliminar('${r.id}','${r._fid}')" title="Eliminar"><i class="fa-solid fa-trash-can"></i></button>
+        <i class="chev fa-solid fa-chevron-down" id="chev-${r.id}"></i>
+      </div>
+    </div>
+    <div class="rec-det" id="det-${r.id}">${buildDet(r)}</div>
+  </div>`;
+}
+function buildDet(r){
+  const gr=(r.guias||[]).map(g=>`<tr><td>${g.serie}</td><td>${g.numero}</td><td>${g.tipo}</td><td>${g.cantidad} gal</td></tr>`).join('');
+  const fp=(r.pasos||[]).filter(p=>p.foto).map(p=>`
+    <div class="ph-card"><img src="${p.foto}" alt="P${p.n}" onclick="openLB(this.src)">
+      <div class="ph-ci"><div class="ph-step">Paso ${p.n}</div><div class="ph-obs">${p.obs||p.desc?.substring(0,55)+'...'}</div></div>
+    </div>`).join('');
+  return`<div class="det-ttl"><i class="fa-solid fa-circle-info"></i>Información General</div>
+    <div class="det-grid">
+      <div class="det-f"><div class="lb">Fecha</div><div class="vl">${fmtF(r.fecha)}</div></div>
+      <div class="det-f"><div class="lb">N° Informe</div><div class="vl">${r.ninforme||'—'}</div></div>
+      <div class="det-f"><div class="lb">Proveedor</div><div class="vl">${r.proveedor||'—'}</div></div>
+      <div class="det-f"><div class="lb">Operario Almacén 1</div><div class="vl">${r.op1||'—'}</div></div>
+      ${r.op2?`<div class="det-f"><div class="lb">Operario Almacén 2</div><div class="vl">${r.op2}</div></div>`:''}
+      <div class="det-f"><div class="lb">Conductor</div><div class="vl">${r.conductor||'—'}</div></div>
+      ${r.obsGeneral?`<div class="det-f"><div class="lb">Observaciones</div><div class="vl">${r.obsGeneral}</div></div>`:''}
+      <div class="det-f"><div class="lb">Guardado por</div><div class="vl">${r.guardadoPor||'—'}</div></div>
+    </div>
+    <div class="det-ttl"><i class="fa-solid fa-receipt"></i>Guías de Remisión</div>
+    <div class="det-guias" style="margin-bottom:16px"><table><thead><tr><th>Serie</th><th>N° Guía</th><th>Combustible</th><th>Cantidad</th></tr></thead><tbody>${gr}</tbody></table></div>
+    <div class="det-ttl"><i class="fa-solid fa-images"></i>Fotografías (${(r.pasos||[]).filter(p=>p.foto).length})</div>
+    ${fp?`<div class="ph-grid">${fp}</div>`:'<p style="color:var(--gris-texto);font-size:12px;margin-bottom:16px">Sin fotografías en este informe.</p>'}`;
+}
+function togRec(id){
+  document.getElementById('det-'+id).classList.toggle('open');
+  document.getElementById('chev-'+id).classList.toggle('open');
+}
+async function eliminar(id,fid){
+  if(!confirm('¿Eliminar este informe de Google Drive? No se puede deshacer.')) return;
+  showLov('Eliminando...'); try{ if(fid) await drvDelete(fid); document.getElementById('card-'+id)?.remove(); toast('Informe eliminado de Drive'); }
+  catch(err){ toast('Error: '+err.message,true); } finally{ hideLov(); }
+}
+
+// ════ UTILS ════
+async function genNInforme(){
+  try{ const fs=await drvList(folderID,'acp_inf_'); const n=fs.length+1;
+    document.getElementById('f-ninf').value=`INF-FOT-${new Date().getFullYear()}-${String(n).padStart(4,'0')}`;
+  }catch{ document.getElementById('f-ninf').value=`INF-FOT-${new Date().getFullYear()}-0001`; }
+}
+function setToday(){ document.getElementById('f-fecha').value=new Date().toISOString().split('T')[0]; }
+function fmtF(f){ if(!f)return'—'; const[y,m,d]=f.split('-'); return`${d} ${['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(m)-1]} ${y}`; }
+function limpiar(){
+  ['f-prov','f-op1','f-op2','f-cond','f-obs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('gtb').innerHTML=`<tr><td><input type="text" placeholder="T230" value="T230"></td><td><input type="text" placeholder="N° guía"></td><td><select><option value="">Seleccionar...</option><option>PETRÓLEO</option><option>GASOLINA</option><option>GLP</option><option>DIESEL B5</option></select></td><td><input type="number" placeholder="0" min="0"></td><td><button class="btn-del" onclick="delG(this)"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
+  photos={}; renderSteps(); setToday(); genNInforme(); window.scrollTo({top:0,behavior:'smooth'});
+}
+function switchView(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.getElementById('btn-'+v).classList.add('active');
+  if(v==='consulta') buscar();
+}
+function showLov(m){ document.getElementById('lovmsg').textContent=m; document.getElementById('lov').style.display='flex'; }
+function hideLov(){ document.getElementById('lov').style.display='none'; }
+function toast(msg,err=false){
+  const t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=msg;
+  t.className='toast'+(err?' err':''); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3400);
+}
+function openLB(src){ document.getElementById('lb-img').src=src; document.getElementById('lb').classList.add('open'); }
+function closeLB(){ document.getElementById('lb').classList.remove('open'); document.getElementById('lb-img').src=''; }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeLB(); });
+</script>
+</body>
+</html>
