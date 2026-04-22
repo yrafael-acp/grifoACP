@@ -2,268 +2,143 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Informe Fotográfico — Recepción Combustible | ACP</title>
+<link rel="icon" type="image/png" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/styles.css">
 <script src="https://accounts.google.com/gsi/client" async></script>
 <style>
-:root{--verde:#1a5c2e;--verde-med:#2d7a45;--verde-claro:#3d9c5a;--verde-hover:#4db36b;--amarillo:#f5c518;--oscuro:#161b16;--gris:#212621;--gris-med:#2c332c;--gris-borde:#3a423a;--gris-texto:#8fa08f;--blanco:#e8f0e8;--rojo:#c0392b;--r:8px}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Barlow',sans-serif;background:var(--oscuro);color:var(--blanco);min-height:100vh}
-header{background:var(--verde);border-bottom:3px solid var(--amarillo);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:62px;position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.5)}
-.h-brand{display:flex;align-items:center;gap:12px}
-.h-logo{width:40px;height:40px;background:var(--amarillo);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--verde);font-size:16px;font-weight:900;font-family:'Barlow Condensed',sans-serif;flex-shrink:0}
-.h-titles h1{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:1px;text-transform:uppercase;line-height:1}
-.h-titles span{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:2px}
-.h-nav{display:flex;gap:5px;align-items:center}
-.nav-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:7px 16px;border-radius:5px;cursor:pointer;font-family:'Barlow',sans-serif;font-size:13px;font-weight:500;transition:all .2s;display:flex;align-items:center;gap:6px}
-.nav-btn:hover,.nav-btn.active{background:var(--amarillo);color:var(--verde);border-color:var(--amarillo);font-weight:600}
-.user-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 12px 5px 5px;margin-left:6px}
-.user-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid var(--amarillo)}
-.user-name{font-size:12px;font-weight:500;color:rgba(255,255,255,.85);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.btn-logout{background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:12px;padding:2px 4px;transition:color .2s}
-.btn-logout:hover{color:#fff}
-#auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 62px);padding:40px 20px;text-align:center}
-.auth-logo{width:80px;height:80px;background:var(--amarillo);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--verde);font-size:36px;font-weight:900;font-family:'Barlow Condensed',sans-serif;margin:0 auto 24px}
-.auth-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
-.auth-sub{font-size:14px;color:var(--gris-texto);margin-bottom:32px;max-width:420px;line-height:1.6}
-.btn-google{display:flex;align-items:center;gap:12px;background:#fff;color:#1a1a1a;border:none;border-radius:8px;padding:14px 28px;cursor:pointer;font-size:15px;font-weight:600;font-family:'Barlow',sans-serif;transition:all .2s;box-shadow:0 4px 16px rgba(0,0,0,.4)}
-.btn-google:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.5)}
-.btn-google img{width:22px;height:22px}
-.auth-note{margin-top:20px;font-size:12px;color:var(--gris-texto);max-width:380px;line-height:1.7;background:rgba(245,197,24,.06);border:1px solid rgba(245,197,24,.2);border-radius:8px;padding:14px 18px;text-align:left}
-.auth-note strong{color:var(--amarillo)}
-.auth-note code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:3px;font-size:11px}
-#setup-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 62px);padding:40px 20px}
-.setup-card{background:var(--gris);border:1px solid var(--gris-borde);border-radius:12px;padding:36px;max-width:540px;width:100%;text-align:center}
-.setup-title{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.setup-sub{font-size:13px;color:var(--gris-texto);margin-bottom:22px;line-height:1.6}
-.frow{display:flex;flex-direction:column;gap:8px;text-align:left}
-.frow label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gris-texto)}
-.frow input{background:var(--gris-med);border:1px solid var(--gris-borde);border-radius:6px;color:var(--blanco);padding:11px 14px;font-size:14px;font-family:'Barlow',sans-serif}
-.frow input:focus{outline:none;border-color:var(--verde-claro)}
-.hint-box{font-size:11px;color:var(--gris-texto);line-height:1.6;padding:10px 14px;background:rgba(245,197,24,.06);border:1px solid rgba(245,197,24,.2);border-radius:6px}
-.hint-box strong{color:var(--amarillo)}
-.hint-box code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:3px}
-.btn-connect{background:var(--verde);border:2px solid var(--verde-claro);color:#fff;padding:12px 28px;border-radius:7px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:8px;margin-top:6px;width:100%;justify-content:center}
-.btn-connect:hover{background:var(--verde-claro);transform:translateY(-1px)}
-.main{max-width:1300px;margin:0 auto;padding:26px 22px;display:none}
-.view{display:none}.view.active{display:block}
-.pg-title{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
-.pg-sub{font-size:13px;color:var(--gris-texto);margin-bottom:22px}
-.card{background:var(--gris);border:1px solid var(--gris-borde);border-radius:var(--r);margin-bottom:16px;overflow:hidden}
-.card-hdr{background:var(--verde);padding:11px 18px;display:flex;align-items:center;gap:9px}
-.card-hdr h3{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
-.card-hdr i{color:var(--amarillo);font-size:13px}
-.card-body{padding:18px}
-.fg{display:grid;gap:13px}
-.fg3{grid-template-columns:1fr 1fr 1fr}.fg2{grid-template-columns:1fr 1fr}
-.fgrp{display:flex;flex-direction:column;gap:5px}
-.lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--gris-texto)}
-.req{color:var(--amarillo);margin-left:3px}
-input,select,textarea{background:var(--gris-med);border:1px solid var(--gris-borde);border-radius:5px;color:var(--blanco);padding:9px 12px;font-family:'Barlow',sans-serif;font-size:13px;transition:border-color .2s;width:100%}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--verde-claro);background:#353d35}
-input::placeholder,textarea::placeholder{color:#5a6a5a}
-select option{background:var(--gris-med)}
-textarea{resize:vertical;min-height:64px}
-.gt{width:100%;border-collapse:collapse;font-size:13px}
-.gt th{background:var(--gris-med);color:var(--gris-texto);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:9px 11px;text-align:left;border-bottom:1px solid var(--gris-borde)}
-.gt td{padding:7px 11px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
-.gt td input,.gt td select{padding:6px 9px;font-size:12px}
-.btn-add{background:none;border:1px dashed var(--verde-claro);color:var(--verde-claro);padding:7px 14px;border-radius:5px;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;margin-top:9px;display:flex;align-items:center;gap:5px}
-.btn-add:hover{background:rgba(61,156,90,.1);border-style:solid}
-.btn-del{background:rgba(192,57,43,.12);border:none;color:var(--rojo);width:28px;height:28px;border-radius:4px;cursor:pointer;font-size:12px;transition:background .2s;display:flex;align-items:center;justify-content:center}
-.btn-del:hover{background:rgba(192,57,43,.28)}
-.steps-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-.step-item{background:var(--gris-med);border:1px solid var(--gris-borde);border-radius:6px;overflow:hidden}
-.step-hdr{display:flex;align-items:flex-start;gap:9px;padding:10px 11px;border-bottom:1px solid var(--gris-borde)}
-.step-num{background:var(--verde);color:#fff;font-size:11px;font-weight:700;min-width:24px;height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.step-desc{font-size:11px;color:rgba(255,255,255,.75);line-height:1.5}
-.step-zone{padding:9px;display:flex;flex-direction:column;gap:7px}
-.photo-area{border:1.5px dashed var(--gris-borde);border-radius:5px;aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;background:var(--oscuro)}
-.photo-area:hover{border-color:var(--verde-claro);background:rgba(45,122,69,.07)}
-.photo-area.has-photo{border-style:solid;border-color:var(--verde-claro)}
-.photo-area img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.ph-overlay{position:absolute;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;gap:8px}
-.photo-area.has-photo:hover .ph-overlay{opacity:1}
-.ph-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:'Barlow',sans-serif;font-weight:500}
-.ph-btn:hover{background:rgba(255,255,255,.25)}.ph-btn.del{color:#ff6b6b}
-.ph-ph{display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none}
-.ph-ph i{font-size:22px;color:var(--gris-texto)}
-.ph-ph span{font-size:10px;color:var(--gris-texto);text-align:center;line-height:1.4}
-.step-obs{background:var(--oscuro);border:1px solid var(--gris-borde);border-radius:4px;color:rgba(255,255,255,.75);padding:6px 9px;font-family:'Barlow',sans-serif;font-size:11px;resize:vertical;min-height:44px;width:100%}
-.step-obs:focus{outline:none;border-color:var(--verde-claro)}
-.photo-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
-.photo-thumb{position:relative;background:var(--oscuro);border:1px solid var(--gris-borde);border-radius:5px;overflow:hidden;aspect-ratio:4/3}
-.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
-.photo-thumb button{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center}
-.photo-thumb button:hover{background:rgba(192,57,43,.9)}
-.resp-grid{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
-.btn-mini{background:rgba(255,255,255,.08);border:1px solid var(--gris-borde);color:var(--blanco);padding:9px 12px;border-radius:5px;cursor:pointer;font-size:12px;transition:all .2s;white-space:nowrap}
-.btn-mini:hover{border-color:var(--verde-claro);background:rgba(61,156,90,.12)}
-.btn-mini.add{border-color:rgba(245,197,24,.35);color:var(--amarillo)}
-.btn-mini.add:hover{background:rgba(245,197,24,.08)}
-.f-actions{display:flex;gap:10px;justify-content:flex-end;padding-top:6px}
-.btn-pri{background:var(--verde);border:2px solid var(--verde-claro);color:#fff;padding:11px 26px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:7px}
-.btn-pri:hover{background:var(--verde-claro);transform:translateY(-1px);box-shadow:0 4px 14px rgba(45,122,69,.4)}
-.btn-pri:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.btn-sec{background:transparent;border:2px solid var(--gris-borde);color:var(--gris-texto);padding:11px 20px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:7px}
-.btn-sec:hover{border-color:var(--gris-texto);color:var(--blanco)}
-.search-bar{background:var(--gris);border:1px solid var(--gris-borde);border-radius:var(--r);padding:16px 18px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
-.search-bar .fgrp{flex:1;min-width:150px}
-.btn-bus{background:var(--amarillo);border:none;color:var(--verde);padding:9px 20px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:6px;height:38px;white-space:nowrap}
-.btn-bus:hover{background:#f7d040;transform:translateY(-1px)}
-.btn-bus.outline{background:transparent;border:1px solid var(--amarillo);color:var(--amarillo)}
-.btn-bus.outline:hover{background:rgba(245,197,24,.1)}
-.rec-count{font-size:13px;color:var(--gris-texto);margin-bottom:12px}
-.rec-count strong{color:var(--amarillo);font-size:15px}
-.rec-card{background:var(--gris);border:1px solid var(--gris-borde);border-radius:var(--r);margin-bottom:11px;overflow:hidden;transition:border-color .2s}
-.rec-card:hover{border-color:var(--verde-claro)}
-.rec-hdr{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--gris-med);transition:background .2s;user-select:none}
-.rec-hdr:hover{background:#353d35}
-.rec-meta{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
-.rec-date{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--amarillo)}
-.rec-badge{background:rgba(61,156,90,.15);border:1px solid rgba(61,156,90,.3);color:var(--verde-claro);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:2px 9px;border-radius:20px}
-.rec-info{font-size:12px;color:var(--gris-texto)}.rec-info strong{color:rgba(255,255,255,.8)}
-.rec-acts{display:flex;gap:7px;align-items:center}
-.btn-ico{background:rgba(255,255,255,.04);border:1px solid var(--gris-borde);color:var(--gris-texto);width:32px;height:32px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s}
-.btn-ico:hover{background:rgba(255,255,255,.1);color:var(--blanco)}
-.btn-ico.del:hover{background:rgba(192,57,43,.18);color:var(--rojo);border-color:var(--rojo)}
-.chev{color:var(--gris-texto);font-size:12px;transition:transform .3s}.chev.open{transform:rotate(180deg)}
-.rec-det{display:none;padding:18px}.rec-det.open{display:block}
-.det-ttl{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--gris-texto);margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--gris-borde);display:flex;align-items:center;gap:7px}
-.det-ttl i{color:var(--verde-claro)}
-.det-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:9px;margin-bottom:16px}
-.det-f{background:var(--gris-med);border-radius:5px;padding:8px 11px}
-.det-f .lb{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gris-texto);margin-bottom:3px;position:static;background:none;border:none}
-.det-f .vl{font-size:13px;color:var(--blanco);font-weight:500}
-.det-guias{background:var(--gris-med);border-radius:5px;overflow:hidden;margin-bottom:16px}
-.det-guias table{width:100%;border-collapse:collapse;font-size:12px}
-.det-guias th{background:rgba(0,0,0,.2);padding:8px 11px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--gris-texto)}
-.det-guias td{padding:7px 11px;border-top:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.8)}
-.ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:9px;margin-bottom:16px}
-.ph-card{background:var(--gris-med);border-radius:5px;overflow:hidden;border:1px solid var(--gris-borde)}
-.ph-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:pointer;transition:opacity .2s}
-.ph-card img:hover{opacity:.82}
-.ph-ci{padding:7px 9px;border-top:1px solid var(--gris-borde)}
-.ph-step{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--verde-claro);margin-bottom:2px}
-.ph-obs{font-size:11px;color:var(--gris-texto);line-height:1.4}
-.empty{text-align:center;padding:54px 20px;color:var(--gris-texto)}
-.empty i{font-size:40px;margin-bottom:12px;opacity:.25;display:block}
-.empty p{font-size:14px;margin-bottom:5px}.empty small{font-size:11px;opacity:.55}
-.drive-bar{background:rgba(26,92,46,.12);border:1px solid rgba(26,92,46,.28);border-radius:6px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:9px;font-size:12px;color:var(--gris-texto)}
-.drive-bar i{color:var(--verde-claro)}.drive-bar strong{color:var(--blanco)}
-.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+#main-app{display:none}
+body{font-family:var(--font-sans)}
+.sync-bar{font-size:.72rem;color:#94a3b8;font-weight:500}
+.state-shell{min-height:calc(100vh - 88px);display:flex;align-items:center;justify-content:center;padding:32px 16px}
+.state-card{max-width:520px;width:min(100%,520px)}
+.state-card-sm{max-width:500px}
+.state-logo{height:58px;margin-bottom:1rem}.state-logo-sm{height:48px}
+.fot-shell{max-width:1440px;margin:0 auto;padding:clamp(16px,2.5vw,28px)}
+.info-strip{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:12px 16px;background:rgba(255,255,255,.72);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-xs);font-size:var(--text-sm);color:var(--text-muted)}
+.page-intro{margin-bottom:16px}.intro-card{padding:1rem 1.2rem}.intro-text{color:var(--text-muted);font-size:var(--text-sm);margin-top:-4px}
+.fot-grid{grid-template-columns:1fr;gap:16px;padding:0}
+.form-grid{display:grid;gap:14px}.form-grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.form-grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.table-shell{overflow:auto;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.table-clean thead th{position:sticky;top:0;z-index:1}
+.table-clean td input,.table-clean td select{min-width:120px}
+.btn-icon{border:none;background:transparent;width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.btn-icon.danger{color:var(--danger)}.btn-icon.danger:hover{background:var(--danger-soft)}
+.resp-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}.resp-actions{display:flex;gap:8px}.input-upper{text-transform:uppercase}
+.steps-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.step-item{background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-xs)}
+.step-hdr{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#fff, var(--surface-raised))}
+.step-num{min-width:26px;height:26px;border-radius:8px;background:var(--acp-green);color:#fff;font-weight:800;font-family:var(--font-mono);display:flex;align-items:center;justify-content:center;font-size:.76rem}
+.step-desc{font-size:.83rem;color:var(--ink-soft);line-height:1.45;font-weight:600}
+.step-zone{padding:12px;display:flex;flex-direction:column;gap:10px}
+.photo-stage{position:relative;aspect-ratio:4/3;border:1.5px dashed var(--border-strong);border-radius:12px;background:linear-gradient(180deg,#f8fafc,#eef2f7);overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .2s, box-shadow .2s, transform .2s}
+.photo-stage:hover{border-color:var(--accent);box-shadow:var(--ring)}
+.photo-stage.has-photo{border-style:solid}
+.stage-image{width:100%;height:100%;object-fit:cover;display:block}
+.ph-ph{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text-muted);text-align:center;padding:16px}.ph-ph i{font-size:1.6rem;color:var(--accent)}.ph-ph span{font-size:.82rem;font-weight:700}
+.ph-overlay{position:absolute;inset:auto 0 0 0;padding:12px;display:flex;gap:8px;justify-content:flex-end;background:linear-gradient(180deg,transparent,rgba(15,23,42,.72));opacity:0;transition:opacity .2s}.photo-stage.has-photo:hover .ph-overlay{opacity:1}
+.ph-btn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.26);color:#fff;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:.76rem;font-weight:700}.ph-btn.del{color:#fee2e2}.ph-btn:hover{background:rgba(255,255,255,.28)}
+.photo-thumbs{display:flex;gap:8px;overflow:auto;padding-bottom:2px}.thumb-chip{position:relative;flex:0 0 88px;height:72px;border:2px solid transparent;background:#fff;border-radius:10px;padding:0;overflow:hidden;cursor:pointer;box-shadow:var(--shadow-xs)}.thumb-chip.active{border-color:var(--accent);box-shadow:var(--ring)}.thumb-chip img{width:100%;height:100%;object-fit:cover;display:block}.thumb-index{position:absolute;left:6px;bottom:6px;background:rgba(15,23,42,.72);color:#fff;font-size:.68rem;font-weight:700;border-radius:999px;padding:2px 6px}.thumb-remove{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:999px;background:rgba(15,23,42,.78);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem}
+.step-obs{min-height:48px}
+.footer-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:18px}
+.search-bar,.filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:12px;align-items:end}.filter-actions{display:flex;gap:8px;align-items:end}
+.rec-count{font-size:.92rem;color:var(--text-muted);margin:10px 0 12px}.rec-count strong{color:var(--ink)}
+.rec-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;box-shadow:var(--shadow-xs);overflow:hidden}.rec-hdr{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:16px;cursor:pointer;background:linear-gradient(180deg,#fff,var(--surface-raised))}.rec-hdr:hover{background:var(--surface-raised)}.rec-meta{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.rec-date{font-family:var(--font-mono);font-size:.9rem;font-weight:800;color:var(--acp-green)}.rec-badge{background:var(--accent-muted);border:1px solid color-mix(in srgb, var(--accent) 20%, transparent);padding:4px 10px;border-radius:999px;color:var(--accent);font-size:.72rem;font-weight:800}.rec-info{font-size:.82rem;color:var(--text-muted)}.rec-info strong{color:var(--ink)}.rec-acts{display:flex;align-items:center;gap:8px}.btn-ico{background:var(--surface-muted);border:1px solid var(--border);color:var(--text-muted);width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer}.btn-ico:hover{color:var(--danger);background:var(--danger-soft)}.chev{transition:transform .25s;color:var(--text-muted)}.chev.open{transform:rotate(180deg)}.rec-det{display:none;padding:16px;border-top:1px solid var(--border)}.rec-det.open{display:block}
+.det-ttl{font-size:.76rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}.det-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px}.det-f{background:var(--surface-muted);border:1px solid var(--border);border-radius:10px;padding:10px 12px}.det-f .lb{font-size:.68rem;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}.det-f .vl{font-size:.84rem;color:var(--ink);font-weight:700}.det-guias{background:var(--surface-muted);border:1px solid var(--border);border-radius:12px;overflow:auto;margin-bottom:16px}.det-guias table{width:100%;border-collapse:collapse}.det-guias th,.det-guias td{padding:9px 11px;font-size:.8rem;border-top:1px solid var(--border)}.det-guias th{background:#fff;border-top:none;color:var(--text-muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}.ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}.ph-card{background:var(--surface-muted);border:1px solid var(--border);border-radius:10px;overflow:hidden}.ph-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:pointer}.ph-ci{padding:8px 10px}.ph-step{font-size:.68rem;font-weight:800;text-transform:uppercase;color:var(--acp-green);margin-bottom:4px}.ph-obs{font-size:.75rem;color:var(--text-muted);line-height:1.4}
+.loading-ov{position:fixed;inset:0;background:rgba(241,245,249,.7);backdrop-filter:blur(8px);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9000;gap:14px}.spinner{display:inline-block;width:34px;height:34px;border:3px solid rgba(37,99,235,.18);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}.loading-ov p{font-size:.95rem;color:var(--ink-soft);font-weight:700}
+.lb-box{display:none;position:fixed;inset:0;background:rgba(15,23,42,.86);z-index:9999;align-items:center;justify-content:center;padding:20px}.lb-box.open{display:flex}.lb-box img{max-width:92vw;max-height:88vh;border-radius:12px;box-shadow:var(--elevation-lg)}.lb-cls{position:absolute;top:18px;right:22px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}.lb-cls:hover{background:rgba(255,255,255,.2)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:12px 18px;border-radius:12px;font-size:.85rem;font-weight:700;z-index:9998;display:flex;align-items:center;gap:8px;transform:translateY(70px);opacity:0;transition:all .3s;box-shadow:var(--shadow-md)}.toast.show{transform:translateY(0);opacity:1}.toast.err{background:var(--danger)}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9500;align-items:center;justify-content:center;padding:18px}.modal-backdrop.open{display:flex}.modal-clean{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--elevation-lg)}.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}.modal-title{font-size:1rem;font-weight:800;color:var(--ink)}.modal-close{background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer}.modal-close:hover{color:var(--ink)}.modal-body{padding:16px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:0 16px 16px}
+.user-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 10px 4px 4px}.user-avatar{width:30px;height:30px;border-radius:999px;border:2px solid rgba(255,255,255,.75);object-fit:cover}.user-name{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem;font-weight:600;color:#fff}.btn-logout{background:none;border:none;color:#cbd5e1;cursor:pointer}.btn-logout:hover{color:#fff}.nav-btn-ui.active{box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-ov{position:fixed;inset:0;background:rgba(22,27,22,.88);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9000;gap:14px}
-.loading-ov p{font-size:14px;color:var(--gris-texto)}
-.loading-ov .spinner{width:34px;height:34px;border-width:3px}
-.lb-box{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;align-items:center;justify-content:center}
-.lb-box.open{display:flex}
-.lb-box img{max-width:90vw;max-height:88vh;object-fit:contain;border-radius:5px}
-.lb-cls{position:absolute;top:18px;right:22px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}
-.lb-cls:hover{background:rgba(255,255,255,.18)}
-.toast{position:fixed;bottom:26px;right:26px;background:var(--verde);border:1px solid var(--verde-claro);color:#fff;padding:12px 18px;border-radius:7px;font-size:13px;font-weight:500;z-index:9998;display:flex;align-items:center;gap:8px;transform:translateY(70px);opacity:0;transition:all .3s}
-.toast.show{transform:translateY(0);opacity:1}.toast.err{background:var(--rojo);border-color:#e74c3c}
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9500;align-items:center;justify-content:center;padding:18px}
-.modal-backdrop.open{display:flex}
-.modal-box{background:var(--gris);border:1px solid var(--gris-borde);border-radius:10px;width:min(520px,100%);box-shadow:0 12px 40px rgba(0,0,0,.45)}
-.modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--gris-borde)}
-.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
-.modal-close{background:none;border:none;color:var(--gris-texto);font-size:20px;cursor:pointer}
-.modal-close:hover{color:var(--blanco)}
-.modal-body{padding:16px}
-.modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:0 16px 16px}
-@media(max-width:768px){.steps-grid,.fg3,.fg2{grid-template-columns:1fr}.resp-grid{grid-template-columns:1fr}header{padding:0 14px}.main{padding:14px}.h-titles span{display:none}}
+@media (max-width: 980px){.steps-grid,.form-grid.cols-2,.form-grid.cols-3,.filter-grid{grid-template-columns:1fr}.resp-grid{grid-template-columns:1fr}.filter-actions{justify-content:flex-start}.thumb-chip{flex-basis:78px;height:64px}}
 </style>
 </head>
 <body>
-
 <div class="loading-ov" id="lov"><div class="spinner"></div><p id="lovmsg">Cargando...</p></div>
 <div class="lb-box" id="lb" onclick="closeLB()"><button class="lb-cls" onclick="closeLB()"><i class="fa-solid fa-xmark"></i></button><img id="lb-img" src="" alt=""></div>
 <div class="toast" id="toast"><i class="fa-solid fa-check-circle"></i><span id="toast-msg"></span></div>
 
-<header>
-  <div class="h-brand">
-    <div class="h-logo">ACP</div>
-    <div class="h-titles">
-      <h1>Agrícola Cerro Prieto</h1>
-      <span>Informe Fotográfico — Recepción de Combustible</span>
+<header class="app-header">
+  <div class="app-header-brand">
+    <img src="logo.png" alt="ACP">
+    <div>
+      <h1>Informe Fotográfico — Recepción de Combustible</h1>
+      <div class="sync-bar">ACP · Google Drive · Google Sheets</div>
     </div>
   </div>
-  <nav class="h-nav">
-    <button class="nav-btn" id="btn-registro" onclick="switchView('registro')" style="display:none"><i class="fa-solid fa-camera"></i> Nuevo</button>
-    <button class="nav-btn" id="btn-consulta" onclick="switchView('consulta')" style="display:none"><i class="fa-solid fa-magnifying-glass"></i> Consultar</button>
+  <div class="app-header-actions">
+    <button class="btn btn-primary btn-sm nav-btn-ui" id="btn-registro" onclick="switchView('registro')" style="display:none"><i class="fa-solid fa-camera"></i> Nuevo</button>
+    <button class="btn btn-ghost btn-sm nav-btn-ui" id="btn-consulta" onclick="switchView('consulta')" style="display:none"><i class="fa-solid fa-magnifying-glass"></i> Consultar</button>
     <div class="user-chip" id="user-chip" style="display:none">
       <img class="user-avatar" id="user-avatar" src="" alt="">
       <span class="user-name" id="user-name"></span>
       <button class="btn-logout" onclick="signOut()" title="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
     </div>
-  </nav>
+  </div>
 </header>
 
-<!-- AUTH -->
-<div id="auth-screen">
-  <div class="auth-logo">ACP</div>
-  <div class="auth-title">Informe Fotográfico<br>Recepción de Combustible</div>
-  <div class="auth-sub">Inicie sesión con Google para acceder. Los informes se guardan en Google Drive y son visibles para todos los usuarios con acceso a la carpeta.</div>
-  <button class="btn-google" id="btn-gsi"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G"> Iniciar sesión con Google</button>
-  <div class="auth-note" style="margin-top:22px">
-    <strong>⚙️ Configuración requerida (una sola vez — solo el administrador):</strong><br><br>
-    1. Ir a <strong>console.cloud.google.com</strong> → Crear proyecto<br>
-    2. Activar <strong>Google Drive API</strong> y <strong>Google Sheets API</strong><br>
-    3. Crear credencial OAuth → tipo <strong>Aplicación web</strong><br>
-    4. Agregar <code>file://</code> o la URL donde aloje este HTML como origen autorizado<br>
-    5. Copiar el <strong>Client ID</strong> y reemplazar <code>TU_CLIENT_ID_AQUI</code> en el script<br><br>
-    <strong>Carpeta Drive:</strong> ID visible en la URL → <code>/folders/<strong>1M_9EFEq...</strong></code>
+<div id="auth-screen" class="state-shell">
+  <div class="login-card state-card">
+    <img src="logo.png" alt="ACP" class="state-logo">
+    <h2>Acceso al Informe Fotográfico</h2>
+    <p class="sub">Inicie sesión con Google para registrar y consultar evidencias de recepción de combustible.</p>
+    <button class="btn-google" id="btn-gsi"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G"> Iniciar sesión con Google</button>
+    <div class="auth-note" style="margin-top:22px">
+      <strong>Configuración requerida</strong><br><br>
+      1. Activar <strong>Google Drive API</strong> y <strong>Google Sheets API</strong><br>
+      2. Crear credencial OAuth tipo <strong>Aplicación web</strong><br>
+      3. Autorizar la URL donde alojes este HTML<br><br>
+      <strong>La carpeta de Drive</strong> almacena los informes y el libro <strong>LOG_COMBUSTIBLE</strong> alimenta el maestro de personas.
+    </div>
   </div>
 </div>
 
-<!-- SETUP -->
-<div id="setup-screen">
-  <div class="setup-card">
-    <div style="font-size:36px;margin-bottom:12px">📂</div>
-    <div class="setup-title">Conectar carpeta de Drive</div>
-    <div class="setup-sub">Pegue el ID de la carpeta donde se guardarán los informes. El ID está en la URL de Drive después de <code>/folders/</code></div>
-    <div class="frow">
-      <label>ID de la Carpeta Google Drive <span style="color:var(--amarillo)">*</span></label>
+<div id="setup-screen" class="state-shell">
+  <div class="login-card state-card state-card-sm">
+    <img src="logo.png" alt="ACP" class="state-logo state-logo-sm">
+    <h2>Conectar carpeta de Drive</h2>
+    <p class="sub">Pegue el ID de la carpeta donde se guardarán los informes fotográficos.</p>
+    <div class="field-group" style="text-align:left; margin-top:10px;">
+      <label class="field-label">ID de carpeta</label>
       <input type="text" id="folder-id-inp" placeholder="1M_9EFEq9x0thWP8sG2kVxDEnudNK0K1A" value="1M_9EFEq9x0thWP8sG2kVxDEnudNK0K1A">
-      <div class="hint-box"><strong>URL de ejemplo:</strong><br><code>drive.google.com/drive/folders/<strong style="color:var(--amarillo)">1M_9EFEq9x0thWP8sG2kVxDEnudNK0K1A</strong></code></div>
-      <button class="btn-connect" onclick="saveFolderStart()"><i class="fa-solid fa-link"></i> Conectar y continuar</button>
     </div>
+    <div class="auth-note" style="margin-top:14px">Tome el valor desde la URL de Drive, después de <code>/folders/</code>.</div>
+    <button class="btn btn-primary btn-full" onclick="saveFolderStart()" style="margin-top:16px"><i class="fa-solid fa-link"></i> Conectar y continuar</button>
   </div>
 </div>
 
-<!-- MAIN APP -->
-<div class="main" id="main-app">
-  <div class="drive-bar" id="drive-bar">
-    <i class="fa-brands fa-google-drive"></i>
-    <span>Almacenamiento: Google Drive → <strong id="drv-folder-name">cargando...</strong></span>
-    <span style="margin-left:auto;font-size:11px;opacity:.6" id="drv-sync"></span>
+<main class="fot-shell" id="main-app">
+  <div class="info-strip" id="drive-bar">
+    <div><i class="fa-brands fa-google-drive"></i> Almacenamiento: <strong id="drv-folder-name">cargando...</strong></div>
+    <span id="drv-sync"></span>
   </div>
 
-  <!-- REGISTRO -->
-  <div class="view" id="view-registro">
-    <div class="pg-title"><i class="fa-solid fa-camera" style="color:var(--amarillo);margin-right:8px;font-size:20px"></i>Nuevo Informe Fotográfico</div>
-    <div class="pg-sub">Complete todos los campos del formato oficial de recepción de combustible — Agrícola Cerro Prieto</div>
-
-    <div class="card">
-      <div class="card-hdr"><i class="fa-solid fa-file-lines"></i><h3>Datos Generales</h3></div>
-      <div class="card-body">
-        <div class="fg fg3">
-          <div class="fgrp"><label class="lbl">Fecha <span class="req">*</span></label><input type="date" id="f-fecha"></div>
-          <div class="fgrp"><label class="lbl">Proveedor <span class="req">*</span></label><input type="text" id="f-prov" value="Corporación Primax S.A." placeholder="Ej: Corporación Primax S.A."></div>
-          <div class="fgrp"><label class="lbl">N° de Informe</label><input type="text" id="f-ninf" readonly style="opacity:.55"></div>
-        </div>
-      </div>
+  <section class="view active" id="view-registro">
+    <div class="page-intro card intro-card">
+      <h2 class="card-title"><span class="icon">📷</span> Nuevo Informe Fotográfico</h2>
+      <p class="intro-text">Complete el formato oficial, seleccione responsables desde <strong>MAESTRO_PERSONAS</strong> y adjunte evidencias por paso.</p>
     </div>
 
-    <div class="card">
-      <div class="card-hdr"><i class="fa-solid fa-receipt"></i><h3>Guías de Remisión</h3></div>
-      <div class="card-body">
-        <div style="overflow-x:auto">
-          <table class="gt">
+    <div class="dashboard fot-grid">
+      <section class="card full-width">
+        <h3 class="card-title"><span class="icon">🧾</span> Datos generales</h3>
+        <div class="form-grid cols-3">
+          <div class="field-group"><label class="field-label">Fecha <span class="req">*</span></label><input type="date" id="f-fecha"></div>
+          <div class="field-group"><label class="field-label">Proveedor <span class="req">*</span></label><input type="text" id="f-prov" class="input-upper" value="CORPORACIÓN PRIMAX S.A." placeholder="CORPORACIÓN PRIMAX S.A."></div>
+          <div class="field-group"><label class="field-label">N° de Informe</label><input type="text" id="f-ninf" readonly style="opacity:.7"></div>
+        </div>
+      </section>
+
+      <section class="card full-width">
+        <h3 class="card-title"><span class="icon">🚚</span> Guías de remisión</h3>
+        <div class="table-shell">
+          <table class="gt table-clean">
             <thead><tr><th>Serie</th><th>N° Guía</th><th>Tipo de Combustible</th><th>Cantidad (gal)</th><th></th></tr></thead>
             <tbody id="gtb">
               <tr>
@@ -271,139 +146,109 @@ textarea{resize:vertical;min-height:64px}
                 <td><input type="text" placeholder="N° guía"></td>
                 <td><select><option value="">Seleccionar...</option><option>PETRÓLEO</option><option>GASOLINA</option><option>GLP</option><option>DIESEL B5</option></select></td>
                 <td><input type="number" placeholder="0" min="0"></td>
-                <td><button class="btn-del" onclick="delG(this)"><i class="fa-solid fa-trash-can"></i></button></td>
+                <td><button class="btn-icon danger" onclick="delG(this)" type="button"><i class="fa-solid fa-trash-can"></i></button></td>
               </tr>
             </tbody>
           </table>
         </div>
-        <button class="btn-add" onclick="addG()"><i class="fa-solid fa-plus"></i> Agregar guía</button>
-      </div>
-    </div>
+        <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="addG()"><i class="fa-solid fa-plus"></i> Agregar guía</button></div>
+      </section>
 
-    <div class="card">
-      <div class="card-hdr"><i class="fa-solid fa-users"></i><h3>Responsables</h3></div>
-      <div class="card-body">
-        <div class="fg fg2">
-          <div class="fgrp">
-            <label class="lbl">Operario de Almacén 1 <span class="req">*</span></label>
+      <section class="card full-width">
+        <h3 class="card-title"><span class="icon">👷</span> Responsables</h3>
+        <div class="form-grid cols-2">
+          <div class="field-group">
+            <label class="field-label">Operario de Almacén 1 <span class="req">*</span></label>
             <div class="resp-grid">
-              <select id="f-op1">
-                <option value="">Cargando operarios...</option>
-              </select>
-              <div style="display:flex;gap:8px">
-                <button type="button" class="btn-mini" onclick="cargarMaestroPersonas()"><i class="fa-solid fa-rotate"></i></button>
-                <button type="button" class="btn-mini add" onclick="abrirModalPersona('OPERARIO')"><i class="fa-solid fa-plus"></i></button>
+              <select id="f-op1"><option value="">Cargando operarios...</option></select>
+              <div class="resp-actions">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="cargarMaestroPersonas()"><i class="fa-solid fa-rotate"></i></button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="abrirModalPersona('OPERARIO')"><i class="fa-solid fa-plus"></i></button>
               </div>
             </div>
           </div>
-
-          <div class="fgrp">
-            <label class="lbl">Operario de Almacén 2</label>
+          <div class="field-group">
+            <label class="field-label">Operario de Almacén 2</label>
             <div class="resp-grid">
-              <select id="f-op2">
-                <option value="">Cargando operarios...</option>
-              </select>
-              <div style="display:flex;gap:8px">
-                <button type="button" class="btn-mini" onclick="cargarMaestroPersonas()"><i class="fa-solid fa-rotate"></i></button>
-                <button type="button" class="btn-mini add" onclick="abrirModalPersona('OPERARIO')"><i class="fa-solid fa-plus"></i></button>
+              <select id="f-op2"><option value="">Cargando operarios...</option></select>
+              <div class="resp-actions">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="cargarMaestroPersonas()"><i class="fa-solid fa-rotate"></i></button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="abrirModalPersona('OPERARIO')"><i class="fa-solid fa-plus"></i></button>
               </div>
             </div>
           </div>
-
-          <div class="fgrp">
-            <label class="lbl">Conductor <span class="req">*</span></label>
+          <div class="field-group">
+            <label class="field-label">Conductor <span class="req">*</span></label>
             <div class="resp-grid">
-              <select id="f-cond">
-                <option value="">Cargando conductores...</option>
-              </select>
-              <div style="display:flex;gap:8px">
-                <button type="button" class="btn-mini" onclick="cargarMaestroPersonas()"><i class="fa-solid fa-rotate"></i></button>
-                <button type="button" class="btn-mini add" onclick="abrirModalPersona('CONDUCTOR')"><i class="fa-solid fa-plus"></i></button>
+              <select id="f-cond"><option value="">Cargando conductores...</option></select>
+              <div class="resp-actions">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="cargarMaestroPersonas()"><i class="fa-solid fa-rotate"></i></button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="abrirModalPersona('CONDUCTOR')"><i class="fa-solid fa-plus"></i></button>
               </div>
             </div>
           </div>
-
-          <div class="fgrp">
-            <label class="lbl">Observaciones Generales</label>
+          <div class="field-group">
+            <label class="field-label">Observaciones Generales</label>
             <input type="text" id="f-obs" placeholder="Novedades adicionales">
           </div>
+        </div>
+      </section>
+
+      <section class="card full-width">
+        <h3 class="card-title"><span class="icon">🖼️</span> Registro fotográfico por procedimiento</h3>
+        <div class="steps-grid" id="steps-c"></div>
+      </section>
+    </div>
+
+    <div class="footer-actions">
+      <button class="btn btn-ghost" onclick="limpiar()"><i class="fa-solid fa-rotate-left"></i> Limpiar</button>
+      <button class="btn btn-primary" id="btn-save" onclick="guardar()"><i class="fa-solid fa-floppy-disk"></i> Guardar en Drive</button>
+    </div>
+  </section>
+
+  <section class="view" id="view-consulta">
+    <div class="page-intro card intro-card">
+      <h2 class="card-title"><span class="icon">📂</span> Consulta de Registros</h2>
+      <p class="intro-text">Filtre y revise los informes guardados en la carpeta compartida de Drive.</p>
+    </div>
+
+    <div class="card full-width">
+      <div class="filter-grid">
+        <div class="field-group"><label class="field-label">Fecha desde</label><input type="date" id="q-desde"></div>
+        <div class="field-group"><label class="field-label">Fecha hasta</label><input type="date" id="q-hasta"></div>
+        <div class="field-group"><label class="field-label">Proveedor</label><input type="text" id="q-prov" placeholder="Filtrar por proveedor..."></div>
+        <div class="filter-actions">
+          <button class="btn btn-primary btn-sm" onclick="buscar()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
+          <button class="btn btn-ghost btn-sm" onclick="buscar()"><i class="fa-solid fa-rotate"></i> Actualizar</button>
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-hdr"><i class="fa-solid fa-images"></i><h3>Registro Fotográfico por Procedimiento</h3></div>
-      <div class="card-body"><div class="steps-grid" id="steps-c"></div></div>
-    </div>
-
-    <div class="f-actions">
-      <button class="btn-sec" onclick="limpiar()"><i class="fa-solid fa-rotate-left"></i> Limpiar</button>
-      <button class="btn-pri" id="btn-save" onclick="guardar()"><i class="fa-solid fa-floppy-disk"></i> Guardar en Drive</button>
-    </div>
-  </div>
-
-  <!-- CONSULTA -->
-  <div class="view" id="view-consulta">
-    <div class="pg-title"><i class="fa-solid fa-folder-open" style="color:var(--amarillo);margin-right:8px;font-size:20px"></i>Consulta de Registros</div>
-    <div class="pg-sub">Informes almacenados en Google Drive — accesibles para todos los usuarios con acceso a la carpeta</div>
-
-    <div class="search-bar">
-      <div class="fgrp"><label class="lbl">Fecha desde</label><input type="date" id="q-desde"></div>
-      <div class="fgrp"><label class="lbl">Fecha hasta</label><input type="date" id="q-hasta"></div>
-      <div class="fgrp"><label class="lbl">Proveedor</label><input type="text" id="q-prov" placeholder="Filtrar por proveedor..."></div>
-      <button class="btn-bus" onclick="buscar()"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
-      <button class="btn-bus outline" onclick="buscar()"><i class="fa-solid fa-rotate"></i> Actualizar</button>
-    </div>
     <div id="resultados"></div>
-  </div>
-</div>
+  </section>
+</main>
 
 <div id="file-inp-c" style="display:none"></div>
 
-<!-- MODAL NUEVA PERSONA -->
 <div id="modalPersona" class="modal-backdrop" onclick="if(event.target===this)cerrarModalPersona()">
-  <div class="modal-box">
+  <div class="modal-box modal-clean">
     <div class="modal-header">
       <span class="modal-title">Registrar persona</span>
       <button class="modal-close" type="button" onclick="cerrarModalPersona()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="fg fg2">
-        <div class="fgrp">
-          <label class="lbl">Nombre <span class="req">*</span></label>
-          <input type="text" id="mp-nombre" placeholder="Nombre completo">
-        </div>
-        <div class="fgrp">
-          <label class="lbl">Tipo <span class="req">*</span></label>
-          <select id="mp-tipo">
-            <option value="OPERARIO">OPERARIO</option>
-            <option value="CONDUCTOR">CONDUCTOR</option>
-          </select>
-        </div>
-        <div class="fgrp">
-          <label class="lbl">Epresa</label>
-          <input type="text" id="mp-epresa" placeholder="Ej: ACP o Primax">
-        </div>
-        <div class="fgrp">
-          <label class="lbl">Estado</label>
-          <select id="mp-estado">
-            <option value="ACTIVO" selected>ACTIVO</option>
-            <option value="INACTIVO">INACTIVO</option>
-          </select>
-        </div>
-        <div class="fgrp">
-          <label class="lbl">Sucursal</label>
-          <input type="text" id="mp-sucursal" value="ACP" placeholder="ACP">
-        </div>
-        <div class="fgrp">
-          <label class="lbl">Obs</label>
-          <input type="text" id="mp-obs" placeholder="Observación opcional">
-        </div>
+      <div class="form-grid cols-2">
+        <div class="field-group"><label class="field-label">Nombre <span class="req">*</span></label><input type="text" id="mp-nombre" placeholder="Nombre completo"></div>
+        <div class="field-group"><label class="field-label">Tipo <span class="req">*</span></label><select id="mp-tipo"><option value="OPERARIO">OPERARIO</option><option value="CONDUCTOR">CONDUCTOR</option></select></div>
+        <div class="field-group"><label class="field-label">Epresa</label><input type="text" id="mp-epresa" placeholder="Ej: ACP o PRIMAX"></div>
+        <div class="field-group"><label class="field-label">Estado</label><select id="mp-estado"><option value="ACTIVO" selected>ACTIVO</option><option value="INACTIVO">INACTIVO</option></select></div>
+        <div class="field-group"><label class="field-label">Sucursal</label><input type="text" id="mp-sucursal" value="ACP" placeholder="ACP"></div>
+        <div class="field-group"><label class="field-label">Obs</label><input type="text" id="mp-obs" placeholder="Observación opcional"></div>
       </div>
     </div>
     <div class="modal-actions">
-      <button type="button" class="btn-sec" onclick="cerrarModalPersona()">Cancelar</button>
-      <button type="button" class="btn-pri" id="btn-save-persona" onclick="guardarPersona()">Guardar</button>
+      <button type="button" class="btn btn-ghost" onclick="cerrarModalPersona()">Cancelar</button>
+      <button type="button" class="btn btn-primary" id="btn-save-persona" onclick="guardarPersona()">Guardar</button>
     </div>
   </div>
 </div>
@@ -444,7 +289,7 @@ const PASOS = [
 ];
 
 // ════ STATE ════
-let token = null, folderID = localStorage.getItem('acp_fid')||'', user = null, photos = {};
+let token = null, folderID = localStorage.getItem('acp_fid')||'', user = null, photos = {}, activePhotoIndex = {};
 let maestroPersonas = [];
 let tipoPersonaPendiente = 'OPERARIO';
 
@@ -452,6 +297,7 @@ let tipoPersonaPendiente = 'OPERARIO';
 window.addEventListener('load', ()=>{
   renderSteps();
   setToday();
+  bindProveedorUppercase();
   const st = sessionStorage.getItem('acp_tok');
   const su = sessionStorage.getItem('acp_usr');
   if(st && su){ token=st; user=JSON.parse(su); showApp(); }
@@ -629,7 +475,7 @@ function abrirModalPersona(tipo='OPERARIO'){
   tipoPersonaPendiente = tipo;
   document.getElementById('mp-nombre').value='';
   document.getElementById('mp-tipo').value=tipo;
-  document.getElementById('mp-epresa').value=tipo==='CONDUCTOR' ? 'Corporación Primax S.A.' : 'ACP';
+  document.getElementById('mp-epresa').value=tipo==='CONDUCTOR' ? 'CORPORACIÓN PRIMAX S.A.' : 'ACP';
   document.getElementById('mp-estado').value='ACTIVO';
   document.getElementById('mp-sucursal').value='ACP';
   document.getElementById('mp-obs').value='';
@@ -681,22 +527,28 @@ async function guardarPersona(){
 function renderSteps(){
   const c=document.getElementById('steps-c'); c.innerHTML='';
   const fi=document.getElementById('file-inp-c'); fi.innerHTML='';
+
   PASOS.forEach(p=>{
     if(!Array.isArray(photos[p.n])) photos[p.n]=[];
-    const d=document.createElement('div'); d.className='step-item';
+    if(typeof activePhotoIndex[p.n] !== 'number') activePhotoIndex[p.n]=0;
+
+    const d=document.createElement('div');
+    d.className='step-item';
     d.innerHTML=`
       <div class="step-hdr"><div class="step-num">${p.n}</div><div class="step-desc">${p.d}</div></div>
       <div class="step-zone">
-        <div class="photo-area" id="pa-${p.n}" onclick="trigUp(${p.n})">
-          <div class="ph-ph"><i class="fa-solid fa-camera"></i><span>Clic para subir<br>fotografía(s)</span></div>
+        <div class="photo-stage" id="pa-${p.n}" onclick="trigUp(${p.n})">
+          <div class="ph-ph" id="ph-${p.n}"><i class="fa-solid fa-camera"></i><span>Clic para subir fotografía(s)</span></div>
+          <img class="stage-image" id="main-${p.n}" src="" alt="Paso ${p.n}" style="display:none" onclick="event.stopPropagation();openMainPhoto(${p.n})">
           <div class="ph-overlay">
             <button class="ph-btn" onclick="event.stopPropagation();trigUp(${p.n})"><i class="fa-solid fa-arrow-up-from-bracket"></i> Agregar</button>
             <button class="ph-btn del" onclick="event.stopPropagation();remAllPhotos(${p.n})"><i class="fa-solid fa-trash-can"></i> Quitar todas</button>
           </div>
         </div>
-        <div class="photo-list" id="pl-${p.n}"></div>
+        <div class="photo-thumbs" id="pl-${p.n}"></div>
         <textarea class="step-obs" id="obs-${p.n}" placeholder="Observación paso ${p.n}..." rows="2"></textarea>
       </div>`;
+
     c.appendChild(d);
     const inp=document.createElement('input');
     inp.type='file';
@@ -708,6 +560,7 @@ function renderSteps(){
     renderPhotoList(p.n);
   });
 }
+
 function trigUp(n){ document.getElementById('fi-'+n).click(); }
 
 function handleUp(e,n){
@@ -715,19 +568,24 @@ function handleUp(e,n){
   if(!files.length) return;
   if(!Array.isArray(photos[n])) photos[n]=[];
 
+  const shouldKeepCurrent = photos[n].length > 0;
   let pending=files.length;
+
   files.forEach(file=>{
     const img=new Image(), reader=new FileReader();
     reader.onload=ev=>{
       img.onload=()=>{
         const cv=document.createElement('canvas');
-        let w=img.width,h=img.height; const mx=800;
+        let w=img.width,h=img.height; const mx=1600;
         if(w>mx){h=Math.round(h*mx/w);w=mx;}
         cv.width=w;cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h);
-        const b64=cv.toDataURL('image/jpeg',0.78);
+        const b64=cv.toDataURL('image/jpeg',0.82);
         photos[n].push(b64);
         pending--;
-        if(pending===0) renderPhotoList(n);
+        if(pending===0){
+          if(!shouldKeepCurrent) activePhotoIndex[n]=0;
+          renderPhotoList(n);
+        }
       };
       img.src=ev.target.result;
     };
@@ -737,35 +595,75 @@ function handleUp(e,n){
 }
 
 function renderPhotoList(n){
-  const list=document.getElementById('pl-'+n);
-  const area=document.getElementById('pa-'+n);
-  if(!list || !area) return;
-  const arr=Array.isArray(photos[n]) ? photos[n] : [];
-  list.innerHTML = arr.map((src,idx)=>`
-    <div class="photo-thumb">
-      <img src="${src}" alt="Paso ${n} foto ${idx+1}">
-      <button type="button" onclick="event.stopPropagation();remPhoto(${n},${idx})"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-  `).join('');
+  const thumbs=document.getElementById('pl-'+n);
+  const stage=document.getElementById('pa-'+n);
+  const main=document.getElementById('main-'+n);
+  const placeholder=document.getElementById('ph-'+n);
+  if(!thumbs || !stage || !main || !placeholder) return;
 
-  if(arr.length){
-    area.classList.add('has-photo');
-    area.querySelector('.ph-ph').style.display='none';
-  }else{
-    area.classList.remove('has-photo');
-    area.querySelector('.ph-ph').style.display='';
+  const arr=Array.isArray(photos[n]) ? photos[n] : [];
+  if(!arr.length){
+    activePhotoIndex[n]=0;
+    main.style.display='none';
+    main.src='';
+    placeholder.style.display='flex';
+    thumbs.innerHTML='';
+    stage.classList.remove('has-photo');
+    return;
   }
+
+  if(activePhotoIndex[n] >= arr.length) activePhotoIndex[n] = arr.length - 1;
+  if(activePhotoIndex[n] < 0) activePhotoIndex[n] = 0;
+
+  main.src = arr[activePhotoIndex[n]];
+  main.style.display='block';
+  placeholder.style.display='none';
+  stage.classList.add('has-photo');
+
+  thumbs.innerHTML = arr.map((src,idx)=>`
+    <button type="button" class="thumb-chip ${idx===activePhotoIndex[n] ? 'active' : ''}" onclick="event.stopPropagation();setActivePhoto(${n},${idx})">
+      <img src="${src}" alt="Paso ${n} foto ${idx+1}">
+      <span class="thumb-index">${idx+1}</span>
+      <span class="thumb-remove" onclick="event.stopPropagation();remPhoto(${n},${idx})"><i class="fa-solid fa-xmark"></i></span>
+    </button>
+  `).join('');
+}
+
+function setActivePhoto(n,idx){
+  activePhotoIndex[n]=idx;
+  renderPhotoList(n);
+}
+
+function openMainPhoto(n){
+  const arr=Array.isArray(photos[n]) ? photos[n] : [];
+  const idx=typeof activePhotoIndex[n]==='number' ? activePhotoIndex[n] : 0;
+  if(arr[idx]) openLB(arr[idx]);
 }
 
 function remPhoto(n,idx){
   if(!Array.isArray(photos[n])) return;
   photos[n].splice(idx,1);
+  if(activePhotoIndex[n] > idx) activePhotoIndex[n]--;
+  if(activePhotoIndex[n] >= photos[n].length) activePhotoIndex[n] = Math.max(photos[n].length - 1, 0);
   renderPhotoList(n);
 }
 
 function remAllPhotos(n){
   photos[n]=[];
+  activePhotoIndex[n]=0;
   renderPhotoList(n);
+}
+
+function bindProveedorUppercase(){
+  const inp = document.getElementById('f-prov');
+  if(!inp) return;
+  inp.addEventListener('input', ()=>{
+    const start = inp.selectionStart;
+    const end = inp.selectionEnd;
+    inp.value = inp.value.toUpperCase();
+    try{ inp.setSelectionRange(start, end); }catch(e){}
+  });
+  inp.value = (inp.value || '').toUpperCase();
 }
 
 // ════ GUÍAS ════
@@ -793,7 +691,8 @@ function getGuias(){
 // ════ GUARDAR ════
 async function guardar(){
   const fecha=document.getElementById('f-fecha').value;
-  const prov=document.getElementById('f-prov').value.trim();
+  const prov=document.getElementById('f-prov').value.trim().toUpperCase();
+  document.getElementById('f-prov').value = prov;
   const op1=document.getElementById('f-op1').value.trim();
   const cond=document.getElementById('f-cond').value.trim();
 
@@ -944,7 +843,7 @@ function setToday(){ document.getElementById('f-fecha').value=new Date().toISOSt
 function fmtF(f){ if(!f)return'—'; const[y,m,d]=f.split('-'); return`${d} ${['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(m)-1]} ${y}`; }
 function limpiar(){
   document.getElementById('f-fecha').value=new Date().toISOString().split('T')[0];
-  document.getElementById('f-prov').value='Corporación Primax S.A.';
+  document.getElementById('f-prov').value='CORPORACIÓN PRIMAX S.A.';
   document.getElementById('f-op1').value='';
   document.getElementById('f-op2').value='';
   document.getElementById('f-cond').value='';
@@ -958,7 +857,7 @@ function limpiar(){
 }
 async function switchView(v){
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn-ui').forEach(x=>x.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.getElementById('btn-'+v).classList.add('active');
   if(v==='consulta') buscar();
