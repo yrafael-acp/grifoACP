@@ -92,8 +92,13 @@ textarea{resize:vertical;min-height:64px}
 .ph-ph{display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none}
 .ph-ph i{font-size:22px;color:var(--gris-texto)}
 .ph-ph span{font-size:10px;color:var(--gris-texto);text-align:center;line-height:1.4}
-.step-obs{background:var(--oscuro);border:1px solid var(--gris-borde);border-radius:4px;color:rgba(255,255,255,.75);padding:6px 9px;font-family:'Barlow',sans-serif;font-size:11px;resize:none;min-height:44px;width:100%}
+.step-obs{background:var(--oscuro);border:1px solid var(--gris-borde);border-radius:4px;color:rgba(255,255,255,.75);padding:6px 9px;font-family:'Barlow',sans-serif;font-size:11px;resize:vertical;min-height:44px;width:100%}
 .step-obs:focus{outline:none;border-color:var(--verde-claro)}
+.photo-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.photo-thumb{position:relative;background:var(--oscuro);border:1px solid var(--gris-borde);border-radius:5px;overflow:hidden;aspect-ratio:4/3}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-thumb button{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center}
+.photo-thumb button:hover{background:rgba(192,57,43,.9)}
 .f-actions{display:flex;gap:10px;justify-content:flex-end;padding-top:6px}
 .btn-pri{background:var(--verde);border:2px solid var(--verde-claro);color:#fff;padding:11px 26px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:7px}
 .btn-pri:hover{background:var(--verde-claro);transform:translateY(-1px);box-shadow:0 4px 14px rgba(45,122,69,.4)}
@@ -314,28 +319,29 @@ const CLIENT_ID = '905998954334-jib8l6g3he68m7p2f52kafeav8ucrmie.apps.googleuser
 const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile';
 
 // ════════════════════════════════════════════
-//  PROCEDIMIENTO (19 pasos del formato)
+//  PROCEDIMIENTO (20 pasos del formato)
 // ════════════════════════════════════════════
 const PASOS = [
-  {n:1,  d:"La cisterna pasa a balanza — pesado inicial del camión cisterna (ticket de peso bruto)."},
-  {n:2,  d:"El personal de almacén debe contar con los EPPS. El conductor debe contar con EPPS."},
-  {n:3,  d:"El operario de almacén toma las medidas iniciales en el tanque principal ACP."},
-  {n:4,  d:"El operario revisa que la caja de válvulas cuente con el precinto detallado en la bitácora."},
-  {n:5,  d:"El operario verifica que los precintos de las válvulas de descarga y tapa coincidan con la bitácora."},
-  {n:6,  d:"El operario toma la medida de los compartimientos de la cisterna con la varilla de aluminio."},
-  {n:7,  d:"El operario realiza la prueba COLOR OUT para determinar que NO hay presencia de AGUA en el combustible."},
-  {n:8,  d:"Se dirige la cisterna a la zona de descarga y se coloca el cable puesta tierra, extintores y kit antiderrame."},
-  {n:9,  d:"Se realizan pruebas en el balde de aluminio para cerciorarse que el combustible no está contaminado."},
-  {n:10, d:"Se verifica que la manguera de descarga de la cisterna cuente con la malla metálica."},
-  {n:11, d:"Una vez conectada la manguera, el conductor abre las válvulas y el operario enciende la motobomba."},
-  {n:12, d:"Después de descargar al tanque, el conductor retira la manguera."},
-  {n:13, d:"Se indica al conductor que dé la vuelta al grifo para acumular el líquido en el fondo de los compartimientos."},
-  {n:14, d:"El operario de almacén realiza el desconche con un balde de aluminio."},
-  {n:15, d:"El operario de almacén revisa que los compartimientos queden vacíos."},
-  {n:16, d:"Luego de 20 minutos, el operario sube al tanque principal para tomar las medidas finales."},
-  {n:17, d:"El conductor firma el informe de recepción final una vez terminado el proceso de descarga."},
-  {n:18, d:"El operario de almacén firma el informe de recepción final una vez terminado el proceso de descarga."},
-  {n:19, d:"Finalmente el conductor pasa por balanza para el pesado final y se le entrega el ticket (destare)."},
+  {n:1,  d:"La cisterna pasa a balanza, donde se realiza el pesado del camión cisterna emitiendo un ticket que será utilizado cuando el camión haya descargado, esto servirá para realizar el destare correspondiente."},
+  {n:2,  d:"El personal de almacén debe contar con los EPPS."},
+  {n:3,  d:"El conductor debe contar con EPPS."},
+  {n:4,  d:"El operario de almacén toma las medidas iniciales en el tanque principal ACP, para determinar cuanto combustible tenemos antes de la descarga."},
+  {n:5,  d:"El operario de almacén revisa que la caja de válvulas cuente con el precinto detallado en la bitácora."},
+  {n:6,  d:"El operario de almacén revisa que los precintos de las válvulas de descarga y los de tapa, coincidan con los detallados en la bitácora."},
+  {n:7,  d:"El operario de almacén toma la medida de los compartimientos de la cisterna, con la varilla de aluminio."},
+  {n:8,  d:"El operario de almacén realiza la prueba COLOR OUT, para determinar QUE NO hay presencia de AGUA en el combustible."},
+  {n:9,  d:"Se dirige la cisterna a la zona de descarga y se   coloca el cable puesta tierra, los extintores, y el kit antiderrame."},
+  {n:10, d:"Se realiza pruebas en el balde de aluminio para cerciorarse que el combustible no está contaminado"},
+  {n:11, d:"Se verifica que la manguera de descarga de la cisterna cuente con la malla metálica."},
+  {n:12, d:"Una vez conectada la manguera de descarga el conductor abre las válvulas y el operario de almacén enciende la motobomba."},
+  {n:13, d:"Después de descargar al tanque, el conductor retira la manguera."},
+  {n:14, d:"Se le indica al conductor de la cisterna que dé la vuelta al grifo, para acumular el liquido en el fondo de los compartimientos."},
+  {n:15, d:"El operario de almacén realiza el desconche con un balde de aluminio."},
+  {n:16, d:"El operario de almacén revisa que los compartimientos queden vacíos."},
+  {n:17, d:"Luego de que hayan pasado 20 minutos, el operario de almacén sube al tanque principal para tomar las medidas finales."},
+  {n:18, d:"El conductor firma el informe de recepción final, una vez que se haya terminado el proceso de descarga."},
+  {n:19, d:"El operario de almacén firma el informe de recepción final, una vez que se haya terminado el proceso de descarga."},
+  {n:20, d:"Finalmente, el conductor pasa por balanza para el pesado final, y se le entrega el ticket."},
 ];
 
 // ════ STATE ════
@@ -446,45 +452,90 @@ function renderSteps(){
   const c=document.getElementById('steps-c'); c.innerHTML='';
   const fi=document.getElementById('file-inp-c'); fi.innerHTML='';
   PASOS.forEach(p=>{
+    if(!Array.isArray(photos[p.n])) photos[p.n]=[];
     const d=document.createElement('div'); d.className='step-item';
     d.innerHTML=`
       <div class="step-hdr"><div class="step-num">${p.n}</div><div class="step-desc">${p.d}</div></div>
       <div class="step-zone">
         <div class="photo-area" id="pa-${p.n}" onclick="trigUp(${p.n})">
-          <div class="ph-ph"><i class="fa-solid fa-camera"></i><span>Clic para subir<br>fotografía</span></div>
+          <div class="ph-ph"><i class="fa-solid fa-camera"></i><span>Clic para subir<br>fotografía(s)</span></div>
           <div class="ph-overlay">
-            <button class="ph-btn" onclick="event.stopPropagation();trigUp(${p.n})"><i class="fa-solid fa-arrow-up-from-bracket"></i> Cambiar</button>
-            <button class="ph-btn del" onclick="event.stopPropagation();remPhoto(${p.n})"><i class="fa-solid fa-trash-can"></i> Quitar</button>
+            <button class="ph-btn" onclick="event.stopPropagation();trigUp(${p.n})"><i class="fa-solid fa-arrow-up-from-bracket"></i> Agregar</button>
+            <button class="ph-btn del" onclick="event.stopPropagation();remAllPhotos(${p.n})"><i class="fa-solid fa-trash-can"></i> Quitar todas</button>
           </div>
         </div>
+        <div class="photo-list" id="pl-${p.n}"></div>
         <textarea class="step-obs" id="obs-${p.n}" placeholder="Observación paso ${p.n}..." rows="2"></textarea>
       </div>`;
     c.appendChild(d);
-    const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.id='fi-'+p.n;
-    inp.addEventListener('change', e=>handleUp(e,p.n)); fi.appendChild(inp);
+    const inp=document.createElement('input');
+    inp.type='file';
+    inp.accept='image/*';
+    inp.multiple=true;
+    inp.id='fi-'+p.n;
+    inp.addEventListener('change', e=>handleUp(e,p.n));
+    fi.appendChild(inp);
+    renderPhotoList(p.n);
   });
 }
 function trigUp(n){ document.getElementById('fi-'+n).click(); }
+
 function handleUp(e,n){
-  const file=e.target.files[0]; if(!file) return;
-  const img=new Image(), reader=new FileReader();
-  reader.onload=ev=>{ img.onload=()=>{
-    const cv=document.createElement('canvas');
-    let w=img.width,h=img.height; const mx=800;
-    if(w>mx){h=Math.round(h*mx/w);w=mx;}
-    cv.width=w;cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h);
-    const b64=cv.toDataURL('image/jpeg',0.78);
-    photos[n]=b64;
-    const area=document.getElementById('pa-'+n);
-    area.querySelector('img')?.remove();
-    const im=document.createElement('img'); im.src=b64; area.insertBefore(im,area.firstChild);
-    area.classList.add('has-photo'); area.querySelector('.ph-ph').style.display='none';
-  }; img.src=ev.target.result; }; reader.readAsDataURL(file); e.target.value='';
+  const files=Array.from(e.target.files||[]);
+  if(!files.length) return;
+  if(!Array.isArray(photos[n])) photos[n]=[];
+
+  let pending=files.length;
+  files.forEach(file=>{
+    const img=new Image(), reader=new FileReader();
+    reader.onload=ev=>{
+      img.onload=()=>{
+        const cv=document.createElement('canvas');
+        let w=img.width,h=img.height; const mx=800;
+        if(w>mx){h=Math.round(h*mx/w);w=mx;}
+        cv.width=w;cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h);
+        const b64=cv.toDataURL('image/jpeg',0.78);
+        photos[n].push(b64);
+        pending--;
+        if(pending===0) renderPhotoList(n);
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value='';
 }
-function remPhoto(n){
-  delete photos[n];
-  const a=document.getElementById('pa-'+n);
-  a.querySelector('img')?.remove(); a.classList.remove('has-photo'); a.querySelector('.ph-ph').style.display='';
+
+function renderPhotoList(n){
+  const list=document.getElementById('pl-'+n);
+  const area=document.getElementById('pa-'+n);
+  if(!list || !area) return;
+  const arr=Array.isArray(photos[n]) ? photos[n] : [];
+  list.innerHTML = arr.map((src,idx)=>`
+    <div class="photo-thumb">
+      <img src="${src}" alt="Paso ${n} foto ${idx+1}">
+      <button type="button" onclick="event.stopPropagation();remPhoto(${n},${idx})"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  `).join('');
+
+  if(arr.length){
+    area.classList.add('has-photo');
+    area.querySelector('.ph-ph').style.display='none';
+  }else{
+    area.classList.remove('has-photo');
+    area.querySelector('.ph-ph').style.display='';
+  }
+}
+
+function remPhoto(n,idx){
+  if(!Array.isArray(photos[n])) return;
+  photos[n].splice(idx,1);
+  renderPhotoList(n);
+}
+
+function remAllPhotos(n){
+  photos[n]=[];
+  renderPhotoList(n);
 }
 
 // ════ GUÍAS ════
@@ -519,7 +570,7 @@ async function guardar(){
   if(!prov){toast('Ingrese el proveedor',true);return;}
   if(!op1){toast('Ingrese el Operario de Almacén',true);return;}
   if(!cond){toast('Ingrese el Conductor',true);return;}
-  const pasos=PASOS.map(p=>({n:p.n,desc:p.d,foto:photos[p.n]||null,obs:document.getElementById('obs-'+p.n)?.value.trim()||''}));
+  const pasos=PASOS.map(p=>({n:p.n,desc:p.d,fotos:Array.isArray(photos[p.n]) ? photos[p.n] : [],obs:document.getElementById('obs-'+p.n)?.value.trim()||''}));
   const reg={
     id:Date.now().toString(),
     ninforme:document.getElementById('f-ninf').value,
@@ -568,11 +619,11 @@ async function buscar(){
 function renderRes(regs){
   const c=document.getElementById('resultados');
   if(!regs.length){ c.innerHTML=`<div class="empty"><i class="fa-solid fa-box-open"></i><p>No se encontraron registros</p><small>Intente con otros filtros o registre un nuevo informe</small></div>`; return; }
-  const tf=regs.reduce((a,r)=>a+(r.pasos||[]).filter(p=>p.foto).length,0);
+  const tf=regs.reduce((a,r)=>a+(r.pasos||[]).reduce((acc,p)=>acc+((p.fotos||[]).length || (p.foto?1:0)),0),0);
   c.innerHTML=`<div class="rec-count"><strong>${regs.length}</strong> informe(s) &nbsp;·&nbsp; ${tf} foto(s)</div>`+regs.map(r=>buildCard(r)).join('');
 }
 function buildCard(r){
-  const nf=(r.pasos||[]).filter(p=>p.foto).length;
+  const nf=(r.pasos||[]).reduce((acc,p)=>acc+((p.fotos||[]).length || (p.foto?1:0)),0);
   return`<div class="rec-card" id="card-${r.id}">
     <div class="rec-hdr" onclick="togRec('${r.id}')">
       <div class="rec-meta">
@@ -593,10 +644,14 @@ function buildCard(r){
 }
 function buildDet(r){
   const gr=(r.guias||[]).map(g=>`<tr><td>${g.serie}</td><td>${g.numero}</td><td>${g.tipo}</td><td>${g.cantidad} gal</td></tr>`).join('');
-  const fp=(r.pasos||[]).filter(p=>p.foto).map(p=>`
-    <div class="ph-card"><img src="${p.foto}" alt="P${p.n}" onclick="openLB(this.src)">
-      <div class="ph-ci"><div class="ph-step">Paso ${p.n}</div><div class="ph-obs">${p.obs||p.desc?.substring(0,55)+'...'}</div></div>
-    </div>`).join('');
+  const fp=(r.pasos||[]).flatMap(p=>{
+    const arr = Array.isArray(p.fotos) ? p.fotos : (p.foto ? [p.foto] : []);
+    return arr.map(src=>`
+      <div class="ph-card"><img src="${src}" alt="P${p.n}" onclick="openLB(this.src)">
+        <div class="ph-ci"><div class="ph-step">Paso ${p.n}</div><div class="ph-obs">${p.obs||p.desc?.substring(0,55)+'...'}</div></div>
+      </div>`);
+  }).join('');
+  const totalFotos=(r.pasos||[]).reduce((acc,p)=>acc+((p.fotos||[]).length || (p.foto?1:0)),0);
   return`<div class="det-ttl"><i class="fa-solid fa-circle-info"></i>Información General</div>
     <div class="det-grid">
       <div class="det-f"><div class="lb">Fecha</div><div class="vl">${fmtF(r.fecha)}</div></div>
@@ -610,7 +665,7 @@ function buildDet(r){
     </div>
     <div class="det-ttl"><i class="fa-solid fa-receipt"></i>Guías de Remisión</div>
     <div class="det-guias" style="margin-bottom:16px"><table><thead><tr><th>Serie</th><th>N° Guía</th><th>Combustible</th><th>Cantidad</th></tr></thead><tbody>${gr}</tbody></table></div>
-    <div class="det-ttl"><i class="fa-solid fa-images"></i>Fotografías (${(r.pasos||[]).filter(p=>p.foto).length})</div>
+    <div class="det-ttl"><i class="fa-solid fa-images"></i>Fotografías (${totalFotos})</div>
     ${fp?`<div class="ph-grid">${fp}</div>`:'<p style="color:var(--gris-texto);font-size:12px;margin-bottom:16px">Sin fotografías en este informe.</p>'}`;
 }
 function togRec(id){
