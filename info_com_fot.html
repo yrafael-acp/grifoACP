@@ -99,6 +99,11 @@ textarea{resize:vertical;min-height:64px}
 .photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .photo-thumb button{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center}
 .photo-thumb button:hover{background:rgba(192,57,43,.9)}
+.resp-grid{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+.btn-mini{background:rgba(255,255,255,.08);border:1px solid var(--gris-borde);color:var(--blanco);padding:9px 12px;border-radius:5px;cursor:pointer;font-size:12px;transition:all .2s;white-space:nowrap}
+.btn-mini:hover{border-color:var(--verde-claro);background:rgba(61,156,90,.12)}
+.btn-mini.add{border-color:rgba(245,197,24,.35);color:var(--amarillo)}
+.btn-mini.add:hover{background:rgba(245,197,24,.08)}
 .f-actions{display:flex;gap:10px;justify-content:flex-end;padding-top:6px}
 .btn-pri{background:var(--verde);border:2px solid var(--verde-claro);color:#fff;padding:11px 26px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:7px}
 .btn-pri:hover{background:var(--verde-claro);transform:translateY(-1px);box-shadow:0 4px 14px rgba(45,122,69,.4)}
@@ -161,7 +166,16 @@ textarea{resize:vertical;min-height:64px}
 .lb-cls:hover{background:rgba(255,255,255,.18)}
 .toast{position:fixed;bottom:26px;right:26px;background:var(--verde);border:1px solid var(--verde-claro);color:#fff;padding:12px 18px;border-radius:7px;font-size:13px;font-weight:500;z-index:9998;display:flex;align-items:center;gap:8px;transform:translateY(70px);opacity:0;transition:all .3s}
 .toast.show{transform:translateY(0);opacity:1}.toast.err{background:var(--rojo);border-color:#e74c3c}
-@media(max-width:768px){.steps-grid,.fg3,.fg2{grid-template-columns:1fr}header{padding:0 14px}.main{padding:14px}.h-titles span{display:none}}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9500;align-items:center;justify-content:center;padding:18px}
+.modal-backdrop.open{display:flex}
+.modal-box{background:var(--gris);border:1px solid var(--gris-borde);border-radius:10px;width:min(520px,100%);box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--gris-borde)}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.modal-close{background:none;border:none;color:var(--gris-texto);font-size:20px;cursor:pointer}
+.modal-close:hover{color:var(--blanco)}
+.modal-body{padding:16px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:0 16px 16px}
+@media(max-width:768px){.steps-grid,.fg3,.fg2{grid-template-columns:1fr}.resp-grid{grid-template-columns:1fr}header{padding:0 14px}.main{padding:14px}.h-titles span{display:none}}
 </style>
 </head>
 <body>
@@ -198,7 +212,7 @@ textarea{resize:vertical;min-height:64px}
   <div class="auth-note" style="margin-top:22px">
     <strong>⚙️ Configuración requerida (una sola vez — solo el administrador):</strong><br><br>
     1. Ir a <strong>console.cloud.google.com</strong> → Crear proyecto<br>
-    2. Activar <strong>Google Drive API</strong> y <strong>Google Identity</strong><br>
+    2. Activar <strong>Google Drive API</strong> y <strong>Google Sheets API</strong><br>
     3. Crear credencial OAuth → tipo <strong>Aplicación web</strong><br>
     4. Agregar <code>file://</code> o la URL donde aloje este HTML como origen autorizado<br>
     5. Copiar el <strong>Client ID</strong> y reemplazar <code>TU_CLIENT_ID_AQUI</code> en el script<br><br>
@@ -239,7 +253,7 @@ textarea{resize:vertical;min-height:64px}
       <div class="card-body">
         <div class="fg fg3">
           <div class="fgrp"><label class="lbl">Fecha <span class="req">*</span></label><input type="date" id="f-fecha"></div>
-          <div class="fgrp"><label class="lbl">Proveedor <span class="req">*</span></label><input type="text" id="f-prov" placeholder="Ej: Corporación Primax S.A."></div>
+          <div class="fgrp"><label class="lbl">Proveedor <span class="req">*</span></label><input type="text" id="f-prov" value="Corporación Primax S.A." placeholder="Ej: Corporación Primax S.A."></div>
           <div class="fgrp"><label class="lbl">N° de Informe</label><input type="text" id="f-ninf" readonly style="opacity:.55"></div>
         </div>
       </div>
@@ -270,10 +284,49 @@ textarea{resize:vertical;min-height:64px}
       <div class="card-hdr"><i class="fa-solid fa-users"></i><h3>Responsables</h3></div>
       <div class="card-body">
         <div class="fg fg2">
-          <div class="fgrp"><label class="lbl">Operario de Almacén 1 <span class="req">*</span></label><input type="text" id="f-op1" placeholder="Nombre completo"></div>
-          <div class="fgrp"><label class="lbl">Operario de Almacén 2</label><input type="text" id="f-op2" placeholder="Nombre completo (opcional)"></div>
-          <div class="fgrp"><label class="lbl">Conductor <span class="req">*</span></label><input type="text" id="f-cond" placeholder="Nombre completo"></div>
-          <div class="fgrp"><label class="lbl">Observaciones Generales</label><input type="text" id="f-obs" placeholder="Novedades adicionales"></div>
+          <div class="fgrp">
+            <label class="lbl">Operario de Almacén 1 <span class="req">*</span></label>
+            <div class="resp-grid">
+              <select id="f-op1">
+                <option value="">Cargando operarios...</option>
+              </select>
+              <div style="display:flex;gap:8px">
+                <button type="button" class="btn-mini" onclick="cargarMaestroPersonas()"><i class="fa-solid fa-rotate"></i></button>
+                <button type="button" class="btn-mini add" onclick="abrirModalPersona('OPERARIO')"><i class="fa-solid fa-plus"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="fgrp">
+            <label class="lbl">Operario de Almacén 2</label>
+            <div class="resp-grid">
+              <select id="f-op2">
+                <option value="">Cargando operarios...</option>
+              </select>
+              <div style="display:flex;gap:8px">
+                <button type="button" class="btn-mini" onclick="cargarMaestroPersonas()"><i class="fa-solid fa-rotate"></i></button>
+                <button type="button" class="btn-mini add" onclick="abrirModalPersona('OPERARIO')"><i class="fa-solid fa-plus"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="fgrp">
+            <label class="lbl">Conductor <span class="req">*</span></label>
+            <div class="resp-grid">
+              <select id="f-cond">
+                <option value="">Cargando conductores...</option>
+              </select>
+              <div style="display:flex;gap:8px">
+                <button type="button" class="btn-mini" onclick="cargarMaestroPersonas()"><i class="fa-solid fa-rotate"></i></button>
+                <button type="button" class="btn-mini add" onclick="abrirModalPersona('CONDUCTOR')"><i class="fa-solid fa-plus"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="fgrp">
+            <label class="lbl">Observaciones Generales</label>
+            <input type="text" id="f-obs" placeholder="Novedades adicionales">
+          </div>
         </div>
       </div>
     </div>
@@ -307,19 +360,65 @@ textarea{resize:vertical;min-height:64px}
 
 <div id="file-inp-c" style="display:none"></div>
 
+<!-- MODAL NUEVA PERSONA -->
+<div id="modalPersona" class="modal-backdrop" onclick="if(event.target===this)cerrarModalPersona()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Registrar persona</span>
+      <button class="modal-close" type="button" onclick="cerrarModalPersona()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg fg2">
+        <div class="fgrp">
+          <label class="lbl">Nombre <span class="req">*</span></label>
+          <input type="text" id="mp-nombre" placeholder="Nombre completo">
+        </div>
+        <div class="fgrp">
+          <label class="lbl">Tipo <span class="req">*</span></label>
+          <select id="mp-tipo">
+            <option value="OPERARIO">OPERARIO</option>
+            <option value="CONDUCTOR">CONDUCTOR</option>
+          </select>
+        </div>
+        <div class="fgrp">
+          <label class="lbl">Epresa</label>
+          <input type="text" id="mp-epresa" placeholder="Ej: ACP o Primax">
+        </div>
+        <div class="fgrp">
+          <label class="lbl">Estado</label>
+          <select id="mp-estado">
+            <option value="ACTIVO" selected>ACTIVO</option>
+            <option value="INACTIVO">INACTIVO</option>
+          </select>
+        </div>
+        <div class="fgrp">
+          <label class="lbl">Sucursal</label>
+          <input type="text" id="mp-sucursal" value="ACP" placeholder="ACP">
+        </div>
+        <div class="fgrp">
+          <label class="lbl">Obs</label>
+          <input type="text" id="mp-obs" placeholder="Observación opcional">
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-sec" onclick="cerrarModalPersona()">Cancelar</button>
+      <button type="button" class="btn-pri" id="btn-save-persona" onclick="guardarPersona()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════
-//  CONFIGURACIÓN  ← EDITAR ANTES DE USAR
+//  CONFIGURACIÓN
 // ════════════════════════════════════════════
-// 1. Crear proyecto en console.cloud.google.com
-// 2. Activar "Google Drive API"
-// 3. Crear credencial OAuth 2.0 (tipo: Aplicación web)
-// 4. Pegar el Client ID aquí:
 const CLIENT_ID = '905998954334-jib8l6g3he68m7p2f52kafeav8ucrmie.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/spreadsheets';
+const SPREADSHEET_ID = '1k9OVdfTQLwcxqJpOigxP0h-AHCSIUf6LkZ3m1d_EfZk';
+const SHEET_MAESTRO_PERSONAS = 'MAESTRO_PERSONAS';
 
 // ════════════════════════════════════════════
-//  PROCEDIMIENTO (20 pasos del formato)
+//  PROCEDIMIENTO (20 pasos)
 // ════════════════════════════════════════════
 const PASOS = [
   {n:1,  d:"La cisterna pasa a balanza, donde se realiza el pesado del camión cisterna emitiendo un ticket que será utilizado cuando el camión haya descargado, esto servirá para realizar el destare correspondiente."},
@@ -346,6 +445,8 @@ const PASOS = [
 
 // ════ STATE ════
 let token = null, folderID = localStorage.getItem('acp_fid')||'', user = null, photos = {};
+let maestroPersonas = [];
+let tipoPersonaPendiente = 'OPERARIO';
 
 // ════ INIT ════
 window.addEventListener('load', ()=>{
@@ -409,6 +510,8 @@ async function launchApp(){
     const m=await drv(`https://www.googleapis.com/drive/v3/files/${folderID}?fields=name`);
     document.getElementById('drv-folder-name').textContent=m.name||folderID;
   }catch{ document.getElementById('drv-folder-name').textContent=folderID; }
+
+  await cargarMaestroPersonas();
   genNInforme();
 }
 
@@ -445,6 +548,133 @@ async function drvCreate(name, content, parentId){
 }
 async function drvDelete(fid){
   await fetch(`https://www.googleapis.com/drive/v3/files/${fid}`,{method:'DELETE',headers:{Authorization:'Bearer '+token}});
+}
+
+// ════ SHEETS API ════
+async function sheetsGet(range){
+  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}`,{
+    headers:{Authorization:'Bearer '+token}
+  });
+  if(!r.ok){
+    const e=await r.json().catch(()=>({}));
+    throw new Error(e.error?.message||'Error consultando Google Sheets');
+  }
+  return r.json();
+}
+async function sheetsAppend(range, values){
+  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,{
+    method:'POST',
+    headers:{
+      Authorization:'Bearer '+token,
+      'Content-Type':'application/json'
+    },
+    body:JSON.stringify({values:[values]})
+  });
+  if(!r.ok){
+    const e=await r.json().catch(()=>({}));
+    throw new Error(e.error?.message||'Error guardando en Google Sheets');
+  }
+  return r.json();
+}
+
+async function cargarMaestroPersonas(){
+  try{
+    const data = await sheetsGet(`${SHEET_MAESTRO_PERSONAS}!A2:F`);
+    const rows = data.values || [];
+    maestroPersonas = rows.map(r=>({
+      nombre:(r[0]||'').trim(),
+      tipo:(r[1]||'').trim().toUpperCase(),
+      epresa:(r[2]||'').trim(),
+      estado:(r[3]||'').trim().toUpperCase(),
+      sucursal:(r[4]||'').trim(),
+      obs:(r[5]||'').trim(),
+    })).filter(x=>x.nombre);
+
+    llenarSelectPersonas();
+    toast('Maestro de personas actualizado');
+  }catch(err){
+    console.error(err);
+    llenarSelectFallback();
+    toast('No se pudo cargar MAESTRO_PERSONAS: '+err.message, true);
+  }
+}
+
+function llenarSelectFallback(){
+  document.getElementById('f-op1').innerHTML = '<option value="">No se pudo cargar operarios</option>';
+  document.getElementById('f-op2').innerHTML = '<option value="">No se pudo cargar operarios</option>';
+  document.getElementById('f-cond').innerHTML = '<option value="">No se pudo cargar conductores</option>';
+}
+
+function llenarSelectPersonas(){
+  const operarios = maestroPersonas
+    .filter(x=>x.tipo==='OPERARIO' && x.estado==='ACTIVO')
+    .sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+  const conductores = maestroPersonas
+    .filter(x=>x.tipo==='CONDUCTOR' && x.estado==='ACTIVO')
+    .sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
+
+  const htmlOps = ['<option value="">Seleccionar...</option>']
+    .concat(operarios.map(x=>`<option value="${escapeHtml(x.nombre)}">${escapeHtml(x.nombre)}</option>`))
+    .join('');
+  const htmlCond = ['<option value="">Seleccionar...</option>']
+    .concat(conductores.map(x=>`<option value="${escapeHtml(x.nombre)}">${escapeHtml(x.nombre)}</option>`))
+    .join('');
+
+  document.getElementById('f-op1').innerHTML = htmlOps;
+  document.getElementById('f-op2').innerHTML = htmlOps;
+  document.getElementById('f-cond').innerHTML = htmlCond;
+}
+
+function abrirModalPersona(tipo='OPERARIO'){
+  tipoPersonaPendiente = tipo;
+  document.getElementById('mp-nombre').value='';
+  document.getElementById('mp-tipo').value=tipo;
+  document.getElementById('mp-epresa').value=tipo==='CONDUCTOR' ? 'Corporación Primax S.A.' : 'ACP';
+  document.getElementById('mp-estado').value='ACTIVO';
+  document.getElementById('mp-sucursal').value='ACP';
+  document.getElementById('mp-obs').value='';
+  document.getElementById('modalPersona').classList.add('open');
+}
+function cerrarModalPersona(){
+  document.getElementById('modalPersona').classList.remove('open');
+}
+
+async function guardarPersona(){
+  const nombre = document.getElementById('mp-nombre').value.trim();
+  const tipo = document.getElementById('mp-tipo').value.trim().toUpperCase();
+  const epresa = document.getElementById('mp-epresa').value.trim();
+  const estado = document.getElementById('mp-estado').value.trim().toUpperCase();
+  const sucursal = document.getElementById('mp-sucursal').value.trim();
+  const obs = document.getElementById('mp-obs').value.trim();
+
+  if(!nombre){ toast('Ingrese el nombre', true); return; }
+
+  const existe = maestroPersonas.some(x => x.nombre.toUpperCase()===nombre.toUpperCase() && x.tipo===tipo);
+  if(existe){ toast('La persona ya existe en el maestro', true); return; }
+
+  const btn = document.getElementById('btn-save-persona');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Guardando...';
+
+  try{
+    await sheetsAppend(`${SHEET_MAESTRO_PERSONAS}!A:F`, [nombre, tipo, epresa, estado, sucursal, obs]);
+    await cargarMaestroPersonas();
+
+    if(tipo==='OPERARIO'){
+      if(!document.getElementById('f-op1').value) document.getElementById('f-op1').value = nombre;
+      else if(!document.getElementById('f-op2').value) document.getElementById('f-op2').value = nombre;
+    }else{
+      document.getElementById('f-cond').value = nombre;
+    }
+
+    cerrarModalPersona();
+    toast('Persona registrada correctamente');
+  }catch(err){
+    toast('Error guardando persona: '+err.message, true);
+  }finally{
+    btn.disabled = false;
+    btn.innerHTML = 'Guardar';
+  }
 }
 
 // ════ STEPS ════
@@ -566,20 +796,34 @@ async function guardar(){
   const prov=document.getElementById('f-prov').value.trim();
   const op1=document.getElementById('f-op1').value.trim();
   const cond=document.getElementById('f-cond').value.trim();
+
   if(!fecha){toast('Ingrese la fecha',true);return;}
   if(!prov){toast('Ingrese el proveedor',true);return;}
-  if(!op1){toast('Ingrese el Operario de Almacén',true);return;}
-  if(!cond){toast('Ingrese el Conductor',true);return;}
-  const pasos=PASOS.map(p=>({n:p.n,desc:p.d,fotos:Array.isArray(photos[p.n]) ? photos[p.n] : [],obs:document.getElementById('obs-'+p.n)?.value.trim()||''}));
+  if(!op1){toast('Seleccione el Operario de Almacén 1',true);return;}
+  if(!cond){toast('Seleccione el Conductor',true);return;}
+
+  const pasos=PASOS.map(p=>({
+    n:p.n,
+    desc:p.d,
+    fotos:Array.isArray(photos[p.n]) ? photos[p.n] : [],
+    obs:document.getElementById('obs-'+p.n)?.value.trim()||''
+  }));
+
   const reg={
     id:Date.now().toString(),
     ninforme:document.getElementById('f-ninf').value,
-    fecha,proveedor:prov,op1,op2:document.getElementById('f-op2').value.trim(),
-    conductor:cond,obsGeneral:document.getElementById('f-obs').value.trim(),
-    guias:getGuias(),pasos,
+    fecha,
+    proveedor:prov,
+    op1,
+    op2:document.getElementById('f-op2').value.trim(),
+    conductor:cond,
+    obsGeneral:document.getElementById('f-obs').value.trim(),
+    guias:getGuias(),
+    pasos,
     guardadoPor:user?.name||user?.email||'Desconocido',
     creadoEn:new Date().toISOString()
   };
+
   const btn=document.getElementById('btn-save');
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Guardando...';
   showLov('Guardando informe en Google Drive...');
@@ -648,20 +892,20 @@ function buildDet(r){
     const arr = Array.isArray(p.fotos) ? p.fotos : (p.foto ? [p.foto] : []);
     return arr.map(src=>`
       <div class="ph-card"><img src="${src}" alt="P${p.n}" onclick="openLB(this.src)">
-        <div class="ph-ci"><div class="ph-step">Paso ${p.n}</div><div class="ph-obs">${p.obs||p.desc?.substring(0,55)+'...'}</div></div>
+        <div class="ph-ci"><div class="ph-step">Paso ${p.n}</div><div class="ph-obs">${escapeHtml(p.obs||p.desc?.substring(0,55)+'...')}</div></div>
       </div>`);
   }).join('');
   const totalFotos=(r.pasos||[]).reduce((acc,p)=>acc+((p.fotos||[]).length || (p.foto?1:0)),0);
   return`<div class="det-ttl"><i class="fa-solid fa-circle-info"></i>Información General</div>
     <div class="det-grid">
       <div class="det-f"><div class="lb">Fecha</div><div class="vl">${fmtF(r.fecha)}</div></div>
-      <div class="det-f"><div class="lb">N° Informe</div><div class="vl">${r.ninforme||'—'}</div></div>
-      <div class="det-f"><div class="lb">Proveedor</div><div class="vl">${r.proveedor||'—'}</div></div>
-      <div class="det-f"><div class="lb">Operario Almacén 1</div><div class="vl">${r.op1||'—'}</div></div>
-      ${r.op2?`<div class="det-f"><div class="lb">Operario Almacén 2</div><div class="vl">${r.op2}</div></div>`:''}
-      <div class="det-f"><div class="lb">Conductor</div><div class="vl">${r.conductor||'—'}</div></div>
-      ${r.obsGeneral?`<div class="det-f"><div class="lb">Observaciones</div><div class="vl">${r.obsGeneral}</div></div>`:''}
-      <div class="det-f"><div class="lb">Guardado por</div><div class="vl">${r.guardadoPor||'—'}</div></div>
+      <div class="det-f"><div class="lb">N° Informe</div><div class="vl">${escapeHtml(r.ninforme||'—')}</div></div>
+      <div class="det-f"><div class="lb">Proveedor</div><div class="vl">${escapeHtml(r.proveedor||'—')}</div></div>
+      <div class="det-f"><div class="lb">Operario Almacén 1</div><div class="vl">${escapeHtml(r.op1||'—')}</div></div>
+      ${r.op2?`<div class="det-f"><div class="lb">Operario Almacén 2</div><div class="vl">${escapeHtml(r.op2)}</div></div>`:''}
+      <div class="det-f"><div class="lb">Conductor</div><div class="vl">${escapeHtml(r.conductor||'—')}</div></div>
+      ${r.obsGeneral?`<div class="det-f"><div class="lb">Observaciones</div><div class="vl">${escapeHtml(r.obsGeneral)}</div></div>`:''}
+      <div class="det-f"><div class="lb">Guardado por</div><div class="vl">${escapeHtml(r.guardadoPor||'—')}</div></div>
     </div>
     <div class="det-ttl"><i class="fa-solid fa-receipt"></i>Guías de Remisión</div>
     <div class="det-guias" style="margin-bottom:16px"><table><thead><tr><th>Serie</th><th>N° Guía</th><th>Combustible</th><th>Cantidad</th></tr></thead><tbody>${gr}</tbody></table></div>
@@ -674,29 +918,51 @@ function togRec(id){
 }
 async function eliminar(id,fid){
   if(!confirm('¿Eliminar este informe de Google Drive? No se puede deshacer.')) return;
-  showLov('Eliminando...'); try{ if(fid) await drvDelete(fid); document.getElementById('card-'+id)?.remove(); toast('Informe eliminado de Drive'); }
-  catch(err){ toast('Error: '+err.message,true); } finally{ hideLov(); }
+  showLov('Eliminando...');
+  try{
+    if(fid) await drvDelete(fid);
+    document.getElementById('card-'+id)?.remove();
+    toast('Informe eliminado de Drive');
+  }catch(err){
+    toast('Error: '+err.message,true);
+  }finally{
+    hideLov();
+  }
 }
 
 // ════ UTILS ════
 async function genNInforme(){
-  try{ const fs=await drvList(folderID,'acp_inf_'); const n=fs.length+1;
+  try{
+    const fs=await drvList(folderID,'acp_inf_');
+    const n=fs.length+1;
     document.getElementById('f-ninf').value=`INF-FOT-${new Date().getFullYear()}-${String(n).padStart(4,'0')}`;
-  }catch{ document.getElementById('f-ninf').value=`INF-FOT-${new Date().getFullYear()}-0001`; }
+  }catch{
+    document.getElementById('f-ninf').value=`INF-FOT-${new Date().getFullYear()}-0001`;
+  }
 }
 function setToday(){ document.getElementById('f-fecha').value=new Date().toISOString().split('T')[0]; }
 function fmtF(f){ if(!f)return'—'; const[y,m,d]=f.split('-'); return`${d} ${['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(m)-1]} ${y}`; }
 function limpiar(){
-  ['f-prov','f-op1','f-op2','f-cond','f-obs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-fecha').value=new Date().toISOString().split('T')[0];
+  document.getElementById('f-prov').value='Corporación Primax S.A.';
+  document.getElementById('f-op1').value='';
+  document.getElementById('f-op2').value='';
+  document.getElementById('f-cond').value='';
+  document.getElementById('f-obs').value='';
+
   document.getElementById('gtb').innerHTML=`<tr><td><input type="text" placeholder="T230" value="T230"></td><td><input type="text" placeholder="N° guía"></td><td><select><option value="">Seleccionar...</option><option>PETRÓLEO</option><option>GASOLINA</option><option>GLP</option><option>DIESEL B5</option></select></td><td><input type="number" placeholder="0" min="0"></td><td><button class="btn-del" onclick="delG(this)"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
-  photos={}; renderSteps(); setToday(); genNInforme(); window.scrollTo({top:0,behavior:'smooth'});
+  photos={};
+  renderSteps();
+  genNInforme();
+  window.scrollTo({top:0,behavior:'smooth'});
 }
-function switchView(v){
+async function switchView(v){
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.getElementById('btn-'+v).classList.add('active');
   if(v==='consulta') buscar();
+  if(v==='registro') cargarMaestroPersonas();
 }
 function showLov(m){ document.getElementById('lovmsg').textContent=m; document.getElementById('lov').style.display='flex'; }
 function hideLov(){ document.getElementById('lov').style.display='none'; }
@@ -706,6 +972,14 @@ function toast(msg,err=false){
 }
 function openLB(src){ document.getElementById('lb-img').src=src; document.getElementById('lb').classList.add('open'); }
 function closeLB(){ document.getElementById('lb').classList.remove('open'); document.getElementById('lb-img').src=''; }
+function escapeHtml(str=''){
+  return String(str)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeLB(); });
 </script>
 </body>
