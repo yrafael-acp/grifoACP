@@ -94,69 +94,91 @@ const FlotaModales = {
     cerrarModalConsulta() { this._close('modalConsulta'); },
 
     async ejecutarConsultaOrden() {
-        const input = document.getElementById('inputOrdenes').value.trim();
-        if (!input) {
-            FlotaUI.toast('Por favor ingresa al menos un número de orden.', 'warning');
-            return;
-        }
+    const input = document.getElementById('inputOrdenes').value.trim();
+    const placa = document.getElementById('inputPlacaConsulta')?.value.trim() || '';
+    const auditoria = document.getElementById('checkAnomaliasCombustible')?.checked || false;
 
-        const fD = document.getElementById('fechaDesde').value;
-        const fH = document.getElementById('fechaHasta').value;
+    const fD = document.getElementById('fechaDesde').value;
+    const fH = document.getElementById('fechaHasta').value;
 
-        const loader = document.getElementById('cargaConsulta');
-        const resumen = document.getElementById('resumenConsultaOrden');
-        const container = document.getElementById('tablaConsultaContainer');
-        const estado = document.getElementById('estadoConsulta');
+    if (!fD || !fH) {
+        FlotaUI.toast('Selecciona fecha desde y fecha hasta.', 'warning');
+        return;
+    }
 
-        loader.classList.remove('hidden');
-        resumen.classList.add('hidden');
-        container.classList.add('hidden');
-        estado.classList.add('hidden');
+    if (!input && !placa && !auditoria) {
+        FlotaUI.toast('Ingresa una orden, una placa o activa la auditoría de doble combustible.', 'warning');
+        return;
+    }
 
-        try {
-            const data = await FlotaAPI.getDetalleOrden(input, fD, fH);
-            const tbody = document.querySelector('#tablaResultadoOrden tbody');
-            tbody.innerHTML = '';
+    const loader = document.getElementById('cargaConsulta');
+    const resumen = document.getElementById('resumenConsultaOrden');
+    const container = document.getElementById('tablaConsultaContainer');
+    const estado = document.getElementById('estadoConsulta');
 
-            if (data.status === 'OK') {
-                let totalImporte = 0;
+    loader.classList.remove('hidden');
+    resumen.classList.add('hidden');
+    container.classList.add('hidden');
+    estado.classList.add('hidden');
 
-                data.items.forEach(i => {
-                    totalImporte += i.importe;
-                    tbody.insertAdjacentHTML('beforeend', `
-                        <tr>
-                            <td style="color:var(--text-secondary)">${i.fecha}</td>
-                            <td><span class="badge-material">${i.tipo}</span></td>
-                            <td><span class="badge-placa-order">${i.placa}</span></td>
-                            <td style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted)">${i.documento}</td>
-                            <td class="text-center"><span class="cant-value">${i.cantidad.toFixed(2)}</span></td>
-                            <td class="text-right"><span class="importe-soles">S/ ${i.importe.toFixed(2)}</span></td>
-                            <td class="text-center"><span class="badge-orden">${i.orden}</span></td>
-                        </tr>`);
-                });
+    try {
+        const data = await FlotaAPI.getDetalleOrden(input, fD, fH, placa, auditoria);
+        const tbody = document.querySelector('#tablaResultadoOrden tbody');
+        tbody.innerHTML = '';
 
-                document.getElementById('totalGlnOrden').innerHTML = `${data.total.toFixed(2)} <span style="font-size:10px;opacity:0.7">GLN</span>`;
-                document.getElementById('totalSolesOrden').innerHTML = `<span style="font-size:11px">S/</span> ${totalImporte.toFixed(2)}`;
+        if (data.status === 'OK') {
+            let totalImporte = 0;
 
-                resumen.classList.remove('hidden');
-                container.classList.remove('hidden');
+            data.items.forEach(i => {
+                totalImporte += i.importe;
 
-            } else {
-                estado.innerHTML = `
-                    <div style="padding:60px;text-align:center">
-                        <i class="fas fa-exclamation-circle" style="color:#f97316;font-size:36px;opacity:0.5;margin-bottom:12px;display:block"></i>
-                        <p style="color:var(--text-secondary);font-weight:600">Sin resultados para estas órdenes.</p>
-                    </div>`;
-                estado.classList.remove('hidden');
+                const badgeAnomalia = i.anomalia
+                    ? `<span style="margin-left:6px;padding:2px 6px;border-radius:999px;background:#fee2e2;color:#b91c1c;font-size:9px;font-weight:800">DOBLE COMB.</span>`
+                    : '';
+
+                tbody.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td style="color:var(--text-secondary)">${i.fecha}</td>
+                        <td><span class="badge-material">${i.tipo}</span>${badgeAnomalia}</td>
+                        <td><span class="badge-placa-order">${i.placa}</span></td>
+                        <td style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted)">${i.documento}</td>
+                        <td class="text-center"><span class="cant-value">${i.cantidad.toFixed(2)}</span></td>
+                        <td class="text-right"><span class="importe-soles">S/ ${i.importe.toFixed(2)}</span></td>
+                        <td class="text-center"><span class="badge-orden">${i.orden}</span></td>
+                    </tr>`);
+            });
+
+            document.getElementById('totalGlnOrden').innerHTML =
+                `${data.total.toFixed(2)} <span style="font-size:10px;opacity:0.7">GLN</span>`;
+
+            document.getElementById('totalSolesOrden').innerHTML =
+                `<span style="font-size:11px">S/</span> ${totalImporte.toFixed(2)}`;
+
+            resumen.classList.remove('hidden');
+            container.classList.remove('hidden');
+
+            if (auditoria) {
+                FlotaUI.toast(`Auditoría completada: ${data.items.length} registros sospechosos.`, 'success');
             }
 
-        } catch (e) {
-            FlotaUI.toast('Error de conexión con el servidor.', 'error');
+        } else {
+            estado.innerHTML = `
+                <div style="padding:60px;text-align:center">
+                    <i class="fas fa-exclamation-circle" style="color:#f97316;font-size:36px;opacity:0.5;margin-bottom:12px;display:block"></i>
+                    <p style="color:var(--text-secondary);font-weight:600">
+                        ${auditoria ? 'No se encontraron anomalías de doble combustible.' : 'Sin resultados para los filtros indicados.'}
+                    </p>
+                </div>`;
             estado.classList.remove('hidden');
-        } finally {
-            loader.classList.add('hidden');
         }
-    },
+
+    } catch (e) {
+        FlotaUI.toast('Error de conexión con el servidor.', 'error');
+        estado.classList.remove('hidden');
+    } finally {
+        loader.classList.add('hidden');
+    }
+},
 
     exportarConsultaExcel() {
     const tabla = document.getElementById('tablaResultadoOrden');
