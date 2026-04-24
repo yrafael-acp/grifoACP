@@ -103,14 +103,16 @@ const FlotaAPI = {
      * @param {string} desde - fecha ISO
      * @param {string} hasta - fecha ISO
      */
-    async getDetalleOrden(ordenes, desde, hasta) {
-        return this.get({
-            action: 'getDetalleOrden',
-            orden: encodeURIComponent(ordenes),
-            desde,
-            hasta,
-        });
-    },
+    async getDetalleOrden(ordenes, desde, hasta, placa = '', auditoria = false) {
+    return this.get({
+        action: 'getDetalleOrden',
+        orden: ordenes || '',
+        placa: placa || '',
+        desde,
+        hasta,
+        auditoria: auditoria ? '1' : '0',
+    });
+},
 
     /**
      * Sincroniza data de SAP por rango de fechas
