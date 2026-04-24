@@ -10,12 +10,14 @@ const USER_ROLES = {
     "EURBINA":    "ADMIN",
     "WCASTRO":    "ADMIN",
     "ACERRUTI":   "ADMIN",
+    "JTUESTA":    "ADMIN",
     "LJUAREZ":    "READ",
     "CGONZALES":  "READ",
     "CORRILLO":   "READ",
     "FFERNANDEZ": "READ",
     "WNEYRA":     "READ",
-    "ASALAZAR":   "READ"
+    "ASALAZAR":   "READ",
+    "ENUÑEZ":     "READ"
 };
 
 let currentUser    = null;
