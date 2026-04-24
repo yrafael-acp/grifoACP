@@ -81,6 +81,8 @@ body{font-family:var(--font-sans)}
 .det-ttl{font-size:.76rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}.det-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px}.det-f{background:var(--surface-muted);border:1px solid var(--border);border-radius:10px;padding:10px 12px}.det-f .lb{font-size:.68rem;font-weight:800;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}.det-f .vl{font-size:.84rem;color:var(--ink);font-weight:700}.det-guias{background:var(--surface-muted);border:1px solid var(--border);border-radius:12px;overflow:auto;margin-bottom:16px}.det-guias table{width:100%;border-collapse:collapse}.det-guias th,.det-guias td{padding:9px 11px;font-size:.8rem;border-top:1px solid var(--border)}.det-guias th{background:#fff;border-top:none;color:var(--text-muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}.ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}.ph-card{background:var(--surface-muted);border:1px solid var(--border);border-radius:10px;overflow:hidden}.ph-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:pointer}.ph-ci{padding:8px 10px}.ph-step{font-size:.68rem;font-weight:800;text-transform:uppercase;color:var(--acp-green);margin-bottom:4px}.ph-obs{font-size:.75rem;color:var(--text-muted);line-height:1.4}
 .loading-ov{position:fixed;inset:0;background:rgba(241,245,249,.7);backdrop-filter:blur(8px);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9000;gap:14px}.spinner{display:inline-block;width:34px;height:34px;border:3px solid rgba(37,99,235,.18);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}.loading-ov p{font-size:.95rem;color:var(--ink-soft);font-weight:700}
 .lb-box{display:none;position:fixed;inset:0;background:rgba(15,23,42,.86);z-index:9999;align-items:center;justify-content:center;padding:20px}.lb-box.open{display:flex}.lb-box img{max-width:92vw;max-height:88vh;border-radius:12px;box-shadow:var(--elevation-lg)}.lb-cls{position:absolute;top:18px;right:22px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}.lb-cls:hover{background:rgba(255,255,255,.2)}
+.google-btn-shell{display:flex;justify-content:center;margin-top:14px;cursor:pointer}
+.google-btn-shell > div{pointer-events:none}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--primary);color:#fff;padding:12px 18px;border-radius:12px;font-size:.85rem;font-weight:700;z-index:9998;display:flex;align-items:center;gap:8px;transform:translateY(70px);opacity:0;transition:all .3s;box-shadow:var(--shadow-md)}.toast.show{transform:translateY(0);opacity:1}.toast.err{background:var(--danger)}.toast.warn{background:#f59e0b}
 .modal-backdrop{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9500;align-items:center;justify-content:center;padding:18px}.modal-backdrop.open{display:flex}.modal-clean{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--elevation-lg)}.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}.modal-title{font-size:1rem;font-weight:800;color:var(--ink)}.modal-close{background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer}.modal-close:hover{color:var(--ink)}.modal-body{padding:16px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:0 16px 16px}
 .user-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 10px 4px 4px}.user-avatar{width:30px;height:30px;border-radius:999px;border:2px solid rgba(255,255,255,.75);object-fit:cover}.user-name{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem;font-weight:600;color:#fff}.btn-logout{background:none;border:none;color:#cbd5e1;cursor:pointer}.btn-logout:hover{color:#fff}.nav-btn-ui.active{box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}
@@ -120,7 +122,17 @@ body{font-family:var(--font-sans)}
     <img src="logo.png" alt="ACP" class="state-logo">
     <h2>Acceso al Informe Fotográfico</h2>
     <p class="sub">Inicie sesión con Google para registrar y consultar evidencias de recepción de combustible.</p>
-    <button class="btn-google" id="btn-gsi"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G"> Iniciar sesión con Google</button>
+    <div class="google-btn-shell" id="btn-gsi" role="button" tabindex="0" aria-label="Iniciar sesión con Google">
+      <div class="g_id_signin"
+           data-type="standard"
+           data-shape="pill"
+           data-theme="outline"
+           data-text="signin_with"
+           data-size="large"
+           data-logo_alignment="left"
+           data-width="280">
+      </div>
+    </div>
     <div class="auth-note" style="margin-top:22px">
       <strong>Configuración requerida</strong><br><br>
       1. Activar <strong>Google Drive API</strong> y <strong>Google Sheets API</strong><br>
@@ -332,48 +344,6 @@ const SCOPES = 'https://www.googleapis.com/auth/drive https://www.googleapis.com
 const SPREADSHEET_ID = '1k9OVdfTQLwcxqJpOigxP0h-AHCSIUf6LkZ3m1d_EfZk';
 const SHEET_MAESTRO_PERSONAS = 'MAESTRO_PERSONAS';
 
-function signIn(){
-  if(typeof google === 'undefined'){
-    toast('Google API no cargó. Use un servidor HTTP (no file://).', true);
-    return;
-  }
-
-  google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    prompt: 'consent',
-    callback: async r => {
-      if(r.error){
-        toast('Error auth: ' + r.error, true);
-        return;
-      }
-
-      token = r.access_token;
-      sessionStorage.setItem('acp_tok', token);
-
-      const ui = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: { Authorization: 'Bearer ' + token }
-      });
-
-      user = await ui.json();
-      sessionStorage.setItem('acp_usr', JSON.stringify(user));
-      showApp();
-    }
-  }).requestAccessToken();
-}
-
-async function drvDelete(fid){
-  const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fid}`, {
-    method: 'DELETE',
-    headers: { Authorization: 'Bearer ' + token }
-  });
-
-  if(!r.ok){
-    const e = await r.json().catch(() => ({}));
-    throw new Error(e.error?.message || 'Error eliminando archivo en Drive');
-  }
-}
-
 // ════════════════════════════════════════════
 //  PASOS (sin cambios — 20 pasos originales)
 // ════════════════════════════════════════════
@@ -402,6 +372,12 @@ const PASOS = [
 
 // ════ STATE ════
 let token = null, folderID = localStorage.getItem('acp_fid')||'', user = null;
+let tokenClient = null;
+let tokenExpiresAt = Number(sessionStorage.getItem('acp_tok_exp') || '0');
+let draftSaveTimer = null;
+const LOCAL_DRAFT_DB = 'acp-inf-fot-db';
+const LOCAL_DRAFT_STORE = 'drafts';
+const LOCAL_DRAFT_KEY = 'acp_inf_fot_draft_v1';
 let photos = {}, activePhotoIndex = {};
 let maestroPersonas = [];
 let tipoPersonaPendiente = 'OPERARIO';
@@ -411,36 +387,85 @@ let editingRegId    = null;  // id interno del registro activo (null = nuevo)
 let filtroEstado    = 'todos'; // para la vista consulta
 
 // ════ INIT ════
-window.addEventListener('load', ()=>{
+window.addEventListener('load', async ()=>{
   renderSteps();
   setToday();
   bindProveedorUppercase();
+  bindDraftAutosave();
   // Intenta retomar sesión Drive si viene desde consumo-flota
   const st = sessionStorage.getItem('acp_tok');
   const su = sessionStorage.getItem('acp_usr');
-  if(st && su){ token=st; user=JSON.parse(su); showApp(); }
-  else document.getElementById('btn-gsi').addEventListener('click', signIn);
+  const exp = Number(sessionStorage.getItem('acp_tok_exp') || '0');
+  const btnGsi = document.getElementById('btn-gsi');
+  btnGsi.addEventListener('click', signIn);
+  btnGsi.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      signIn();
+    }
+  });
+  if(st && su){
+    token=st;
+    tokenExpiresAt=exp;
+    user=JSON.parse(su);
+    showApp();
+  }
 });
 
-// ════ AUTH (sin cambios) ════
-function signIn(){
+// ════ AUTH ════
+function getTokenClient(){
+  if(typeof google === 'undefined'){ throw new Error('Google API no cargó. Use un servidor HTTP (no file://).'); }
+  if(!tokenClient){
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: ()=>{}
+    });
+  }
+  return tokenClient;
+}
+function requestAccessToken(prompt=''){
+  return new Promise((resolve, reject)=>{
+    try{
+      const client = getTokenClient();
+      client.callback = async r => {
+        if(r.error){ reject(new Error(r.error)); return; }
+        token = r.access_token;
+        sessionStorage.setItem('acp_tok', token);
+        const expiresIn = Number(r.expires_in || 3600);
+        tokenExpiresAt = Date.now() + Math.max(60, expiresIn - 60) * 1000;
+        sessionStorage.setItem('acp_tok_exp', String(tokenExpiresAt));
+        resolve(token);
+      };
+      client.requestAccessToken(prompt ? {prompt} : {});
+    }catch(err){ reject(err); }
+  });
+}
+async function ensureValidToken(interactive=false){
+  const st = sessionStorage.getItem('acp_tok');
+  const exp = Number(sessionStorage.getItem('acp_tok_exp') || '0');
+  if(st && Date.now() < exp){
+    token = st;
+    tokenExpiresAt = exp;
+    return token;
+  }
+  return requestAccessToken(interactive ? 'consent' : '');
+}
+async function signIn(){
   if(typeof google === 'undefined'){ toast('Google API no cargó. Use un servidor HTTP (no file://).', true); return; }
-  google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID, scope: SCOPES,
-    callback: async r => {
-      if(r.error){ toast('Error auth: '+r.error, true); return; }
-      token = r.access_token;
-      sessionStorage.setItem('acp_tok', token);
-      const ui = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+token}});
-      user = await ui.json();
-      sessionStorage.setItem('acp_usr', JSON.stringify(user));
-      showApp();
-    }
-  }).requestAccessToken();
+  try{
+    await requestAccessToken('consent');
+    const ui = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+token}});
+    user = await ui.json();
+    sessionStorage.setItem('acp_usr', JSON.stringify(user));
+    showApp();
+  }catch(err){
+    toast('Error auth: '+err.message, true);
+  }
 }
 function signOut(){
   try{ google.accounts.oauth2.revoke(token,()=>{}); }catch(e){}
-  token=null; sessionStorage.removeItem('acp_tok'); sessionStorage.removeItem('acp_usr'); user=null;
+  token=null; tokenExpiresAt=0; sessionStorage.removeItem('acp_tok'); sessionStorage.removeItem('acp_tok_exp'); sessionStorage.removeItem('acp_usr'); user=null;
   hideApp();
 }
 function showApp(){
@@ -476,13 +501,28 @@ async function launchApp(){
   }catch{ document.getElementById('drv-folder-name').textContent=folderID; }
   await cargarMaestroPersonas();
   genNInforme();
+  await restoreLocalDraftIfAny();
 }
 
 // ════ DRIVE API ════
+async function authFetch(url, opts={}){
+  await ensureValidToken(false);
+  const makeReq = () => fetch(url,{
+    ...opts,
+    headers:{
+      ...(opts.headers||{}),
+      Authorization:'Bearer '+token
+    }
+  });
+  let r=await makeReq();
+  if(r.status===401){
+    await ensureValidToken(true);
+    r=await makeReq();
+  }
+  return r;
+}
 async function drv(url, opts={}){
-  if(!opts.headers) opts.headers={};
-  opts.headers['Authorization']='Bearer '+token;
-  const r=await fetch(url,opts);
+  const r=await authFetch(url,opts);
   if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error(e.error?.message||r.statusText); }
   if(r.status===204) return null;
   return r.json();
@@ -494,7 +534,7 @@ async function drvList(parentId, nameContains=''){
   const d=await drv(url); return d.files||[];
 }
 async function drvRead(fid){
-  const r=await fetch(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`,{headers:{Authorization:'Bearer '+token}});
+  const r=await authFetch(`https://www.googleapis.com/drive/v3/files/${fid}?alt=media`);
   if(!r.ok) throw new Error('Error leyendo archivo');
   return r.json();
 }
@@ -503,8 +543,8 @@ async function drvCreate(name, content, parentId){
   const form=new FormData();
   form.append('metadata', new Blob([JSON.stringify(meta)],{type:'application/json'}));
   form.append('file', new Blob([JSON.stringify(content)],{type:'application/json'}));
-  const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{
-    method:'POST', headers:{Authorization:'Bearer '+token}, body:form
+  const r=await authFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',{
+    method:'POST', body:form
   });
   if(!r.ok) throw new Error('Error creando archivo en Drive');
   return r.json();
@@ -513,28 +553,27 @@ async function drvCreate(name, content, parentId){
 async function drvUpdate(fileId, content){
   const form=new FormData();
   form.append('file', new Blob([JSON.stringify(content)],{type:'application/json'}));
-  const r=await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`,{
-    method:'PATCH', headers:{Authorization:'Bearer '+token}, body:form
+  const r=await authFetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`,{
+    method:'PATCH', body:form
   });
   if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error(e.error?.message||'Error actualizando archivo en Drive'); }
   return r.json();
 }
 async function drvDelete(fid){
-  await fetch(`https://www.googleapis.com/drive/v3/files/${fid}`,{method:'DELETE',headers:{Authorization:'Bearer '+token}});
+  const r=await authFetch(`https://www.googleapis.com/drive/v3/files/${fid}`,{method:'DELETE'});
+  if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error(e.error?.message||'Error eliminando archivo en Drive'); }
 }
 
 // ════ SHEETS API (sin cambios) ════
 async function sheetsGet(range){
-  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}`,{
-    headers:{Authorization:'Bearer '+token}
-  });
+  const r = await authFetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}`);
   if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error(e.error?.message||'Error consultando Google Sheets'); }
   return r.json();
 }
 async function sheetsAppend(range, values){
-  const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,{
+  const r = await authFetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,{
     method:'POST',
-    headers:{ Authorization:'Bearer '+token, 'Content-Type':'application/json' },
+    headers:{ 'Content-Type':'application/json' },
     body:JSON.stringify({values:[values]})
   });
   if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error(e.error?.message||'Error guardando en Google Sheets'); }
@@ -762,6 +801,109 @@ function getGuias(){
   return Array.from(document.querySelectorAll('#gtb tr')).map(r=>{ const ins=r.querySelectorAll('input'); return{serie:ins[0].value.trim(),numero:ins[1].value.trim(),tipo:r.querySelector('select').value,cantidad:ins[2].value}; }).filter(g=>g.serie||g.numero);
 }
 
+// ════ BORRADOR LOCAL ════
+function openDraftDb(){
+  return new Promise((resolve, reject)=>{
+    const req=indexedDB.open(LOCAL_DRAFT_DB,1);
+    req.onupgradeneeded=()=>{
+      const db=req.result;
+      if(!db.objectStoreNames.contains(LOCAL_DRAFT_STORE)) db.createObjectStore(LOCAL_DRAFT_STORE);
+    };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function draftDbGet(key){
+  const db=await openDraftDb();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(LOCAL_DRAFT_STORE,'readonly');
+    const req=tx.objectStore(LOCAL_DRAFT_STORE).get(key);
+    req.onsuccess=()=>resolve(req.result||null);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function draftDbSet(key,value){
+  const db=await openDraftDb();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(LOCAL_DRAFT_STORE,'readwrite');
+    tx.objectStore(LOCAL_DRAFT_STORE).put(value,key);
+    tx.oncomplete=()=>resolve();
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+async function draftDbDelete(key){
+  const db=await openDraftDb();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(LOCAL_DRAFT_STORE,'readwrite');
+    tx.objectStore(LOCAL_DRAFT_STORE).delete(key);
+    tx.oncomplete=()=>resolve();
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+function captureCurrentState(){
+  return {
+    editingFileId, editingRegId,
+    fecha:document.getElementById('f-fecha')?.value||'',
+    proveedor:document.getElementById('f-prov')?.value||'',
+    ninforme:document.getElementById('f-ninf')?.value||'',
+    op1:document.getElementById('f-op1')?.value||'',
+    op2:document.getElementById('f-op2')?.value||'',
+    conductor:document.getElementById('f-cond')?.value||'',
+    obsGeneral:document.getElementById('f-obs')?.value||'',
+    guias:getGuias(),
+    pasos:PASOS.map(p=>({n:p.n,obs:document.getElementById('obs-'+p.n)?.value.trim()||'',fotos:Array.isArray(photos[p.n])?photos[p.n]:[]})),
+    savedAt:new Date().toISOString()
+  };
+}
+async function saveLocalDraft(){
+  try{ await draftDbSet(LOCAL_DRAFT_KEY,captureCurrentState()); }catch(err){ console.warn('No se pudo guardar borrador local',err); }
+}
+async function clearLocalDraft(){
+  try{ await draftDbDelete(LOCAL_DRAFT_KEY); }catch(err){ console.warn('No se pudo limpiar borrador local',err); }
+}
+function applyLocalDraft(draft){
+  if(!draft) return;
+  editingFileId=draft.editingFileId||null;
+  editingRegId=draft.editingRegId||null;
+  document.getElementById('f-fecha').value=draft.fecha||new Date().toISOString().split('T')[0];
+  document.getElementById('f-prov').value=draft.proveedor||'CORPORACIÓN PRIMAX S.A.';
+  document.getElementById('f-ninf').value=draft.ninforme||'';
+  document.getElementById('f-op1').value=draft.op1||'';
+  document.getElementById('f-op2').value=draft.op2||'';
+  document.getElementById('f-cond').value=draft.conductor||'';
+  document.getElementById('f-obs').value=draft.obsGeneral||'';
+  const gtb=document.getElementById('gtb');
+  gtb.innerHTML='';
+  (draft.guias||[]).forEach(g=>{
+    gtb.insertAdjacentHTML('beforeend',`<tr><td><input type="text" placeholder="T230" value="${escapeHtml(g.serie||'')}"></td><td><input type="text" placeholder="N° guía" value="${escapeHtml(g.numero||'')}"></td><td><select><option value="">Seleccionar...</option><option ${(g.tipo||'')==='PETRÓLEO'?'selected':''}>PETRÓLEO</option><option ${(g.tipo||'')==='GASOLINA'?'selected':''}>GASOLINA</option><option ${(g.tipo||'')==='GLP'?'selected':''}>GLP</option><option ${(g.tipo||'')==='DIESEL B5'?'selected':''}>DIESEL B5</option></select></td><td><input type="number" placeholder="0" min="0" value="${escapeHtml(String(g.cantidad||''))}"></td><td><button class="btn-icon danger" onclick="delG(this)" type="button"><i class="fa-solid fa-trash-can"></i></button></td></tr>`);
+  });
+  if(!(draft.guias||[]).length) gtb.innerHTML=`<tr><td><input type="text" placeholder="T230" value="T230"></td><td><input type="text" placeholder="N° guía"></td><td><select><option value="">Seleccionar...</option><option>PETRÓLEO</option><option>GASOLINA</option><option>GLP</option><option>DIESEL B5</option></select></td><td><input type="number" placeholder="0" min="0"></td><td><button class="btn-icon danger" onclick="delG(this)" type="button"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
+  photos={}; activePhotoIndex={};
+  PASOS.forEach(p=>{
+    const row=(draft.pasos||[]).find(x=>x.n===p.n);
+    photos[p.n]=Array.isArray(row?.fotos)?row.fotos:[];
+    activePhotoIndex[p.n]=0;
+  });
+  renderSteps();
+  (draft.pasos||[]).forEach(p=>{
+    const el=document.getElementById('obs-'+p.n);
+    if(el) el.value=p.obs||'';
+  });
+  actualizarEstadoBadge('BORRADOR');
+  document.getElementById('form-titulo').textContent=editingFileId?'Editar Borrador':'Recuperado desde borrador local';
+}
+async function restoreLocalDraftIfAny(){
+  const draft=await draftDbGet(LOCAL_DRAFT_KEY);
+  if(!draft) return;
+  if(!confirm('Se encontró un borrador local recuperable. ¿Deseas restaurarlo?')) return;
+  applyLocalDraft(draft);
+  toast('Borrador local restaurado');
+}
+function bindDraftAutosave(){
+  document.addEventListener('input',()=>{ clearTimeout(draftSaveTimer); draftSaveTimer=setTimeout(()=>{ saveLocalDraft(); },700); },true);
+  document.addEventListener('change',()=>{ clearTimeout(draftSaveTimer); draftSaveTimer=setTimeout(()=>{ saveLocalDraft(); },250); },true);
+}
+
 // ════ GUARDAR (BORRADOR o FINALIZADO) ════
 async function guardar(estado='BORRADOR'){
   const fecha=document.getElementById('f-fecha').value;
@@ -810,6 +952,7 @@ async function guardar(estado='BORRADOR'){
   showLov(label);
 
   try{
+    await ensureValidToken(false);
     if(editingFileId){
       // ── ACTUALIZAR archivo existente ──
       await drvUpdate(editingFileId, reg);
@@ -826,13 +969,18 @@ async function guardar(estado='BORRADOR'){
 
     document.getElementById('drv-sync').textContent = (estado==='BORRADOR'?'Borrador':'Finalizado')+': '+new Date().toLocaleTimeString('es-PE');
     actualizarEstadoBadge(estado);
+    await clearLocalDraft();
 
     // Si se finalizó, limpiar formulario y resetear edición
     if(estado==='FINALIZADO'){
       editingFileId=null; editingRegId=null;
       limpiar();
     }
-  }catch(err){ toast('Error: '+err.message, true); }
+  }catch(err){
+    console.error(err);
+    await saveLocalDraft();
+    toast('Error: '+err.message+'. Se conservó un borrador local.', true);
+  }
   finally{
     hideLov();
     btnDraft.disabled=false; btnSave.disabled=false;
@@ -1070,6 +1218,7 @@ function limpiar(){
   document.getElementById('estado-actual-badge').innerHTML='';
   renderSteps();
   genNInforme();
+  clearLocalDraft();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 async function switchView(v){
