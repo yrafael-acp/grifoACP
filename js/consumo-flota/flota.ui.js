@@ -209,5 +209,11 @@ const FlotaUI = {
         if (radar) {
             radar.style.display = (rol === 'ADMIN') ? '' : 'none';
         }
+
+        // ── BOTÓN INFORME FOTOGRÁFICO — solo rol READ ──────
+        const btnInfFot = document.getElementById('btnInfFotografico');
+        if (btnInfFot) {
+            btnInfFot.style.display = (rol === 'READ') ? 'inline-flex' : 'none';
+        }
     }
 };
