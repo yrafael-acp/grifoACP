@@ -265,19 +265,33 @@
 
         <div class="consulta-filters">
             <div class="filter-row">
-                <div class="filter-group flex-2">
-                    <label class="form-label">Números de Orden (separados por coma)</label>
-                    <input type="text" id="inputOrdenes" placeholder="Ej: 8000056, 8000057" class="form-input">
-                </div>
-                <div class="filter-group">
-                    <label class="form-label">Fecha Desde</label>
-                    <input type="date" id="fechaDesde" class="form-input">
-                </div>
-                <div class="filter-group">
-                    <label class="form-label">Fecha Hasta</label>
-                    <input type="date" id="fechaHasta" class="form-input">
-                </div>
-            </div>
+    <div class="filter-group flex-2">
+        <label class="form-label">Números de Orden (separados por coma)</label>
+        <input type="text" id="inputOrdenes" placeholder="Ej: 8000056, 8000057" class="form-input">
+    </div>
+
+    <div class="filter-group">
+        <label class="form-label">Placa / Unidad</label>
+        <input type="text" id="inputPlacaConsulta" placeholder="Ej: HAN001" class="form-input">
+    </div>
+
+    <div class="filter-group">
+        <label class="form-label">Fecha Desde</label>
+        <input type="date" id="fechaDesde" class="form-input">
+    </div>
+
+    <div class="filter-group">
+        <label class="form-label">Fecha Hasta</label>
+        <input type="date" id="fechaHasta" class="form-input">
+    </div>
+</div>
+
+<div class="filter-row" style="margin-top:10px">
+    <label style="display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;color:var(--text-secondary);letter-spacing:.08em;text-transform:uppercase">
+        <input type="checkbox" id="checkAnomaliasCombustible" style="width:16px;height:16px">
+        Buscar anomalías: unidades/órdenes con Diesel y Gasohol en el rango
+    </label>
+</div>
             <div class="consulta-actions">
                 <div id="resumenConsultaOrden" class="consulta-totals hidden">
                     <div class="total-chip total-chip-blue">
