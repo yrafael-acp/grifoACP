@@ -15,6 +15,8 @@
 <style>
 /* ── BASE (igual al original) ── */
 #main-app{display:none}
+#auth-screen{display:flex}
+#setup-screen{display:none}
 body{font-family:var(--font-sans)}
 .sync-bar{font-size:.72rem;color:#94a3b8;font-weight:500}
 .state-shell{min-height:calc(100vh - 88px);display:flex;align-items:center;justify-content:center;padding:32px 16px}
@@ -123,15 +125,7 @@ body{font-family:var(--font-sans)}
     <h2>Acceso al Informe Fotográfico</h2>
     <p class="sub">Inicie sesión con Google para registrar y consultar evidencias de recepción de combustible.</p>
     <div class="google-btn-shell" id="btn-gsi" role="button" tabindex="0" aria-label="Iniciar sesión con Google">
-      <div class="g_id_signin"
-           data-type="standard"
-           data-shape="pill"
-           data-theme="outline"
-           data-text="signin_with"
-           data-size="large"
-           data-logo_alignment="left"
-           data-width="280">
-      </div>
+      <div id="google-btn-render"></div>
     </div>
     <div class="auth-note" style="margin-top:22px">
       <strong>Configuración requerida</strong><br><br>
@@ -386,29 +380,62 @@ let editingFileId   = null;  // fileId en Drive del registro activo (null = nuev
 let editingRegId    = null;  // id interno del registro activo (null = nuevo)
 let filtroEstado    = 'todos'; // para la vista consulta
 
+
+function initGoogleVisualButton(retries=40){
+  const target = document.getElementById('google-btn-render');
+  if(!target) return;
+  if(typeof google === 'undefined' || !google.accounts || !google.accounts.id){
+    if(retries > 0) setTimeout(()=>initGoogleVisualButton(retries-1), 250);
+    return;
+  }
+  try{
+    target.innerHTML='';
+    google.accounts.id.initialize({
+      client_id: CLIENT_ID,
+      callback: ()=>{}
+    });
+    google.accounts.id.renderButton(target, {
+      type: 'standard',
+      shape: 'pill',
+      theme: 'outline',
+      text: 'signin_with',
+      size: 'large',
+      logo_alignment: 'left',
+      width: 280
+    });
+  }catch(err){
+    console.warn('No se pudo renderizar el botón visual de Google', err);
+  }
+}
+
 // ════ INIT ════
 window.addEventListener('load', async ()=>{
   renderSteps();
   setToday();
   bindProveedorUppercase();
   bindDraftAutosave();
+  initGoogleVisualButton();
   // Intenta retomar sesión Drive si viene desde consumo-flota
   const st = sessionStorage.getItem('acp_tok');
   const su = sessionStorage.getItem('acp_usr');
   const exp = Number(sessionStorage.getItem('acp_tok_exp') || '0');
   const btnGsi = document.getElementById('btn-gsi');
-  btnGsi.addEventListener('click', signIn);
-  btnGsi.addEventListener('keydown', e => {
-    if(e.key === 'Enter' || e.key === ' '){
-      e.preventDefault();
-      signIn();
-    }
-  });
+  if(btnGsi){
+    btnGsi.addEventListener('click', signIn);
+    btnGsi.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        signIn();
+      }
+    });
+  }
   if(st && su){
     token=st;
     tokenExpiresAt=exp;
     user=JSON.parse(su);
-    showApp();
+    await showApp();
+  }else{
+    hideApp();
   }
 });
 
@@ -468,37 +495,67 @@ function signOut(){
   token=null; tokenExpiresAt=0; sessionStorage.removeItem('acp_tok'); sessionStorage.removeItem('acp_tok_exp'); sessionStorage.removeItem('acp_usr'); user=null;
   hideApp();
 }
-function showApp(){
+async function showApp(){
   document.getElementById('auth-screen').style.display='none';
-  const chip=document.getElementById('user-chip'); chip.style.display='flex';
-  document.getElementById('user-avatar').src=user.picture||'';
-  document.getElementById('user-name').textContent=user.name||user.email||'';
-  if(!folderID){ document.getElementById('setup-screen').style.display='flex'; }
-  else launchApp();
+
+  const chip=document.getElementById('user-chip');
+  chip.style.display='flex';
+  document.getElementById('user-avatar').src=user?.picture||'';
+  document.getElementById('user-name').textContent=user?.name||user?.email||'';
+
+  if(!folderID){
+    document.getElementById('main-app').style.display='none';
+    document.getElementById('setup-screen').style.display='flex';
+    return;
+  }
+
+  document.getElementById('setup-screen').style.display='none';
+  await launchApp();
 }
 function hideApp(){
   document.getElementById('main-app').style.display='none';
   document.getElementById('setup-screen').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('user-chip').style.display='none';
-  ['btn-registro','btn-borradores','btn-consulta'].forEach(id=>document.getElementById(id).style.display='none');
+  ['btn-registro','btn-borradores','btn-consulta'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){
+      el.style.display='none';
+      el.classList.remove('active');
+    }
+  });
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-registro').classList.add('active');
 }
 function saveFolderStart(){
   const id=document.getElementById('folder-id-inp').value.trim();
   if(!id){ toast('Ingrese el ID de la carpeta',true); return; }
   folderID=id; localStorage.setItem('acp_fid',folderID);
   document.getElementById('setup-screen').style.display='none';
-  launchApp();
+  showApp();
 }
 async function launchApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('setup-screen').style.display='none';
   document.getElementById('main-app').style.display='block';
-  ['btn-registro','btn-borradores','btn-consulta'].forEach(id=>{ document.getElementById(id).style.display='flex'; });
+
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn-ui').forEach(v=>v.classList.remove('active'));
+
+  ['btn-registro','btn-borradores','btn-consulta'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display='flex';
+  });
   document.getElementById('btn-registro').classList.add('active');
   document.getElementById('view-registro').classList.add('active');
+
   try{
     const m=await drv(`https://www.googleapis.com/drive/v3/files/${folderID}?fields=name`);
     document.getElementById('drv-folder-name').textContent=m.name||folderID;
-  }catch{ document.getElementById('drv-folder-name').textContent=folderID; }
+  }catch{
+    document.getElementById('drv-folder-name').textContent=folderID;
+  }
+
   await cargarMaestroPersonas();
   genNInforme();
   await restoreLocalDraftIfAny();
