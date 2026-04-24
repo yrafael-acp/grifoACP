@@ -167,41 +167,158 @@ const FlotaModales = {
 
     const filas = Array.from(tabla.querySelectorAll('tr'));
 
-    const data = filas.map(tr =>
+    const dataTabla = filas.map(tr =>
         Array.from(tr.querySelectorAll('th, td')).map(td => td.innerText.trim())
     );
 
+    if (dataTabla.length <= 1) {
+        FlotaUI.toast('No hay datos para exportar.', 'warning');
+        return;
+    }
+
+    const fechaDesde = document.getElementById('fechaDesde')?.value || '';
+    const fechaHasta = document.getElementById('fechaHasta')?.value || '';
+    const ordenes = document.getElementById('inputOrdenConsulta')?.value || '';
+
+    const totalGalones = dataTabla.slice(1).reduce((acc, row) => {
+        const val = parseFloat(String(row[4]).replace(',', '.')) || 0;
+        return acc + val;
+    }, 0);
+
+    const totalImporte = dataTabla.slice(1).reduce((acc, row) => {
+        const val = parseFloat(String(row[5]).replace(/[^\d.-]/g, '')) || 0;
+        return acc + val;
+    }, 0);
+
+    const data = [
+        ['REPORTE DE CONSULTA POR ORDEN'],
+        [`Órdenes: ${ordenes || '---'}`],
+        [`Rango: ${fechaDesde || '---'} al ${fechaHasta || '---'}`],
+        [],
+        ...dataTabla,
+        [],
+        ['', '', '', 'TOTALES', totalGalones, totalImporte, '']
+    ];
+
     const ws = XLSX.utils.aoa_to_sheet(data);
 
-    // 🔥 Forzar FECHA como texto (columna A)
-    for (let row = 2; row <= data.length; row++) {
-        const cellRef = "A" + row;
-        if (ws[cellRef]) {
-            ws[cellRef].t = "s";
-            ws[cellRef].z = "@";
-            ws[cellRef].v = String(ws[cellRef].v);
+    // Combinar título
+    ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } }
+    ];
+
+    const headerRow = 4;
+    const totalRow = data.length;
+
+    // Forzar fecha como texto desde la fila de datos
+    for (let row = 6; row <= data.length - 2; row++) {
+        const fechaCell = 'A' + row;
+        if (ws[fechaCell]) {
+            ws[fechaCell].t = 's';
+            ws[fechaCell].z = '@';
+            ws[fechaCell].v = String(ws[fechaCell].v);
+        }
+
+        ['D', 'G'].forEach(col => {
+            const cellRef = col + row;
+            if (ws[cellRef]) {
+                ws[cellRef].t = 's';
+                ws[cellRef].z = '@';
+                ws[cellRef].v = String(ws[cellRef].v);
+            }
+        });
+    }
+
+    // Cantidad e importe como número
+    for (let row = 6; row <= data.length - 2; row++) {
+        const cantRef = 'E' + row;
+        const impRef = 'F' + row;
+
+        if (ws[cantRef]) {
+            ws[cantRef].t = 'n';
+            ws[cantRef].v = parseFloat(String(ws[cantRef].v).replace(',', '.')) || 0;
+            ws[cantRef].z = '#,##0.00';
+        }
+
+        if (ws[impRef]) {
+            ws[impRef].t = 'n';
+            ws[impRef].v = parseFloat(String(ws[impRef].v).replace(/[^\d.-]/g, '')) || 0;
+            ws[impRef].z = '"S/ " #,##0.00';
         }
     }
 
-    // (Opcional pero recomendado) evitar notación científica
-    ["D", "G"].forEach(col => {
-        for (let row = 2; row <= data.length; row++) {
-            const cellRef = col + row;
-            if (ws[cellRef]) {
-                ws[cellRef].t = "s";
-                ws[cellRef].z = "@";
+    // Totales
+    if (ws['E' + totalRow]) {
+        ws['E' + totalRow].t = 'n';
+        ws['E' + totalRow].z = '#,##0.00';
+    }
+
+    if (ws['F' + totalRow]) {
+        ws['F' + totalRow].t = 'n';
+        ws['F' + totalRow].z = '"S/ " #,##0.00';
+    }
+
+    // Estilos básicos
+    const range = XLSX.utils.decode_range(ws['!ref']);
+
+    for (let r = range.s.r; r <= range.e.r; r++) {
+        for (let c = range.s.c; c <= range.e.c; c++) {
+            const ref = XLSX.utils.encode_cell({ r, c });
+            if (!ws[ref]) continue;
+
+            if (!ws[ref].s) ws[ref].s = {};
+
+            ws[ref].s.alignment = {
+                vertical: 'center',
+                horizontal: c >= 4 ? 'right' : 'left'
+            };
+
+            if (r === 0) {
+                ws[ref].s.font = { bold: true, sz: 16, color: { rgb: 'FFFFFF' } };
+                ws[ref].s.fill = { fgColor: { rgb: '1F4E78' } };
+                ws[ref].s.alignment = { horizontal: 'center', vertical: 'center' };
+            }
+
+            if (r === headerRow) {
+                ws[ref].s.font = { bold: true, color: { rgb: 'FFFFFF' } };
+                ws[ref].s.fill = { fgColor: { rgb: '305496' } };
+                ws[ref].s.alignment = { horizontal: 'center', vertical: 'center' };
+            }
+
+            if (r === totalRow - 1) {
+                ws[ref].s.font = { bold: true };
+                ws[ref].s.fill = { fgColor: { rgb: 'D9EAF7' } };
+            }
+
+            if (r >= headerRow && r <= totalRow - 1) {
+                ws[ref].s.border = {
+                    top: { style: 'thin', color: { rgb: 'BFBFBF' } },
+                    bottom: { style: 'thin', color: { rgb: 'BFBFBF' } },
+                    left: { style: 'thin', color: { rgb: 'BFBFBF' } },
+                    right: { style: 'thin', color: { rgb: 'BFBFBF' } }
+                };
             }
         }
-    });
+    }
 
-    ws["!cols"] = [
-        { wch: 14 }, // Fecha
-        { wch: 20 }, // Material
-        { wch: 18 }, // Vehículo
-        { wch: 18 }, // Documento
-        { wch: 12 }, // Cantidad
-        { wch: 14 }, // Importe
-        { wch: 14 }  // Orden
+    ws['!cols'] = [
+        { wch: 14 },
+        { wch: 28 },
+        { wch: 18 },
+        { wch: 18 },
+        { wch: 14 },
+        { wch: 16 },
+        { wch: 16 }
+    ];
+
+    ws['!rows'] = [
+        { hpt: 26 },
+        { hpt: 20 },
+        { hpt: 20 },
+        { hpt: 8 },
+        { hpt: 22 }
     ];
 
     const wb = XLSX.utils.book_new();
