@@ -328,9 +328,51 @@ body{font-family:var(--font-sans)}
 //  CONFIGURACIÓN (sin cambios)
 // ════════════════════════════════════════════
 const CLIENT_ID = '905998954334-jib8l6g3he68m7p2f52kafeav8ucrmie.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/spreadsheets';
+const SCOPES = 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/spreadsheets';
 const SPREADSHEET_ID = '1k9OVdfTQLwcxqJpOigxP0h-AHCSIUf6LkZ3m1d_EfZk';
 const SHEET_MAESTRO_PERSONAS = 'MAESTRO_PERSONAS';
+
+function signIn(){
+  if(typeof google === 'undefined'){
+    toast('Google API no cargó. Use un servidor HTTP (no file://).', true);
+    return;
+  }
+
+  google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    prompt: 'consent',
+    callback: async r => {
+      if(r.error){
+        toast('Error auth: ' + r.error, true);
+        return;
+      }
+
+      token = r.access_token;
+      sessionStorage.setItem('acp_tok', token);
+
+      const ui = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+
+      user = await ui.json();
+      sessionStorage.setItem('acp_usr', JSON.stringify(user));
+      showApp();
+    }
+  }).requestAccessToken();
+}
+
+async function drvDelete(fid){
+  const r = await fetch(`https://www.googleapis.com/drive/v3/files/${fid}`, {
+    method: 'DELETE',
+    headers: { Authorization: 'Bearer ' + token }
+  });
+
+  if(!r.ok){
+    const e = await r.json().catch(() => ({}));
+    throw new Error(e.error?.message || 'Error eliminando archivo en Drive');
+  }
+}
 
 // ════════════════════════════════════════════
 //  PASOS (sin cambios — 20 pasos originales)
