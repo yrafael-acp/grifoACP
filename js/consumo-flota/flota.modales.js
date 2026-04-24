@@ -159,11 +159,57 @@ const FlotaModales = {
     },
 
     exportarConsultaExcel() {
-        const tabla = document.getElementById('tablaResultadoOrden');
-        const wb = XLSX.utils.table_to_book(tabla, { sheet: 'Consulta de Ordenes' });
-        const fecha = FlotaUtils.toISODate(new Date());
-        XLSX.writeFile(wb, `Reporte_Ordenes_ACP_${fecha}.xlsx`);
-    },
+    const tabla = document.getElementById('tablaResultadoOrden');
+    if (!tabla) {
+        FlotaUI.toast('No hay datos para exportar.', 'warning');
+        return;
+    }
+
+    const filas = Array.from(tabla.querySelectorAll('tr'));
+
+    const data = filas.map(tr =>
+        Array.from(tr.querySelectorAll('th, td')).map(td => td.innerText.trim())
+    );
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+
+    // 🔥 Forzar FECHA como texto (columna A)
+    for (let row = 2; row <= data.length; row++) {
+        const cellRef = "A" + row;
+        if (ws[cellRef]) {
+            ws[cellRef].t = "s";
+            ws[cellRef].z = "@";
+            ws[cellRef].v = String(ws[cellRef].v);
+        }
+    }
+
+    // (Opcional pero recomendado) evitar notación científica
+    ["D", "G"].forEach(col => {
+        for (let row = 2; row <= data.length; row++) {
+            const cellRef = col + row;
+            if (ws[cellRef]) {
+                ws[cellRef].t = "s";
+                ws[cellRef].z = "@";
+            }
+        }
+    });
+
+    ws["!cols"] = [
+        { wch: 14 }, // Fecha
+        { wch: 20 }, // Material
+        { wch: 18 }, // Vehículo
+        { wch: 18 }, // Documento
+        { wch: 12 }, // Cantidad
+        { wch: 14 }, // Importe
+        { wch: 14 }  // Orden
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Consulta de Ordenes');
+
+    const fecha = FlotaUtils.toISODate(new Date());
+    XLSX.writeFile(wb, `Reporte_Ordenes_ACP_${fecha}.xlsx`);
+},
 
     // ── MODAL EDITAR DOTACIÓN ─────────────────────
 
