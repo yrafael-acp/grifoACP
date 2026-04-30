@@ -478,16 +478,24 @@ async function ensureValidToken(interactive=false){
   }
   return requestAccessToken(interactive ? 'consent' : '');
 }
-async function signIn(){
-  if(typeof google === 'undefined'){ toast('Google API no cargó. Use un servidor HTTP (no file://).', true); return; }
-  try{
+// En tu bloque de AUTH dentro del HTML
+async function signIn() {
+  try {
+    // CAMBIO: Forzamos la validación del token de forma interactiva
     await requestAccessToken('consent');
-    const ui = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+token}});
+    const ui = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: 'Bearer ' + token }
+    });
     user = await ui.json();
     sessionStorage.setItem('acp_usr', JSON.stringify(user));
-    showApp();
-  }catch(err){
-    toast('Error auth: '+err.message, true);
+    
+    // Al entrar con éxito, disparamos la carga de la aplicación
+    await showApp(); 
+    
+    // IMPORTANTE: Después de mostrar la app, carga los maestros desde tu Web App[cite: 4, 6]
+    await cargarMaestroPersonas(); 
+  } catch (err) {
+    toast('Error auth: ' + err.message, true);
   }
 }
 function signOut(){
