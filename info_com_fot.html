@@ -409,29 +409,33 @@ function initGoogleVisualButton(retries=40){
 }
 
 // ════ INIT ════
-window.addEventListener('load', async () => {
+window.addEventListener('load', async ()=>{
   renderSteps();
   setToday();
   bindProveedorUppercase();
   bindDraftAutosave();
-  initGoogleVisualButton(); // Esto debe ejecutarse sí o sí
-
+  initGoogleVisualButton();
+  // Intenta retomar sesión Drive si viene desde consumo-flota
   const st = sessionStorage.getItem('acp_tok');
   const su = sessionStorage.getItem('acp_usr');
   const exp = Number(sessionStorage.getItem('acp_tok_exp') || '0');
-
-  if (st && su && Date.now() < exp) {
-    try {
-      token = st;
-      tokenExpiresAt = exp;
-      user = JSON.parse(su);
-      await showApp(); // Si ya está logueado, entra de frente[cite: 5]
-    } catch (e) {
-      console.error("Error al restaurar sesión:", e);
-      hideApp(); // Si falla, que pida login de nuevo[cite: 5]
-    }
-  } else {
-    hideApp(); // Esto asegura que se vea la pantalla de login[cite: 5]
+  const btnGsi = document.getElementById('btn-gsi');
+  if(btnGsi){
+    btnGsi.addEventListener('click', signIn);
+    btnGsi.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        signIn();
+      }
+    });
+  }
+  if(st && su){
+    token=st;
+    tokenExpiresAt=exp;
+    user=JSON.parse(su);
+    await showApp();
+  }else{
+    hideApp();
   }
 });
 
@@ -474,24 +478,16 @@ async function ensureValidToken(interactive=false){
   }
   return requestAccessToken(interactive ? 'consent' : '');
 }
-// En tu bloque de AUTH dentro del HTML
-async function signIn() {
-  try {
-    // CAMBIO: Forzamos la validación del token de forma interactiva
+async function signIn(){
+  if(typeof google === 'undefined'){ toast('Google API no cargó. Use un servidor HTTP (no file://).', true); return; }
+  try{
     await requestAccessToken('consent');
-    const ui = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: { Authorization: 'Bearer ' + token }
-    });
+    const ui = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+token}});
     user = await ui.json();
     sessionStorage.setItem('acp_usr', JSON.stringify(user));
-    
-    // Al entrar con éxito, disparamos la carga de la aplicación
-    await showApp(); 
-    
-    // IMPORTANTE: Después de mostrar la app, carga los maestros desde tu Web App[cite: 4, 6]
-    await cargarMaestroPersonas(); 
-  } catch (err) {
-    toast('Error auth: ' + err.message, true);
+    showApp();
+  }catch(err){
+    toast('Error auth: '+err.message, true);
   }
 }
 function signOut(){
@@ -641,27 +637,21 @@ async function sheetsAppend(range, values){
   return r.json();
 }
 
-// Reemplaza la función cargarMaestroPersonas() por esta:
-async function cargarMaestroPersonas() {
-  // Pon aquí tu URL real de la Web App (la de /exec)
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwExlJ_SGhr3EW2X0eHbRk5x_DVUykGExlNUgolQP3jUuS8G28a7EAePa0xu_FJIe-v9w/exec"; 
-  
-  if (!WEB_APP_URL || WEB_APP_URL.includes("https://script.google.com/macros/s/AKfycbwExlJ_SGhr3EW2X0eHbRk5x_DVUykGExlNUgolQP3jUuS8G28a7EAePa0xu_FJIe-v9w/exec")) {
-    console.warn("URL de Web App no configurada.");
+async function cargarMaestroPersonas(){
+  try{
+    const data = await sheetsGet(`${SHEET_MAESTRO_PERSONAS}!A2:F`);
+    const rows = data.values || [];
+    maestroPersonas = rows.map(r=>({
+      nombre:(r[0]||'').trim(), tipo:(r[1]||'').trim().toUpperCase(),
+      epresa:(r[2]||'').trim(), estado:(r[3]||'').trim().toUpperCase(),
+      sucursal:(r[4]||'').trim(), obs:(r[5]||'').trim(),
+    })).filter(x=>x.nombre);
+    llenarSelectPersonas();
+    toast('Maestro de personas actualizado');
+  }catch(err){
+    console.error(err);
     llenarSelectFallback();
-    return;
-  }
-
-  try {
-    const response = await fetch(`${WEB_APP_URL}?action=getMaestroPersonas`);
-    const res = await response.json();
-    if (res.status === "OK") {
-      maestroPersonas = res.personas;
-      llenarSelectPersonas();
-    }
-  } catch (err) {
-    console.error("Error cargando maestros:", err);
-    llenarSelectFallback(); // Evita que el formulario se quede vacío[cite: 5]
+    toast('No se pudo cargar MAESTRO_PERSONAS: '+err.message, true);
   }
 }
 function llenarSelectFallback(){
@@ -688,34 +678,29 @@ function abrirModalPersona(tipo='OPERARIO'){
   document.getElementById('modalPersona').classList.add('open');
 }
 function cerrarModalPersona(){ document.getElementById('modalPersona').classList.remove('open'); }
-// Dentro de guardarPersona(), reemplaza la parte del bloque 'try':
-try {
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycb...TU_ID_AQUI.../exec";
-    
-    // CAMBIO: Enviamos un POST al script en lugar de usar sheetsAppend directo
-    const response = await fetch(WEB_APP_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: "registrarPersona",
-        nombre: nombre,
-        tipo: tipo,
-        empresa: epresa
-      })
-    });
-
-    const res = await response.json();
-    if (res.status === "OK") {
-      await cargarMaestroPersonas();
-      if (tipo === 'OPERARIO') {
-        if (!document.getElementById('f-op1').value) document.getElementById('f-op1').value = nombre;
-        else if (!document.getElementById('f-op2').value) document.getElementById('f-op2').value = nombre;
-      } else {
-        document.getElementById('f-cond').value = nombre;
-      }
-      cerrarModalPersona();
-      toast('Persona registrada correctamente');
-    }
-} catch (err) { ... }
+async function guardarPersona(){
+  const nombre = document.getElementById('mp-nombre').value.trim();
+  const tipo   = document.getElementById('mp-tipo').value.trim().toUpperCase();
+  const epresa = document.getElementById('mp-epresa').value.trim();
+  const estado = document.getElementById('mp-estado').value.trim().toUpperCase();
+  const sucursal = document.getElementById('mp-sucursal').value.trim();
+  const obs = document.getElementById('mp-obs').value.trim();
+  if(!nombre){ toast('Ingrese el nombre', true); return; }
+  if(maestroPersonas.some(x=>x.nombre.toUpperCase()===nombre.toUpperCase()&&x.tipo===tipo)){ toast('La persona ya existe en el maestro', true); return; }
+  const btn = document.getElementById('btn-save-persona');
+  btn.disabled=true; btn.innerHTML='<span class="spinner" style="width:14px;height:14px;border-width:2px"></span>Guardando...';
+  try{
+    await sheetsAppend(`${SHEET_MAESTRO_PERSONAS}!A:F`, [nombre,tipo,epresa,estado,sucursal,obs]);
+    await cargarMaestroPersonas();
+    if(tipo==='OPERARIO'){
+      if(!document.getElementById('f-op1').value) document.getElementById('f-op1').value=nombre;
+      else if(!document.getElementById('f-op2').value) document.getElementById('f-op2').value=nombre;
+    }else{ document.getElementById('f-cond').value=nombre; }
+    cerrarModalPersona();
+    toast('Persona registrada correctamente');
+  }catch(err){ toast('Error guardando persona: '+err.message, true); }
+  finally{ btn.disabled=false; btn.innerHTML='Guardar'; }
+}
 
 // ════ STEPS — RENDER CON INPUT CÁMARA + GALERÍA ════
 function renderSteps(){
