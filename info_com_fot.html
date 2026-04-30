@@ -637,21 +637,26 @@ async function sheetsAppend(range, values){
   return r.json();
 }
 
-async function cargarMaestroPersonas(){
-  try{
-    const data = await sheetsGet(`${SHEET_MAESTRO_PERSONAS}!A2:F`);
-    const rows = data.values || [];
-    maestroPersonas = rows.map(r=>({
-      nombre:(r[0]||'').trim(), tipo:(r[1]||'').trim().toUpperCase(),
-      epresa:(r[2]||'').trim(), estado:(r[3]||'').trim().toUpperCase(),
-      sucursal:(r[4]||'').trim(), obs:(r[5]||'').trim(),
-    })).filter(x=>x.nombre);
-    llenarSelectPersonas();
-    toast('Maestro de personas actualizado');
-  }catch(err){
+// Reemplaza la función cargarMaestroPersonas() por esta:
+async function cargarMaestroPersonas() {
+  try {
+    // CAMBIO: Llamamos a tu script de GAS en lugar de la API directa de Sheets
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycb...TU_ID_AQUI.../exec"; // Pon tu URL de ejecución
+    const response = await fetch(`${WEB_APP_URL}?action=getMaestroPersonas`);
+    const res = await response.json();
+
+    if (res.status === "OK") {
+      // Usamos los datos que nos devuelve el script (que sí tiene acceso)
+      maestroPersonas = res.personas; 
+      llenarSelectPersonas();
+      toast('Maestro de personas actualizado ✓');
+    } else {
+      throw new Error(res.msg || 'Error en respuesta del servidor');
+    }
+  } catch (err) {
     console.error(err);
     llenarSelectFallback();
-    toast('No se pudo cargar MAESTRO_PERSONAS: '+err.message, true);
+    toast('No se pudo cargar maestros: ' + err.message, true);
   }
 }
 function llenarSelectFallback(){
@@ -678,29 +683,34 @@ function abrirModalPersona(tipo='OPERARIO'){
   document.getElementById('modalPersona').classList.add('open');
 }
 function cerrarModalPersona(){ document.getElementById('modalPersona').classList.remove('open'); }
-async function guardarPersona(){
-  const nombre = document.getElementById('mp-nombre').value.trim();
-  const tipo   = document.getElementById('mp-tipo').value.trim().toUpperCase();
-  const epresa = document.getElementById('mp-epresa').value.trim();
-  const estado = document.getElementById('mp-estado').value.trim().toUpperCase();
-  const sucursal = document.getElementById('mp-sucursal').value.trim();
-  const obs = document.getElementById('mp-obs').value.trim();
-  if(!nombre){ toast('Ingrese el nombre', true); return; }
-  if(maestroPersonas.some(x=>x.nombre.toUpperCase()===nombre.toUpperCase()&&x.tipo===tipo)){ toast('La persona ya existe en el maestro', true); return; }
-  const btn = document.getElementById('btn-save-persona');
-  btn.disabled=true; btn.innerHTML='<span class="spinner" style="width:14px;height:14px;border-width:2px"></span>Guardando...';
-  try{
-    await sheetsAppend(`${SHEET_MAESTRO_PERSONAS}!A:F`, [nombre,tipo,epresa,estado,sucursal,obs]);
-    await cargarMaestroPersonas();
-    if(tipo==='OPERARIO'){
-      if(!document.getElementById('f-op1').value) document.getElementById('f-op1').value=nombre;
-      else if(!document.getElementById('f-op2').value) document.getElementById('f-op2').value=nombre;
-    }else{ document.getElementById('f-cond').value=nombre; }
-    cerrarModalPersona();
-    toast('Persona registrada correctamente');
-  }catch(err){ toast('Error guardando persona: '+err.message, true); }
-  finally{ btn.disabled=false; btn.innerHTML='Guardar'; }
-}
+// Dentro de guardarPersona(), reemplaza la parte del bloque 'try':
+try {
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycb...TU_ID_AQUI.../exec";
+    
+    // CAMBIO: Enviamos un POST al script en lugar de usar sheetsAppend directo
+    const response = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: "registrarPersona",
+        nombre: nombre,
+        tipo: tipo,
+        empresa: epresa
+      })
+    });
+
+    const res = await response.json();
+    if (res.status === "OK") {
+      await cargarMaestroPersonas();
+      if (tipo === 'OPERARIO') {
+        if (!document.getElementById('f-op1').value) document.getElementById('f-op1').value = nombre;
+        else if (!document.getElementById('f-op2').value) document.getElementById('f-op2').value = nombre;
+      } else {
+        document.getElementById('f-cond').value = nombre;
+      }
+      cerrarModalPersona();
+      toast('Persona registrada correctamente');
+    }
+} catch (err) { ... }
 
 // ════ STEPS — RENDER CON INPUT CÁMARA + GALERÍA ════
 function renderSteps(){
