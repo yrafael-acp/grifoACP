@@ -409,33 +409,29 @@ function initGoogleVisualButton(retries=40){
 }
 
 // ════ INIT ════
-window.addEventListener('load', async ()=>{
+window.addEventListener('load', async () => {
   renderSteps();
   setToday();
   bindProveedorUppercase();
   bindDraftAutosave();
-  initGoogleVisualButton();
-  // Intenta retomar sesión Drive si viene desde consumo-flota
+  initGoogleVisualButton(); // Esto debe ejecutarse sí o sí
+
   const st = sessionStorage.getItem('acp_tok');
   const su = sessionStorage.getItem('acp_usr');
   const exp = Number(sessionStorage.getItem('acp_tok_exp') || '0');
-  const btnGsi = document.getElementById('btn-gsi');
-  if(btnGsi){
-    btnGsi.addEventListener('click', signIn);
-    btnGsi.addEventListener('keydown', e => {
-      if(e.key === 'Enter' || e.key === ' '){
-        e.preventDefault();
-        signIn();
-      }
-    });
-  }
-  if(st && su){
-    token=st;
-    tokenExpiresAt=exp;
-    user=JSON.parse(su);
-    await showApp();
-  }else{
-    hideApp();
+
+  if (st && su && Date.now() < exp) {
+    try {
+      token = st;
+      tokenExpiresAt = exp;
+      user = JSON.parse(su);
+      await showApp(); // Si ya está logueado, entra de frente[cite: 5]
+    } catch (e) {
+      console.error("Error al restaurar sesión:", e);
+      hideApp(); // Si falla, que pida login de nuevo[cite: 5]
+    }
+  } else {
+    hideApp(); // Esto asegura que se vea la pantalla de login[cite: 5]
   }
 });
 
@@ -647,24 +643,25 @@ async function sheetsAppend(range, values){
 
 // Reemplaza la función cargarMaestroPersonas() por esta:
 async function cargarMaestroPersonas() {
+  // Pon aquí tu URL real de la Web App (la de /exec)
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwExlJ_SGhr3EW2X0eHbRk5x_DVUykGExlNUgolQP3jUuS8G28a7EAePa0xu_FJIe-v9w/exec"; 
+  
+  if (!WEB_APP_URL || WEB_APP_URL.includes("https://script.google.com/macros/s/AKfycbwExlJ_SGhr3EW2X0eHbRk5x_DVUykGExlNUgolQP3jUuS8G28a7EAePa0xu_FJIe-v9w/exec")) {
+    console.warn("URL de Web App no configurada.");
+    llenarSelectFallback();
+    return;
+  }
+
   try {
-    // CAMBIO: Llamamos a tu script de GAS en lugar de la API directa de Sheets
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycb...TU_ID_AQUI.../exec"; // Pon tu URL de ejecución
     const response = await fetch(`${WEB_APP_URL}?action=getMaestroPersonas`);
     const res = await response.json();
-
     if (res.status === "OK") {
-      // Usamos los datos que nos devuelve el script (que sí tiene acceso)
-      maestroPersonas = res.personas; 
+      maestroPersonas = res.personas;
       llenarSelectPersonas();
-      toast('Maestro de personas actualizado ✓');
-    } else {
-      throw new Error(res.msg || 'Error en respuesta del servidor');
     }
   } catch (err) {
-    console.error(err);
-    llenarSelectFallback();
-    toast('No se pudo cargar maestros: ' + err.message, true);
+    console.error("Error cargando maestros:", err);
+    llenarSelectFallback(); // Evita que el formulario se quede vacío[cite: 5]
   }
 }
 function llenarSelectFallback(){
