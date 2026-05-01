@@ -103,11 +103,12 @@ const FlotaAPI = {
      * @param {string} desde - fecha ISO
      * @param {string} hasta - fecha ISO
      */
-    async getDetalleOrden(ordenes, desde, hasta, placa = '', auditoria = false) {
+    async getDetalleOrden(ordenes, desde, hasta, placa = '', centroCosto = '', auditoria = false) {
     return this.get({
         action: 'getDetalleOrden',
         orden: ordenes || '',
         placa: placa || '',
+        centroCosto: centroCosto || '',
         desde,
         hasta,
         auditoria: auditoria ? '1' : '0',
