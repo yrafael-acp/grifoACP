@@ -203,41 +203,45 @@ const FlotaModales = {
     const fechaDesde = document.getElementById('fechaDesde')?.value || '';
     const fechaHasta = document.getElementById('fechaHasta')?.value || '';
     const ordenes = document.getElementById('inputOrdenConsulta')?.value || '';
+    const placa = document.getElementById('inputPlacaConsulta')?.value || '';
+    const centroCosto = document.getElementById('inputCentroCostoConsulta')?.value || '';
 
     const totalGalones = dataTabla.slice(1).reduce((acc, row) => {
-        const val = parseFloat(String(row[4]).replace(',', '.')) || 0;
+        const val = parseFloat(String(row[5]).replace(',', '.')) || 0;
         return acc + val;
     }, 0);
 
     const totalImporte = dataTabla.slice(1).reduce((acc, row) => {
-        const val = parseFloat(String(row[5]).replace(/[^\d.-]/g, '')) || 0;
+        const val = parseFloat(String(row[6]).replace(/[^\d.-]/g, '')) || 0;
         return acc + val;
     }, 0);
 
     const data = [
         ['REPORTE DE CONSULTA POR ORDEN'],
         [`Órdenes: ${ordenes || '---'}`],
+        [`Placa: ${placa || '---'}`],
+        [`Centro de coste: ${centroCosto || '---'}`],
         [`Rango: ${fechaDesde || '---'} al ${fechaHasta || '---'}`],
         [],
         ...dataTabla,
         [],
-        ['', '', '', 'TOTALES', totalGalones, totalImporte, '']
+        ['', '', '', '', 'TOTALES', totalGalones, totalImporte, '']
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(data);
 
-    // Combinar título
     ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
-        { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } }
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } },
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 7 } },
+        { s: { r: 3, c: 0 }, e: { r: 3, c: 7 } },
+        { s: { r: 4, c: 0 }, e: { r: 4, c: 7 } }
     ];
 
-    const headerRow = 4;
+    const headerRow = 6;
     const totalRow = data.length;
 
-    // Forzar fecha como texto desde la fila de datos
-    for (let row = 6; row <= data.length - 2; row++) {
+    for (let row = 8; row <= data.length - 2; row++) {
         const fechaCell = 'A' + row;
         if (ws[fechaCell]) {
             ws[fechaCell].t = 's';
@@ -245,7 +249,7 @@ const FlotaModales = {
             ws[fechaCell].v = String(ws[fechaCell].v);
         }
 
-        ['D', 'G'].forEach(col => {
+        ['D', 'E', 'H'].forEach(col => {
             const cellRef = col + row;
             if (ws[cellRef]) {
                 ws[cellRef].t = 's';
@@ -255,10 +259,9 @@ const FlotaModales = {
         });
     }
 
-    // Cantidad e importe como número
-    for (let row = 6; row <= data.length - 2; row++) {
-        const cantRef = 'E' + row;
-        const impRef = 'F' + row;
+    for (let row = 8; row <= data.length - 2; row++) {
+        const cantRef = 'F' + row;
+        const impRef = 'G' + row;
 
         if (ws[cantRef]) {
             ws[cantRef].t = 'n';
@@ -273,18 +276,16 @@ const FlotaModales = {
         }
     }
 
-    // Totales
-    if (ws['E' + totalRow]) {
-        ws['E' + totalRow].t = 'n';
-        ws['E' + totalRow].z = '#,##0.00';
-    }
-
     if (ws['F' + totalRow]) {
         ws['F' + totalRow].t = 'n';
-        ws['F' + totalRow].z = '"S/ " #,##0.00';
+        ws['F' + totalRow].z = '#,##0.00';
     }
 
-    // Estilos básicos
+    if (ws['G' + totalRow]) {
+        ws['G' + totalRow].t = 'n';
+        ws['G' + totalRow].z = '"S/ " #,##0.00';
+    }
+
     const range = XLSX.utils.decode_range(ws['!ref']);
 
     for (let r = range.s.r; r <= range.e.r; r++) {
@@ -296,7 +297,7 @@ const FlotaModales = {
 
             ws[ref].s.alignment = {
                 vertical: 'center',
-                horizontal: c >= 4 ? 'right' : 'left'
+                horizontal: c >= 5 ? 'right' : 'left'
             };
 
             if (r === 0) {
@@ -316,40 +317,33 @@ const FlotaModales = {
                 ws[ref].s.fill = { fgColor: { rgb: 'D9EAF7' } };
             }
 
-            if (r >= headerRow && r <= totalRow - 1) {
+            if (r >= headerRow && r <= totalRow - 2) {
                 ws[ref].s.border = {
-                    top: { style: 'thin', color: { rgb: 'BFBFBF' } },
-                    bottom: { style: 'thin', color: { rgb: 'BFBFBF' } },
-                    left: { style: 'thin', color: { rgb: 'BFBFBF' } },
-                    right: { style: 'thin', color: { rgb: 'BFBFBF' } }
+                    top: { style: 'thin', color: { rgb: 'D1D5DB' } },
+                    bottom: { style: 'thin', color: { rgb: 'D1D5DB' } },
+                    left: { style: 'thin', color: { rgb: 'D1D5DB' } },
+                    right: { style: 'thin', color: { rgb: 'D1D5DB' } }
                 };
             }
         }
     }
 
     ws['!cols'] = [
-        { wch: 14 },
-        { wch: 28 },
-        { wch: 18 },
-        { wch: 18 },
-        { wch: 14 },
-        { wch: 16 },
-        { wch: 16 }
-    ];
-
-    ws['!rows'] = [
-        { hpt: 26 },
-        { hpt: 20 },
-        { hpt: 20 },
-        { hpt: 8 },
-        { hpt: 22 }
+        { wch: 14 }, // Fecha
+        { wch: 28 }, // Material
+        { wch: 14 }, // Placa
+        { wch: 18 }, // Centro de coste
+        { wch: 18 }, // Documento
+        { wch: 12 }, // Cantidad
+        { wch: 14 }, // Importe
+        { wch: 16 }, // Orden
     ];
 
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Consulta de Ordenes');
+    XLSX.utils.book_append_sheet(wb, ws, 'Consulta_Ordenes');
 
-    const fecha = FlotaUtils.toISODate(new Date());
-    XLSX.writeFile(wb, `Reporte_Ordenes_ACP_${fecha}.xlsx`);
+    const fechaArchivo = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `Consulta_Ordenes_${fechaArchivo}.xlsx`);
 },
 
     // ── MODAL EDITAR DOTACIÓN ─────────────────────
