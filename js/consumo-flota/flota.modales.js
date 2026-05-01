@@ -96,6 +96,7 @@ const FlotaModales = {
     async ejecutarConsultaOrden() {
     const input = document.getElementById('inputOrdenes').value.trim();
     const placa = document.getElementById('inputPlacaConsulta')?.value.trim() || '';
+    const centroCosto = document.getElementById('inputCentroCostoConsulta')?.value.trim() || '';
     const auditoria = document.getElementById('checkAnomaliasCombustible')?.checked || false;
 
     const fD = document.getElementById('fechaDesde').value;
@@ -106,8 +107,8 @@ const FlotaModales = {
         return;
     }
 
-    if (!input && !placa && !auditoria) {
-        FlotaUI.toast('Ingresa una orden, una placa o activa la auditoría de doble combustible.', 'warning');
+    if (!input && !placa && !centroCosto && !auditoria) {
+        FlotaUI.toast('Ingresa una orden, una placa, un centro de coste o activa la auditoría de doble combustible.', 'warning');
         return;
     }
 
@@ -122,7 +123,7 @@ const FlotaModales = {
     estado.classList.add('hidden');
 
     try {
-        const data = await FlotaAPI.getDetalleOrden(input, fD, fH, placa, auditoria);
+        const data = await FlotaAPI.getDetalleOrden(input, fD, fH, placa, centroCosto, auditoria);
         const tbody = document.querySelector('#tablaResultadoOrden tbody');
         tbody.innerHTML = '';
 
@@ -141,6 +142,7 @@ const FlotaModales = {
                         <td style="color:var(--text-secondary)">${i.fecha}</td>
                         <td><span class="badge-material">${i.tipo}</span>${badgeAnomalia}</td>
                         <td><span class="badge-placa-order">${i.placa}</span></td>
+                        <td style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted)">${i.centroCosto || '-'}</td>
                         <td style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted)">${i.documento}</td>
                         <td class="text-center"><span class="cant-value">${i.cantidad.toFixed(2)}</span></td>
                         <td class="text-right"><span class="importe-soles">S/ ${i.importe.toFixed(2)}</span></td>
