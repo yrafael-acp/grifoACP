@@ -202,7 +202,7 @@ const FlotaModales = {
 
     const fechaDesde = document.getElementById('fechaDesde')?.value || '';
     const fechaHasta = document.getElementById('fechaHasta')?.value || '';
-    const ordenes = document.getElementById('inputOrdenConsulta')?.value || '';
+    const ordenes = document.getElementById('inputOrdenes')?.value || '';
     const placa = document.getElementById('inputPlacaConsulta')?.value || '';
     const centroCosto = document.getElementById('inputCentroCostoConsulta')?.value || '';
 
