@@ -205,6 +205,25 @@ const FlotaModales = {
     const ordenes = document.getElementById('inputOrdenes')?.value || '';
     const placa = document.getElementById('inputPlacaConsulta')?.value || '';
     const centroCosto = document.getElementById('inputCentroCostoConsulta')?.value || '';
+    const auditoria = document.getElementById('checkAnomaliasCombustible')?.checked || false;
+
+    let tituloReporte = 'REPORTE DETALLADO DE CONSULTA';
+
+    if (auditoria) {
+        tituloReporte = 'REPORTE DE AUDITORÍA DE DOBLE COMBUSTIBLE';
+    } else {
+        const filtrosActivos = [];
+
+        if (ordenes && ordenes.trim()) filtrosActivos.push('ORDEN');
+        if (placa && placa.trim()) filtrosActivos.push('PLACA');
+        if (centroCosto && centroCosto.trim()) filtrosActivos.push('CENTRO DE COSTE');
+
+        if (filtrosActivos.length === 1) {
+            tituloReporte = `REPORTE DE CONSULTA POR ${filtrosActivos[0]}`;
+        } else if (filtrosActivos.length > 1) {
+            tituloReporte = `REPORTE DE CONSULTA POR ${filtrosActivos.join(' + ')}`;
+        }
+    }
 
     const totalGalones = dataTabla.slice(1).reduce((acc, row) => {
         const val = parseFloat(String(row[5]).replace(',', '.')) || 0;
@@ -217,7 +236,7 @@ const FlotaModales = {
     }, 0);
 
     const data = [
-        ['REPORTE DE CONSULTA POR ORDEN'],
+        [tituloReporte],
         [`Órdenes: ${ordenes || '---'}`],
         [`Placa: ${placa || '---'}`],
         [`Centro de coste: ${centroCosto || '---'}`],
@@ -331,12 +350,12 @@ const FlotaModales = {
     ws['!cols'] = [
         { wch: 14 }, // Fecha
         { wch: 28 }, // Material
-        { wch: 14 }, // Placa
+        { wch: 16 }, // Vehículo / Placa
         { wch: 18 }, // Centro de coste
         { wch: 18 }, // Documento
         { wch: 12 }, // Cantidad
         { wch: 14 }, // Importe
-        { wch: 16 }, // Orden
+        { wch: 16 }, // N° Orden
     ];
 
     const wb = XLSX.utils.book_new();
