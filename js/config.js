@@ -16,7 +16,6 @@ const USER_ROLES = {
     "CORRILLO":   "READ",
     "FFERNANDEZ": "READ",
     "WNEYRA":     "READ",
-    "ASALAZAR":   "READ",
     "ENUÑEZ":     "READ"
 };
 
