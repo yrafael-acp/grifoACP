@@ -9,7 +9,7 @@ const USER_ROLES = {
     "CVILLANUEVA":"ADMIN",
     "EURBINA":    "ADMIN",
     "WCASTRO":    "ADMIN",
-    "ACERRUTI":   "ADMIN",
+    "ACERRUTTI":   "READ",
     "JTUESTA":    "ADMIN",
     "LJUAREZ":    "READ",
     "CGONZALES":  "READ",
