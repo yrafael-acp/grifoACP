@@ -16,7 +16,8 @@ const USER_ROLES = {
     "CORRILLO":   "READ",
     "FFERNANDEZ": "READ",
     "WNEYRA":     "READ",
-    "ENUÑEZ":     "READ"
+    "ENUÑEZ":     "READ",
+    "JSOTO":      "ADMIN"
 };
 
 let currentUser    = null;
